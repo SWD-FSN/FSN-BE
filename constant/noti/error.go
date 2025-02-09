@@ -5,7 +5,7 @@ const (
 
 	RepoErrMsg string = "Error in %s repository at "
 
-	MailHelperMsg string = "Error while generating mail in helper at "
+	MailErrMsg string = "Error while generating mail at %s -  "
 
 	JsonMsg string = "Error in json helper - "
 

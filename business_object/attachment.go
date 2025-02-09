@@ -12,5 +12,5 @@ type Attachment struct {
 }
 
 func GetAttachmentTable() string {
-	return "Attachment"
+	return "attachment"
 }

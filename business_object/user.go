@@ -21,5 +21,5 @@ type User struct {
 }
 
 func GetUserTable() string {
-	return "User"
+	return "user"
 }
