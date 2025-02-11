@@ -6,7 +6,8 @@ type User struct {
 	UserId        string    `json:"user_id"`
 	RoleId        string    `json:"role_id"`
 	Username      string    `json:"username"`
-	PhoneNumber   string    `json:"phone_number"`
+	Email         string    `json:"email" validate:"email, required"`
+	Password      string    `json:"password" validate:"min=10"`
 	DateOfBirth   time.Time `json:"date_of_birth"`
 	ProfileAvatar string    `json:"profile_avatar"`
 	Bio           string    `json:"bio"`

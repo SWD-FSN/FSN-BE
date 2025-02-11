@@ -22,3 +22,8 @@ func ToCombinedString(src []string, sepChar string) string {
 func ToSliceString(src, sepChar string) []string {
 	return strings.Split(src, sepChar)
 }
+
+func ToNormalizedString(s string) string {
+	s = strings.TrimSpace(s)
+	return strings.ToLower(s)
+}

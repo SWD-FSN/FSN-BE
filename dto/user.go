@@ -3,7 +3,7 @@ package dto
 import "time"
 
 type CreateUserReq struct {
-	UserName      string    `json:"user_name"`
+	Username      string    `json:"username"`
 	RoleId        string    `json:"role_id"`
 	PhoneNumber   string    `json:"phone_number"`
 	DateOfBirth   time.Time `json:"date_of_birth"`
@@ -14,9 +14,10 @@ type CreateUserReq struct {
 }
 
 type UserSaveModel struct {
-	UserName      string    `json:"user_name"`
+	Username      string    `json:"username"`
 	RoleId        string    `json:"role_id"`
-	PhoneNumber   string    `json:"phone_number"`
+	Email         string    `json:"email"`
+	Password      string    `json:"password" validate:"min=10"`
 	DateOfBirth   time.Time `json:"date_of_birth"`
 	ProfileAvatar string    `json:"profile_avatar"`
 	Bio           string    `json:"bio"`
@@ -33,8 +34,9 @@ type UserSaveModel struct {
 type UserDBResModel struct {
 	UserId        string    `json:"user_id"`
 	RoleId        string    `json:"role_id"`
-	UserName      string    `json:"user_name"`
-	PhoneNumber   string    `json:"phone_number"`
+	Username      string    `json:"username"`
+	Email         string    `json:"email"`
+	Password      string    `json:"password" validate:"min=10"`
 	DateOfBirth   time.Time `json:"date_of_birth"`
 	ProfileAvatar string    `json:"profile_avatar"`
 	Bio           string    `json:"bio"`
@@ -46,4 +48,9 @@ type UserDBResModel struct {
 	IsActive      bool      `json:"is_active"`
 	CreatedAt     time.Time `json:"created_at"`
 	UpdatedAt     time.Time `json:"updated_at"`
+}
+
+type LoginRequest struct {
+	Email    string `json:"username"`
+	Password string `json:"password"`
 }
