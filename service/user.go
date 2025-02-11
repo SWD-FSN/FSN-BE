@@ -18,6 +18,36 @@ type userService struct {
 	userRepo repo.IUserRepo
 }
 
+// ChangeUserStatus implements service.IUserService.
+func (u *userService) ChangeUserStatus(rawStatus string, userId string, actorId string, c context.Context) (error, string) {
+	panic("unimplemented")
+}
+
+// GetAllUsers implements service.IUserService.
+func (u *userService) GetAllUsers(ctx context.Context) (*[]businessobject.User, error) {
+	panic("unimplemented")
+}
+
+// GetUsersByRole implements service.IUserService.
+func (u *userService) GetUsersByRole(role string, ctx context.Context) (*[]businessobject.User, error) {
+	panic("unimplemented")
+}
+
+// GetUsersByStatus implements service.IUserService.
+func (u *userService) GetUsersByStatus(rawStatus string, ctx context.Context) (*[]businessobject.User, error) {
+	panic("unimplemented")
+}
+
+// LogOut implements service.IUserService.
+func (u *userService) LogOut(id string, ctx context.Context) error {
+	panic("unimplemented")
+}
+
+// Login implements service.IUserService.
+func (u *userService) Login(req dto.LoginRequest, ctx context.Context) (string, string, error) {
+	panic("unimplemented")
+}
+
 // CreateUser implements service.IUserService.
 func (u *userService) CreateUser(req dto.CreateUserReq, ctx context.Context) error {
 	panic("unimplemented")
