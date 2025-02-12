@@ -21,6 +21,7 @@ type UserSaveModel struct {
 	DateOfBirth   time.Time `json:"date_of_birth"`
 	ProfileAvatar string    `json:"profile_avatar"`
 	Bio           string    `json:"bio"`
+	Friends       string    `json:"friends"`
 	Followers     string    `jsonz:"followers"`
 	Followings    string    `json:"followings"`
 	BlockUsers    string    `json:"block_users"`
@@ -40,6 +41,7 @@ type UserDBResModel struct {
 	DateOfBirth   time.Time `json:"date_of_birth"`
 	ProfileAvatar string    `json:"profile_avatar"`
 	Bio           string    `json:"bio"`
+	Friends       string    `json:"friends"`
 	Followers     string    `jsonz:"followers"`
 	Followings    string    `json:"followings"`
 	BlockUsers    string    `json:"block_users"`

@@ -11,6 +11,7 @@ import (
 	"social_network/interfaces/repo"
 	"social_network/interfaces/service"
 	"social_network/repository"
+	"social_network/repository/db"
 	"social_network/util"
 	"strings"
 	"time"
@@ -36,8 +37,14 @@ func InitializeRoleService(db *sql.DB, logger *log.Logger) service.IRoleService 
 }
 
 func GenerateRoleService() (service.IRoleService, error) {
+	cnn, err := db.ConnectDB(business_object.GetRoleTable())
+
+	if err != nil {
+		return nil, err
+	}
+
 	var logger = &log.Logger{}
-	return InitializeRoleService(nil, logger), nil
+	return InitializeRoleService(cnn, logger), nil
 }
 
 // ActivateRole implements service.IRoleService.

@@ -23,11 +23,11 @@ const (
 
 // Database
 const (
-	DbConnectionMsg string = "Error while connecting to database in %s service - "
+	DbConnectionErrMsg string = "Error while connecting to database - "
 
-	DbMigrationErrMsg string = "Error while migrating database in %s service - "
+	DbMigrationErrMsg string = "Error while migrating database - "
 
-	DbSetConnectionStrErrMsg string = "Error while setting database connection string in %s service - "
+	DbSetConnectionStrErrMsg string = "Error while setting database connection string - "
 )
 
 // gRPC

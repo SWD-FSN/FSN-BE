@@ -96,9 +96,35 @@ func (u *userRepo) GetAllUsers(ctx context.Context) (*[]dto.UserDBResModel, erro
 	return res, nil
 }
 
+// GetUsersByStatus implements repo.IUserRepo.
+func (u *userRepo) GetUsersByStatus(status bool, ctx context.Context) (*[]dto.UserDBResModel, error) {
+	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetUserTable()) + "GetUsersByStatus - "
+	var query string = "Select * from " + business_object.GetUserTable() + "where is_active = ?"
+	defer u.db.Close()
+
+	rows, err := u.db.Query(query, status)
+	if err != nil {
+		u.logger.Println(errLogMsg, err.Error())
+		return nil, errors.New(noti.InternalErr)
+	}
+
+	var res *[]dto.UserDBResModel
+	for rows.Next() {
+		var x dto.UserDBResModel
+		if err := rows.Scan(&x.UserId, &x.RoleId, &x.Username, &x.Email, &x.DateOfBirth, &x.ProfileAvatar, &x.Bio, &x.Followers, &x.Followings, &x.BlockUsers, &x.Conversations, &x.IsActive, &x.IsActive, &x.CreatedAt, &x.UpdatedAt); err != nil {
+			u.logger.Println(errLogMsg, err.Error())
+			return nil, errors.New(noti.InternalErr)
+		}
+
+		*res = append(*res, x)
+	}
+
+	return res, nil
+}
+
 // GetUserByEmail implements repo.IUserRepo.
 func (u *userRepo) GetUserByEmail(email string, ctx context.Context) (*dto.UserDBResModel, error) {
-	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetUserTable()) + "GetAllUsers - "
+	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetUserTable()) + "GetUserByEmail - "
 	var query string = "Select top 1 * from " + business_object.GetUserTable() + "where lower(email) = lower($1)"
 	defer u.db.Close()
 
@@ -116,19 +142,26 @@ func (u *userRepo) GetUserByEmail(email string, ctx context.Context) (*dto.UserD
 }
 
 // GetUsersByRole implements repo.IUserRepo.
-func (u *userRepo) GetUsersByRole(id string, ctx context.Context) (*dto.UserDBResModel, error) {
-	var query string = "Select top 1 * from " + business_object.GetUserTable() + "Where role_id = ?"
+func (u *userRepo) GetUsersByRole(id string, ctx context.Context) (*[]dto.UserDBResModel, error) {
+	var query string = "Select * from " + business_object.GetUserTable() + "Where role_id = ?"
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetUserTable()) + "GetUsersByRole - "
 	defer u.db.Close()
 
-	var res *dto.UserDBResModel
-	if err := u.db.QueryRow(query, id).Scan(&res.UserId, &res.RoleId, &res.Username, &res.Email, &res.DateOfBirth, &res.ProfileAvatar, &res.Bio, &res.Followers, &res.Followings, &res.BlockUsers, &res.Conversations, &res.IsActive, &res.IsActive, &res.CreatedAt, &res.UpdatedAt); err != nil {
-		if err == sql.ErrNoRows {
-			return nil, nil
-		}
-
+	rows, err := u.db.Query(query, id)
+	if err != nil {
 		u.logger.Println(errLogMsg, err.Error())
 		return nil, errors.New(noti.InternalErr)
+	}
+
+	var res *[]dto.UserDBResModel
+	for rows.Next() {
+		var x dto.UserDBResModel
+		if err := rows.Scan(&x.UserId, &x.RoleId, &x.Username, &x.Email, &x.Password, &x.DateOfBirth, &x.ProfileAvatar, &x.Bio, &x.Friends, &x.Followers, &x.Followings, &x.BlockUsers, &x.Conversations, &x.IsActive, &x.IsActive, &x.CreatedAt, &x.UpdatedAt); err != nil {
+			u.logger.Println(errLogMsg, err.Error())
+			return nil, errors.New(noti.InternalErr)
+		}
+
+		*res = append(*res, x)
 	}
 
 	return res, nil
