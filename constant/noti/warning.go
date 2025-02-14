@@ -12,4 +12,6 @@ const (
 	GenericsErrorWarnMsg string = "Invalid data. Please try again."
 
 	InvalidStatusWarnMsg string = "Invalid status. Please try again."
+
+	WrongCredentialsWarnMsg string = "Incorrect email or password. Please try again."
 )

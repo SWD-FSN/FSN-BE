@@ -8,6 +8,7 @@ import (
 	"log"
 	business_object "social_network/business_object"
 	"social_network/constant/noti"
+	"social_network/dto"
 	"social_network/interfaces/repo"
 )
 
@@ -21,6 +22,60 @@ func InitializeUserSecurityRepo(db *sql.DB, logger *log.Logger) repo.IUserSecuri
 		db:     db,
 		logger: logger,
 	}
+}
+
+// Login implements repo.IUserSecurityRepo.
+func (u *userSecurityRepo) Login(req dto.LoginSecurityRequest, ctx context.Context) error {
+	var query string = "Update " + business_object.GetUserSecurityTable() + " set access_token = ?, refresh_token = ? where id = ?"
+	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetUserSecurityTable()) + "Login - "
+	var internalErr error = errors.New(noti.InternalErr)
+	defer u.db.Close()
+
+	defer u.db.Close()
+
+	res, err := u.db.Exec(query, req.AccessToken, req.RefreshToken, req.UserId)
+	if err != nil {
+		u.logger.Println(errLogMsg, err.Error())
+		return internalErr
+	}
+
+	rowsAffected, err := res.RowsAffected()
+	if err != nil {
+		u.logger.Println(errLogMsg, err.Error())
+		return internalErr
+	}
+
+	if rowsAffected == 0 {
+		return errors.New(fmt.Sprintf(noti.UndefinedObjectWarnMsg, business_object.GetUserSecurityTable()))
+	}
+
+	return nil
+}
+
+// LogOut implements repo.IUserSecurityRepo.
+func (u *userSecurityRepo) LogOut(id string, ctx context.Context) error {
+	var query string = "Update " + business_object.GetUserSecurityTable() + " set access_token = NULL, refresh_token = NULL where id = ?"
+	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetUserSecurityTable()) + "LogOut - "
+	var internalErr error = errors.New(noti.InternalErr)
+	defer u.db.Close()
+
+	res, err := u.db.Exec(query, id)
+	if err != nil {
+		u.logger.Println(errLogMsg, err.Error())
+		return internalErr
+	}
+
+	rowsAffected, err := res.RowsAffected()
+	if err != nil {
+		u.logger.Println(errLogMsg, err.Error())
+		return internalErr
+	}
+
+	if rowsAffected == 0 {
+		return errors.New(fmt.Sprintf(noti.UndefinedObjectWarnMsg, business_object.GetUserSecurityTable()))
+	}
+
+	return nil
 }
 
 // EditUserSecurity implements repo.IUserSecurityRepo.
