@@ -21,6 +21,7 @@ import (
 
 type userService struct {
 	logger           *log.Logger
+	roleRepo         repo.IRoleRepo
 	userSecurityRepo repo.IUserSecurityRepo
 	userRepo         repo.IUserRepo
 }
@@ -43,6 +44,12 @@ const (
 	verifyFailLimit int = 5
 )
 
+const (
+	admin_role string = "Admin"
+	user_role  string = "User"
+	staff_role string = "Staff"
+)
+
 func GenerateUserService() (service.IUserService, error) {
 	db, err := db.ConnectDB(business_object.GetUserTable())
 
@@ -54,6 +61,7 @@ func GenerateUserService() (service.IUserService, error) {
 
 	return &userService{
 		logger:           logger,
+		roleRepo:         repository.InitializeRoleRepo(db, logger),
 		userSecurityRepo: repository.InitializeUserSecurityRepo(db, logger),
 		userRepo:         repository.InitializeUserRepo(db, logger),
 	}, nil
@@ -154,8 +162,142 @@ func (u *userService) Login(req dto.LoginRequest, ctx context.Context) (string, 
 }
 
 // CreateUser implements service.IUserService.
-func (u *userService) CreateUser(req dto.CreateUserReq, ctx context.Context) error {
-	panic("unimplemented")
+func (u *userService) CreateUser(req dto.CreateUserReq, actorId string, ctx context.Context) (string, error) {
+	var actor *dto.UserDBResModel
+
+	// If this request executed by an account
+	if actorId != "" {
+		if err := verifyAccount(actorId, id_validate, actor, u.userRepo, ctx); err != nil {
+			return "", err
+		}
+	}
+
+	// New email exists?
+	if verifyAccount(req.Email, email_validate, nil, u.userRepo, ctx) == nil {
+		return "", errors.New(noti.EmailRegisteredWarnMsg)
+	}
+
+	// Check password secure
+	if !util.IsPasswordSecure(req.Password) {
+		return "", errors.New(noti.PasswordNotSecureWarnMsg)
+	}
+
+	// Hash password
+	hashPw, err := util.ToHashString(req.Password)
+	if err != nil {
+		return "", err
+	}
+
+	// Define role for new account
+	roles, err := getRoles(u.roleRepo, ctx)
+	if err != nil {
+		return "", err
+	}
+
+	if actorId == "" || req.RoleId == "" {
+		req.RoleId = roles[user_role]
+	} else {
+		if err := validateCreateAction(req.RoleId, actor.RoleId, roles); err != nil {
+			return "", err
+		}
+	}
+
+	var id string = util.GenerateId()
+
+	// Generate token
+	token, err := util.GenerateActionToken(req.Email, "", req.RoleId, u.logger)
+	if err != nil {
+		return "", err
+	}
+
+	// Belongs to last fail access of a new account
+	var tmpTime = util.GetPrimitiveTime()
+
+	// Flag if account need to reset password (in case staff role creates)
+	var isHaveToResetPw *bool = nil
+	if actorId != "" {
+		var flag bool = true
+		isHaveToResetPw = &flag
+	}
+
+	// Set status
+	var isPrivate bool = true
+	if req.IsPrivate == nil {
+		isPrivate = false
+	} else {
+		isPrivate = *req.IsPrivate
+	}
+
+	var isActive bool = false
+	if req.IsActive == nil {
+		isActive = true
+	} else {
+		isPrivate = *req.IsActive
+	}
+
+	// Save new account to database
+	if err := u.userRepo.CreateUser(dto.UserDBResModel{
+		UserId:          id,
+		RoleId:          req.RoleId,
+		Username:        req.Username,
+		Email:           req.Email,
+		Password:        hashPw,
+		DateOfBirth:     req.DateOfBirth,
+		ProfileAvatar:   req.ProfileAvatar,
+		Bio:             req.Bio,
+		Friends:         util.ToCombinedString(*req.Friends, sepChar),
+		Followers:       util.ToCombinedString(*req.Followers, sepChar),
+		Followings:      util.ToCombinedString(*req.Followings, sepChar),
+		BlockUsers:      util.ToCombinedString(*req.BlockUsers, sepChar),
+		IsPrivate:       isPrivate,
+		IsActive:        isActive,
+		IsActivated:     false,
+		IsHaveToResetPw: isHaveToResetPw,
+		CreatedAt:       time.Now().UTC(),
+		UpdatedAt:       time.Now().UTC(),
+	}, ctx); err != nil {
+		return "", err
+	}
+
+	// Save new account security to database
+	if err := u.userSecurityRepo.CreateUserSecurity(business_object.UserSecurity{
+		UserId:      id,
+		ActionToken: &token,
+		FailAccess:  0,
+		LastFail:    &tmpTime,
+	}, ctx); err != nil {
+		return "", err
+	}
+
+	// Send confirmation mail
+	if err := util.SendMail(dto.SendMailRequest{
+		Body: dto.MailBody{ // Mail body
+			Email:    req.Email,
+			Password: req.Password,
+			Url: util.ToCombinedString([]string{ // Call back url when guest clicks to the confirmation, it will call back to the api endpoint which generate here to verify and finish the registration process
+				getProcessUrl(),
+				token,
+				id,
+				activateType,
+			},
+				mailSepChar),
+		},
+
+		TemplatePath: mail_const.AccountRegistrationTemplate, // Template path
+
+		Subject: noti.RegistrationAccountSubject, // Mail subject
+
+		Logger: u.logger, // Logger
+	}); err != nil {
+		return "", err
+	}
+
+	var msg string = "Success"
+	if actorId == "" {
+		msg = noti.RegistrationAccountMsg
+	}
+
+	return msg, nil
 }
 
 // GetUser implements service.IUserService.
@@ -241,7 +383,7 @@ func prepareActivateAccount(security *business_object.UserSecurity, email, actio
 		return err
 	}
 
-	security.ActionToken = token
+	*security.ActionToken = token
 
 	return util.SendMail(dto.SendMailRequest{
 		Body: dto.MailBody{ // Mail body
@@ -358,7 +500,7 @@ func processSuccessLogin(user *dto.UserDBResModel, securityRepo repo.IUserSecuri
 			token,
 		}, mailSepChar)
 
-		security.ActionToken = token
+		*security.ActionToken = token
 	} else {
 		accessToken, refreshToken, err := util.GenerateTokens(user.Email, user.UserId, user.RoleId, log.Default())
 
@@ -369,8 +511,8 @@ func processSuccessLogin(user *dto.UserDBResModel, securityRepo repo.IUserSecuri
 		res1 = accessToken
 		res2 = refreshToken
 
-		security.AccessToken = accessToken
-		security.RefreshToken = refreshToken
+		*security.AccessToken = accessToken
+		*security.RefreshToken = refreshToken
 	}
 
 	return res1, res2, securityRepo.EditUserSecurity(*security, ctx)
@@ -386,4 +528,41 @@ func processFailLogin(id string, securityRepo repo.IUserSecurityRepo, ctx contex
 	}
 
 	return "", "", errors.New(noti.WrongCredentialsWarnMsg)
+}
+
+func getRoles(repo repo.IRoleRepo, ctx context.Context) (map[string]string, error) {
+	roles, err := repo.GetAllRoles(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var res = make(map[string]string)
+
+	for _, role := range *roles {
+		res[role.RoleName] = role.RoleId
+	}
+
+	return res, nil
+}
+
+func validateCreateAction(accountRole, actorRole string, roles map[string]string) error {
+	var isAccountRoleExist bool = false
+	for _, v := range roles {
+		if v == accountRole {
+			isAccountRoleExist = true
+			break
+		}
+	}
+
+	if !isAccountRoleExist {
+		return errors.New("")
+	}
+
+	if actorRole == roles[staff_role] {
+		if accountRole == roles[admin_role] {
+			return errors.New("")
+		}
+	}
+
+	return nil
 }

@@ -14,4 +14,8 @@ const (
 	InvalidStatusWarnMsg string = "Invalid status. Please try again."
 
 	WrongCredentialsWarnMsg string = "Incorrect email or password. Please try again."
+
+	EmailRegisteredWarnMsg string = "Email registered. Please try another email."
+
+	PasswordNotSecureWarnMsg string = "Password must be at least 8 characters long and include a combination of uppercase and lowercase letters, numbers, and special characters. Please try another password."
 )

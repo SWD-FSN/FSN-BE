@@ -195,14 +195,14 @@ func (u *userRepo) UpdateUser(user dto.UserDBResModel) error {
 }
 
 // CreateUser implements repo.IUserRepo.
-func (u *userRepo) CreateUser(user dto.UserSaveModel, ctx context.Context) error {
-	var query string = "Insert into " + business_object.GetUserTable() + "(username, email, password, date_of_birth, profile_avatar, bio, followers, followings, block_users, conversations, is_private, is_active, created_at, updated_at) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+func (u *userRepo) CreateUser(user dto.UserDBResModel, ctx context.Context) error {
+	var query string = "Insert into " + business_object.GetUserTable() + "(user_id, role_id, username, email, password, date_of_birth, profile_avatar, bio, friends, followers, followings, block_users, conversations, is_private, is_active, created_at, updated_at) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetUserTable()) + "CreateUser - "
 
 	defer u.db.Close()
 
-	if _, err := u.db.Exec(query, user.Username, user.Email, user.Password, user.DateOfBirth, user.ProfileAvatar, user.Bio, user.Followers, user.Followings, user.BlockUsers, user.Conversations, user.IsPrivate, user.IsActive, user.CreatedAt, user.UpdatedAt); err != nil {
-		u.logger.Println(errLogMsg, err.Error())
+	if _, err := u.db.Exec(query, user.UserId, user.RoleId, user.Username, user.Email, user.Password, user.DateOfBirth, user.ProfileAvatar, user.Bio, user.Friends, user.Followers, user.Followings, user.BlockUsers, user.Conversations, user.IsPrivate, user.IsActive, user.CreatedAt, user.UpdatedAt); err != nil {
+		u.logger.Println(errLogMsg + err.Error())
 		return errors.New(noti.InternalErr)
 	}
 

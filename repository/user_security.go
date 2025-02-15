@@ -17,6 +17,21 @@ type userSecurityRepo struct {
 	logger *log.Logger
 }
 
+// CreateUserSecurity implements repo.IUserSecurityRepo.
+func (u *userSecurityRepo) CreateUserSecurity(usc business_object.UserSecurity, ctx context.Context) error {
+	var query string = "Insert into " + business_object.GetUserSecurityTable() + "(user_id, access_token, refresh_token, action_token, fail_access, last_fail) values (?, ?, ?, ?, ?, ?)"
+	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetUserSecurityTable()) + "CreateUserSecurity - "
+
+	defer u.db.Close()
+
+	if _, err := u.db.Exec(query, usc.UserId, usc.AccessToken, usc.RefreshToken, usc.ActionToken, usc.FailAccess, usc.LastFail); err != nil {
+		u.logger.Println(errLogMsg + err.Error())
+		return errors.New(noti.InternalErr)
+	}
+
+	return nil
+}
+
 func InitializeUserSecurityRepo(db *sql.DB, logger *log.Logger) repo.IUserSecurityRepo {
 	return &userSecurityRepo{
 		db:     db,
