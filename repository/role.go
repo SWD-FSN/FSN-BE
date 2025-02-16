@@ -41,7 +41,7 @@ func (r *roleRepo) ActivateRole(id string, ctx context.Context) error {
 // CreateRole implements repo.IRoleRepo.
 func (r *roleRepo) CreateRole(role business_object.Role, ctx context.Context) error {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetRoleTable()) + "CreateRole - "
-	var query string = "Insert into " + business_object.GetRoleTable() + "(role_id, role_name, active_status, created_at, updated_at) values (?, ?, ?, ?, ?)"
+	var query string = "Insert into " + business_object.GetRoleTable() + "(id, role_name, active_status, created_at, updated_at) values (?, ?, ?, ?, ?)"
 	defer r.db.Close()
 
 	if _, err := r.db.Exec(query, role.RoleId, role.RoleName, role.ActiveStatus, role.CreatedAt, role.UpdatedAt); err != nil {
@@ -91,7 +91,7 @@ func (r *roleRepo) GetRoleById(id string, ctx context.Context) (*business_object
 			return nil, nil
 		}
 
-		r.logger.Println(errLogMsg, err.Error())
+		r.logger.Println(errLogMsg + err.Error())
 		return nil, errors.New(noti.InternalErr)
 	}
 
