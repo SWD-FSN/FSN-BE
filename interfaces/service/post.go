@@ -1,15 +1,16 @@
-package repo
+package service
 
 import (
 	"context"
 	business_object "social_network/business_object"
+	"social_network/dto"
 )
 
-type IPostRepo interface {
+type IPostService interface {
 	GetAllPosts(ctx context.Context) (*[]business_object.Post, error)
 	GetPostsByUser(id string, ctx context.Context) (*[]business_object.Post, error)
 	GetPost(id string, ctx context.Context) (*business_object.Post, error)
-	CreatePost(post business_object.Post, ctx context.Context) error
-	UpdatePost(post business_object.Post, ctx context.Context) error
+	UpPost(req dto.UpPostReq, ctx context.Context) error
+	UpdatePost(req dto.UpdatePostReq, ctx context.Context) error
 	RemovePost(id string, ctx context.Context) error
 }

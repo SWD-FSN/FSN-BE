@@ -159,7 +159,7 @@ func (r *roleRepo) RemoveRole(id string, ctx context.Context) error {
 	var internalErr error = errors.New(noti.InternalErr)
 	defer r.db.Close()
 
-	res, err := r.db.Exec(query, fmt.Sprint(time.Now().UTC()), id)
+	res, err := r.db.Exec(query, time.Now().String(), id)
 	if err != nil {
 		r.logger.Println(errLogMsg, err.Error())
 		return internalErr

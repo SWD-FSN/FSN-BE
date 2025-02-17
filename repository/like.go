@@ -30,9 +30,22 @@ func (l *likeRepo) CancelLike(id string, ctx context.Context) error {
 
 	defer l.db.Close()
 
-	if _, err := l.db.Exec(query, id); err != nil {
-		l.logger.Println(errLogMsg + err.Error())
-		return errors.New(noti.InternalErr)
+	res, err := l.db.Exec(query, id)
+	var internalErrMsg error = errors.New(noti.InternalErr)
+
+	if err != nil {
+		l.logger.Println(errLogMsg, err.Error())
+		return internalErrMsg
+	}
+
+	rowsAffected, err := res.RowsAffected()
+	if err != nil {
+		l.logger.Println(errLogMsg, err.Error())
+		return internalErrMsg
+	}
+
+	if rowsAffected == 0 {
+		return errors.New(fmt.Sprintf(noti.UndefinedObjectWarnMsg, business_object.GetLikeTable()))
 	}
 
 	return nil
@@ -63,7 +76,7 @@ func (l *likeRepo) GetAllLikes(ctx context.Context) (*[]business_object.Like, er
 
 	rows, err := l.db.Query(query)
 	if err != nil {
-		l.logger.Println(errLogMsg, err.Error())
+		l.logger.Println(errLogMsg + err.Error())
 		return nil, internalErr
 	}
 
@@ -84,7 +97,7 @@ func (l *likeRepo) GetAllLikes(ctx context.Context) (*[]business_object.Like, er
 
 // GetLike implements repo.ILikeRepo.
 func (l *likeRepo) GetLike(id string, ctx context.Context) (*business_object.Like, error) {
-	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetLikeTable()) + "GetLikesFromObject - "
+	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetLikeTable()) + "GetLike - "
 	var query string = "Select * from " + business_object.GetLikeTable() + " where id = ?"
 
 	defer l.db.Close()

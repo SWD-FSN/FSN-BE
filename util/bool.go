@@ -15,3 +15,12 @@ func ToBoolean(rawStatus string) (bool, error) {
 
 	return res, nil
 }
+
+func IsBooleanRemain(input *bool, org bool) bool {
+	// Remain
+	if input == nil {
+		return true
+	}
+
+	return *input == org
+}
