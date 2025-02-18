@@ -34,11 +34,6 @@ func InitializeLikeService(db *sql.DB, logger *log.Logger) service.ILikeService 
 	}
 }
 
-const (
-	post_obj string = "POST_OBJ"
-	cmt_obj  string = "CMT_OBJ"
-)
-
 func GenerateLikeService() (service.ILikeService, error) {
 	cnn, err := db.ConnectDB(business_object.GetLikeTable())
 
@@ -48,6 +43,11 @@ func GenerateLikeService() (service.ILikeService, error) {
 
 	return InitializeLikeService(cnn, &log.Logger{}), nil
 }
+
+const (
+	post_obj string = "POST_OBJ"
+	cmt_obj  string = "CMT_OBJ"
+)
 
 // DoLike implements service.ILikeService.
 func (l *likeService) DoLike(req dto.DoLikeReq, ctx context.Context) error {
