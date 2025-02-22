@@ -18,4 +18,6 @@ const (
 	EmailRegisteredWarnMsg string = "Email registered. Please try another email."
 
 	PasswordNotSecureWarnMsg string = "Password must be at least 8 characters long and include a combination of uppercase and lowercase letters, numbers, and special characters. Please try another password."
+
+	AuthorizationWarnMsg string = "You have no rights to access this action."
 )

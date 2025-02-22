@@ -120,7 +120,7 @@ func (a *addFriendRqService) AcceptAddFrRq(requestId, actorId string, ctx contex
 	go func() {
 		defer wg2.Done()
 
-		if err := a.userRepo.UpdateUser(*author); err != nil {
+		if err := a.userRepo.UpdateUser(*author, ctx); err != nil {
 			mu2.Lock()
 
 			if capturedErr == nil {
@@ -135,7 +135,7 @@ func (a *addFriendRqService) AcceptAddFrRq(requestId, actorId string, ctx contex
 	go func() {
 		defer wg2.Done()
 
-		if err := a.userRepo.UpdateUser(*account); err != nil {
+		if err := a.userRepo.UpdateUser(*account, ctx); err != nil {
 			mu2.Lock()
 
 			if capturedErr == nil {
