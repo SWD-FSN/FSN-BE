@@ -26,29 +26,40 @@ type userService struct {
 	userRepo         repo.IUserRepo
 }
 
-const (
-	sepChar        string = "|"
-	mailSepChar    string = ":"
-	id_validate    string = "ID_VALIDATE"
-	email_validate string = "EMAIL_VALIDATE"
-)
+// GetInvoledAccountsFromUser implements service.IUserService.
+func (u *userService) GetInvoledAccountsFromUser(req dto.GetInvoledAccouuntsRequest, ctx context.Context) (*[]business_object.User, error) {
+	var user *dto.UserDBResModel
+	if err := verifyAccount(req.UserId, id_validate, user, u.userRepo, ctx); err != nil {
+		return nil, err
+	}
 
-const (
-	activateType      string = "1"
-	resetPassType     string = "2"
-	updateProfileType string = "3"
-	verifyType        string = "4"
-)
+	var ids []string
+	switch req.InvolvedType {
+	case friends_involed:
+		ids = util.ToSliceString(user.Friends, sepChar)
+	case followers_involed:
+		ids = util.ToSliceString(user.Followers, sepChar)
+	case followings_involed:
+		ids = util.ToSliceString(user.Followings, sepChar)
+	case blocks_involed:
+		ids = util.ToSliceString(user.BlockUsers, sepChar)
+	default:
+		return nil, errors.New(noti.GenericsErrorWarnMsg)
+	}
 
-const (
-	verifyFailLimit int = 5
-)
+	if len(ids) == 0 {
+		return nil, nil
+	}
 
-const (
-	admin_role string = "Admin"
-	user_role  string = "User"
-	staff_role string = "Staff"
-)
+	var res *[]business_object.User
+
+	for _, id := range ids {
+		account, _ := u.userRepo.GetUser(id, ctx)
+		*res = append(*res, toUserModel(*account))
+	}
+
+	return res, nil
+}
 
 func GenerateUserService() (service.IUserService, error) {
 	db, err := db.ConnectDB(business_object.GetUserTable())
@@ -67,6 +78,38 @@ func GenerateUserService() (service.IUserService, error) {
 	}, nil
 }
 
+const (
+	sepChar        string = "|"
+	mailSepChar    string = ":"
+	id_validate    string = "ID_VALIDATE"
+	email_validate string = "EMAIL_VALIDATE"
+)
+
+const (
+	activateType      string = "1"
+	resetPassType     string = "2"
+	updateProfileType string = "3"
+	verifyType        string = "4"
+)
+
+const (
+	verifyFailLimit        int = 5
+	minLengthVerifyCombine int = 3
+)
+
+const (
+	admin_role string = "Admin"
+	user_role  string = "User"
+	staff_role string = "Staff"
+)
+
+const (
+	friends_involed    string = "FRIENDS_INVOLED"
+	blocks_involed     string = "BLOCKEDS_INVOLED"
+	followers_involed  string = "FOLLOWERS_INVOLED"
+	followings_involed string = "FOLLOWINGS_INVOLED"
+)
+
 func getProcessUrl() string {
 	var port string = os.Getenv("PORT")
 	if port == "" {
@@ -80,10 +123,14 @@ func getResetPassUrl() string {
 	return "Your reset-pass URL page?token="
 }
 
-// ChangeUserStatus implements service.IUserService.
-func (u *userService) ChangeUserStatus(rawStatus string, userId string, actorId string, c context.Context) (error, string) {
-	panic("unimplemented")
+func getLoginUrl() string {
+	return ""
 }
+
+// ChangeUserStatus implements service.IUserService.
+// func (u *userService) ChangeUserStatus(rawStatus string, userId string, actorId string, c context.Context) (string, error) {
+// 	panic("unimplemented")
+// }
 
 // GetAllUsers implements service.IUserService.
 func (u *userService) GetAllUsers(ctx context.Context) (*[]business_object.User, error) {
@@ -235,10 +282,16 @@ func (u *userService) CreateUser(req dto.CreateUserReq, actorId string, ctx cont
 		isPrivate = *req.IsActive
 	}
 
+	var fullName string = req.FullName
+	if fullName == "" {
+		fullName = req.Username
+	}
+
 	// Save new account to database
 	if err := u.userRepo.CreateUser(dto.UserDBResModel{
 		UserId:          id,
 		RoleId:          req.RoleId,
+		FullName:        fullName,
 		Username:        req.Username,
 		Email:           req.Email,
 		Password:        hashPw,
@@ -311,6 +364,342 @@ func (u *userService) GetUser(id string, ctx context.Context) (*business_object.
 	return &res, nil
 }
 
+// ChangeUserStatus implements service.IUserService.
+func (u *userService) ChangeUserStatus(rawStatus string, userId string, actorId string, ctx context.Context) (string, error) {
+	panic("unimplemented")
+}
+
+// ResetPassword implements service.IUserService.
+func (u *userService) ResetPassword(newPass string, re_newPass string, token string, ctx context.Context) (string, error) {
+	id, _, exp, err := util.ExtractDataFromToken(token, u.logger)
+	if err != nil {
+		return getLoginUrl(), err
+	}
+
+	var user *dto.UserDBResModel
+	if err := verifyAccount(id, id_validate, user, u.userRepo, ctx); err != nil {
+		return getLoginUrl(), err
+	}
+
+	// User state doesn't have to reset password
+	if user.IsHaveToResetPw == nil {
+		return getLoginUrl(), errors.New(noti.GenericsErrorWarnMsg)
+	}
+
+	// Expired
+	if util.IsActionExpired(exp) {
+		return getLoginUrl(), errors.New("")
+	}
+
+	usc, err := u.userSecurityRepo.GetUserSecurity(id, ctx)
+	if err != nil {
+		return getLoginUrl(), err
+	}
+
+	if *usc.ActionToken != token {
+		return getLoginUrl(), errors.New(noti.GenericsErrorWarnMsg)
+	}
+
+	// Passwords not matched
+	if newPass != re_newPass {
+		return util.ToCombinedString([]string{
+			getResetPassUrl(),
+			token,
+		}, sepChar), errors.New(noti.GenericsErrorWarnMsg)
+	}
+
+	hashPw, err := util.ToHashString(newPass)
+	if err != nil {
+		return getLoginUrl(), err
+	}
+
+	// Setting new data
+	user.Password = hashPw
+	user.IsHaveToResetPw = nil
+
+	usc.ActionToken = nil
+
+	// Process update
+	var capturedErr error
+
+	_, cancel := context.WithCancel(ctx)
+	var wg sync.WaitGroup
+	var mu sync.Mutex
+
+	wg.Add(2)
+
+	// Update user data
+	go func() {
+		defer wg.Done()
+
+		if err := u.userRepo.UpdateUser(*user, ctx); err != nil {
+			mu.Lock()
+
+			if capturedErr == nil {
+				capturedErr = err
+				cancel()
+			}
+
+			mu.Unlock()
+		}
+	}()
+
+	// Update user security
+	go func() {
+		defer wg.Done()
+
+		if err := u.userSecurityRepo.EditUserSecurity(*usc, ctx); err != nil {
+			mu.Lock()
+
+			if capturedErr == nil {
+				capturedErr = err
+				cancel()
+			}
+
+			mu.Unlock()
+		}
+	}()
+
+	wg.Wait()
+
+	return getLoginUrl(), capturedErr
+}
+
+// UpdateUser implements service.IUserService.
+func (u *userService) UpdateUser(req dto.UpdateUserReq, actorId string, ctx context.Context) (string, error) {
+	var res string
+	var capturedErr error
+
+	_, cancel := context.WithCancel(ctx)
+	var wg sync.WaitGroup
+	var mu sync.Mutex
+
+	wg.Add(2)
+
+	var account, actor *dto.UserDBResModel
+
+	// Verify account
+	go func() {
+		defer wg.Done()
+
+		if err := verifyAccount(req.UserId, id_validate, account, u.userRepo, ctx); err != nil {
+			mu.Lock()
+
+			if capturedErr == nil {
+				capturedErr = err
+				cancel()
+			}
+
+			mu.Unlock()
+		}
+	}()
+
+	// Verify actor
+	go func() {
+		defer wg.Done()
+
+		if err := verifyAccount(actorId, id_validate, actor, u.userRepo, ctx); err != nil {
+			mu.Lock()
+
+			if capturedErr == nil {
+				capturedErr = err
+				cancel()
+			}
+
+			mu.Unlock()
+		}
+	}()
+
+	// Wait for 2 goroutines to be done
+	wg.Wait()
+
+	if capturedErr != nil {
+		return res, capturedErr
+	}
+
+	// Get roles
+	roles, err := getRoles(u.roleRepo, ctx)
+	if err != nil {
+		return res, err
+	}
+
+	if err := verifyEditUserAuthorization(req, account, actor, roles); err != nil {
+		return res, err
+	}
+
+	// Edit themselves
+	if req.UserId == actorId {
+		if !util.IsPasswordSecure(req.Password) {
+			return res, errors.New(noti.PasswordNotSecureWarnMsg)
+		}
+	}
+
+	hashPw, err := util.ToHashString(req.Password)
+	if err != nil {
+		return res, err
+	}
+
+	account.Password = hashPw
+
+	var email string = util.ToNormalizedString(req.Email)
+	var isHaveToVerify bool = false
+
+	// Check if need to verify new email
+	if email != account.Email {
+		if err := verifyAccount(email, email_validate, nil, u.userRepo, ctx); err != errors.New("Lỗi email ko tồn tại") { // ~~ Tức mail tồn tại -> invalid
+			return res, errors.New(noti.EmailRegisteredWarnMsg)
+		}
+
+		isHaveToVerify = true
+	}
+
+	if req.Username != "" {
+		account.Username = req.Username
+	}
+
+	if req.DateOfBirth != nil {
+		account.DateOfBirth = *req.DateOfBirth
+	}
+
+	if req.ProfileAvatar != "" {
+		account.ProfileAvatar = req.ProfileAvatar
+	}
+
+	if req.Bio != "" {
+		account.Bio = req.Bio
+	}
+
+	if req.IsPrivate != nil {
+		account.IsPrivate = *req.IsPrivate
+	}
+
+	if err := u.userRepo.UpdateUser(*account, ctx); err != nil {
+		return res, err
+	}
+
+	// Have to confirm new email before updating
+	if isHaveToVerify {
+		// Generate token
+		token, err := util.GenerateActionToken(email, req.UserId, req.RoleId, u.logger)
+		if err != nil {
+			return res, err
+		}
+
+		// Get user security data to update token for new action - update new email
+		usc, err := u.userSecurityRepo.GetUserSecurity(req.UserId, ctx)
+		if err != nil {
+			return res, err
+		}
+
+		// Update user security to db
+		usc.ActionToken = &token
+		if err := u.userSecurityRepo.EditUserSecurity(*usc, ctx); err != nil {
+			return res, err
+		}
+
+		// Send verification mail
+		if util.SendMail(dto.SendMailRequest{
+			Body: dto.MailBody{
+				Email: email,
+				Url: util.ToCombinedString([]string{
+					getProcessUrl(),
+					token,
+					req.UserId,
+					updateProfileType,
+					email,
+				}, mailSepChar),
+			},
+
+			TemplatePath: mail_const.UpdateMailTemplate,
+
+			Subject: noti.UpdateMailSubject,
+
+			Logger: u.logger,
+		}) != nil {
+			return res, errors.New("We have updated your other information. " + noti.GenerateMailWarnMsg)
+		}
+
+		res = noti.UpdateMailMsg
+	} else {
+		res = "Success"
+	}
+
+	return res, nil
+}
+
+// VerifyAction implements service.IUserService.
+func (u *userService) VerifyAction(rawToken string, ctx context.Context) (string, error) {
+	var errRes error = errors.New(noti.GenericsErrorWarnMsg)
+
+	var cmps []string = util.ToSliceString(rawToken, mailSepChar)
+	if len(cmps) < minLengthVerifyCombine { // Min length of combination of information in a call back url
+		return "", errRes
+	}
+
+	var token string = cmps[0]
+	var id string = cmps[1]
+	var actionType string = cmps[2]
+
+	usc, err := u.userSecurityRepo.GetUserSecurity(id, ctx)
+	if err != nil {
+		return "", errRes
+	}
+
+	if *usc.ActionToken != token {
+		return "", errRes
+	}
+
+	// Extract data from token
+	extractId, _, exp, err := util.ExtractDataFromToken(rawToken, u.logger)
+	if err != nil {
+		return "", err
+	}
+
+	if extractId != id {
+		return "", errRes
+	}
+
+	// Expired
+	if util.IsActionExpired(exp) {
+		return "", errors.New("")
+	}
+
+	// Invalid action type
+	if actionType != activateType && actionType != resetPassType && actionType != updateProfileType && actionType != verifyType {
+		return "", errors.New(noti.GenericsErrorWarnMsg)
+	}
+
+	var res string
+
+	if actionType == activateType || actionType == updateProfileType {
+		user, err := u.userRepo.GetUser(id, ctx)
+		if err != nil {
+			return res, err
+		}
+
+		if actionType == activateType {
+			user.IsActivated = true
+		} else {
+			user.Email = cmps[len(cmps)-1]
+		}
+
+		if err := u.userRepo.UpdateUser(*user, ctx); err != nil {
+			return res, err
+		}
+
+		res = getLoginUrl()
+	} else {
+		redirectUrl, err := setUpBeforeResetPw(usc, u.logger)
+		if err != nil {
+			return res, err
+		}
+
+		res = redirectUrl
+	}
+
+	return res, nil
+}
+
 func toSliceUserModel(src *[]dto.UserDBResModel) *[]business_object.User {
 	var res *[]business_object.User
 
@@ -330,6 +719,7 @@ func toUserModel(src dto.UserDBResModel) business_object.User {
 	return business_object.User{
 		UserId:        src.UserId,
 		RoleId:        src.RoleId,
+		FullName:      src.FullName,
 		Username:      src.Username,
 		Email:         src.Email,
 		Password:      src.Password,
@@ -565,4 +955,50 @@ func validateCreateAction(accountRole, actorRole string, roles map[string]string
 	}
 
 	return nil
+}
+
+func verifyEditUserAuthorization(req dto.UpdateUserReq, account, actor *dto.UserDBResModel, roles map[string]string) error {
+	// Edited
+	if req.UserId != actor.UserId {
+		return verifyEditedAuth(req.RoleId, account.RoleId, actor.RoleId, roles)
+	}
+
+	// Self edit
+	if req.RoleId != account.RoleId {
+		return errors.New("")
+	}
+
+	return nil
+}
+
+func verifyEditedAuth(inputedRole, orgRole, actorRole string, roles map[string]string) error {
+	var res error
+	var authErr error = errors.New(noti.AuthorizationWarnMsg)
+
+	switch actorRole {
+	case roles[admin_role]:
+		if orgRole == roles[admin_role] { // Admin edited admin
+			res = authErr
+		}
+	case roles[staff_role]:
+		if inputedRole != "" || inputedRole != orgRole { // Staff edits other
+			res = authErr
+		}
+	}
+
+	return res
+}
+
+func setUpBeforeResetPw(usc *business_object.UserSecurity, logger *log.Logger) (string, error) {
+	token, err := util.GenerateActionToken("", usc.UserId, "", logger)
+	if err != nil {
+		return "", err
+	}
+
+	*usc.ActionToken = token
+
+	return util.ToCombinedString([]string{
+		getProcessUrl(),
+		token,
+	}, sepChar), nil
 }

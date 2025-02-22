@@ -10,6 +10,7 @@ import (
 	"social_network/constant/noti"
 	"social_network/dto"
 	"social_network/interfaces/repo"
+	"social_network/util"
 	"sync"
 	"time"
 )
@@ -25,6 +26,13 @@ func InitializeUserRepo(db *sql.DB, logger *log.Logger) repo.IUserRepo {
 		logger: logger,
 	}
 }
+
+const (
+	friends_involed    string = "FRIENDS_INVOLED"
+	blocks_involed     string = "BLOCKEDS_INVOLED"
+	followers_involed  string = "FOLLOWERS_INVOLED"
+	followings_involed string = "FOLLOWINGS_INVOLED"
+)
 
 // ChangeUserStatus implements repo.IUserRepo.
 func (u *userRepo) ChangeUserStatus(id string, status bool, ctx context.Context) error {
@@ -85,7 +93,7 @@ func (u *userRepo) GetAllUsers(ctx context.Context) (*[]dto.UserDBResModel, erro
 	var res *[]dto.UserDBResModel
 	for rows.Next() {
 		var x dto.UserDBResModel
-		if err := rows.Scan(&x.UserId, &x.RoleId, &x.Username, &x.Email, &x.DateOfBirth, &x.ProfileAvatar, &x.Bio, &x.Followers, &x.Followings, &x.BlockUsers, &x.Conversations, &x.IsActive, &x.IsActive, &x.CreatedAt, &x.UpdatedAt); err != nil {
+		if err := rows.Scan(&x.UserId, &x.RoleId, &x.FullName, &x.Username, &x.Email, &x.DateOfBirth, &x.ProfileAvatar, &x.Bio, &x.Followers, &x.Followings, &x.BlockUsers, &x.Conversations, &x.IsActive, &x.IsActive, &x.CreatedAt, &x.UpdatedAt); err != nil {
 			u.logger.Println(errLogMsg, err.Error())
 			return nil, errors.New(noti.InternalErr)
 		}
@@ -111,7 +119,7 @@ func (u *userRepo) GetUsersByStatus(status bool, ctx context.Context) (*[]dto.Us
 	var res *[]dto.UserDBResModel
 	for rows.Next() {
 		var x dto.UserDBResModel
-		if err := rows.Scan(&x.UserId, &x.RoleId, &x.Username, &x.Email, &x.DateOfBirth, &x.ProfileAvatar, &x.Bio, &x.Followers, &x.Followings, &x.BlockUsers, &x.Conversations, &x.IsActive, &x.IsActive, &x.CreatedAt, &x.UpdatedAt); err != nil {
+		if err := rows.Scan(&x.UserId, &x.RoleId, &x.FullName, &x.Username, &x.Email, &x.DateOfBirth, &x.ProfileAvatar, &x.Bio, &x.Followers, &x.Followings, &x.BlockUsers, &x.Conversations, &x.IsActive, &x.IsActive, &x.CreatedAt, &x.UpdatedAt); err != nil {
 			u.logger.Println(errLogMsg, err.Error())
 			return nil, errors.New(noti.InternalErr)
 		}
@@ -129,7 +137,7 @@ func (u *userRepo) GetUserByEmail(email string, ctx context.Context) (*dto.UserD
 	defer u.db.Close()
 
 	var res *dto.UserDBResModel
-	if err := u.db.QueryRow(query, email).Scan(&res.UserId, &res.RoleId, &res.Username, &res.Email, &res.DateOfBirth, &res.ProfileAvatar, &res.Bio, &res.Followers, &res.Followings, &res.BlockUsers, &res.Conversations, &res.IsActive, &res.IsActive, &res.CreatedAt, &res.UpdatedAt); err != nil {
+	if err := u.db.QueryRow(query, email).Scan(&res.UserId, &res.RoleId, &res.FullName, &res.Username, &res.Email, &res.DateOfBirth, &res.ProfileAvatar, &res.Bio, &res.Followers, &res.Followings, &res.BlockUsers, &res.Conversations, &res.IsActive, &res.IsActive, &res.CreatedAt, &res.UpdatedAt); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
@@ -156,7 +164,7 @@ func (u *userRepo) GetUsersByRole(id string, ctx context.Context) (*[]dto.UserDB
 	var res *[]dto.UserDBResModel
 	for rows.Next() {
 		var x dto.UserDBResModel
-		if err := rows.Scan(&x.UserId, &x.RoleId, &x.Username, &x.Email, &x.Password, &x.DateOfBirth, &x.ProfileAvatar, &x.Bio, &x.Friends, &x.Followers, &x.Followings, &x.BlockUsers, &x.Conversations, &x.IsActive, &x.IsActive, &x.CreatedAt, &x.UpdatedAt); err != nil {
+		if err := rows.Scan(&x.UserId, &x.RoleId, &x.FullName, &x.Username, &x.Email, &x.Password, &x.DateOfBirth, &x.ProfileAvatar, &x.Bio, &x.Friends, &x.Followers, &x.Followings, &x.BlockUsers, &x.Conversations, &x.IsActive, &x.IsActive, &x.CreatedAt, &x.UpdatedAt); err != nil {
 			u.logger.Println(errLogMsg, err.Error())
 			return nil, errors.New(noti.InternalErr)
 		}
@@ -168,12 +176,12 @@ func (u *userRepo) GetUsersByRole(id string, ctx context.Context) (*[]dto.UserDB
 }
 
 // UpdateUser implements repo.IUserRepo.
-func (u *userRepo) UpdateUser(user dto.UserDBResModel) error {
+func (u *userRepo) UpdateUser(user dto.UserDBResModel, ctx context.Context) error {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetUserTable()) + "UpdateUser - "
-	var query string = "Update " + business_object.GetUserTable() + " set email = ?, password = ?, role_id = ?, username = ?, date_of_birth = ?, profile_avatar = ?, bio = ?, followers = ?, followings = ?, block_users = ?, conversations = ?, is_private = ?, is_active = ?, updated_at = ? where id = ?"
+	var query string = "Update " + business_object.GetUserTable() + " set email = ?, password = ?, role_id = ?, full_name = ?, username = ?, date_of_birth = ?, profile_avatar = ?, bio = ?, followers = ?, followings = ?, block_users = ?, conversations = ?, is_private = ?, is_active = ?, updated_at = ? where id = ?"
 	defer u.db.Close()
 
-	res, err := u.db.Exec(query, user.Email, user.Password, user.RoleId, user.Username, user.DateOfBirth, user.ProfileAvatar, user.Bio, user.Followers, user.Followings, user.BlockUsers, user.Conversations, user.IsPrivate, user.IsActive, time.Now().UTC().GoString(), user.UserId)
+	res, err := u.db.Exec(query, user.Email, user.Password, user.RoleId, user.FullName, user.Username, user.DateOfBirth, user.ProfileAvatar, user.Bio, user.Followers, user.Followings, user.BlockUsers, user.Conversations, user.IsPrivate, user.IsActive, time.Now().UTC().GoString(), user.UserId)
 	var internalErrMsg error = errors.New(noti.InternalErr)
 
 	if err != nil {
@@ -196,12 +204,12 @@ func (u *userRepo) UpdateUser(user dto.UserDBResModel) error {
 
 // CreateUser implements repo.IUserRepo.
 func (u *userRepo) CreateUser(user dto.UserDBResModel, ctx context.Context) error {
-	var query string = "Insert into " + business_object.GetUserTable() + "(user_id, role_id, username, email, password, date_of_birth, profile_avatar, bio, friends, followers, followings, block_users, conversations, is_private, is_active, created_at, updated_at) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+	var query string = "Insert into " + business_object.GetUserTable() + "(user_id, role_id, full_name, username, email, password, date_of_birth, profile_avatar, bio, friends, followers, followings, block_users, conversations, is_private, is_active, created_at, updated_at) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetUserTable()) + "CreateUser - "
 
 	defer u.db.Close()
 
-	if _, err := u.db.Exec(query, user.UserId, user.RoleId, user.Username, user.Email, user.Password, user.DateOfBirth, user.ProfileAvatar, user.Bio, user.Friends, user.Followers, user.Followings, user.BlockUsers, user.Conversations, user.IsPrivate, user.IsActive, user.CreatedAt, user.UpdatedAt); err != nil {
+	if _, err := u.db.Exec(query, user.UserId, user.RoleId, user.FullName, user.Username, user.Email, user.Password, user.DateOfBirth, user.ProfileAvatar, user.Bio, user.Friends, user.Followers, user.Followings, user.BlockUsers, user.Conversations, user.IsPrivate, user.IsActive, user.CreatedAt, user.UpdatedAt); err != nil {
 		u.logger.Println(errLogMsg + err.Error())
 		return errors.New(noti.InternalErr)
 	}
@@ -218,15 +226,85 @@ func (u *userRepo) GetUser(id string, ctx context.Context) (*dto.UserDBResModel,
 
 	var res *dto.UserDBResModel
 
-	var err error = u.db.QueryRow(query, id).Scan(&res.Username, &res.Email, &res.DateOfBirth, &res.ProfileAvatar, &res.Bio, &res.Followers, &res.Followings, &res.BlockUsers, &res.Conversations, &res.IsPrivate, &res.IsActive, &res.CreatedAt, &res.UpdatedAt)
+	var err error = u.db.QueryRow(query, id).Scan(&res.Username, &res.RoleId, &res.FullName, &res.Email, &res.DateOfBirth, &res.ProfileAvatar, &res.Bio, &res.Followers, &res.Followings, &res.BlockUsers, &res.Conversations, &res.IsPrivate, &res.IsActive, &res.CreatedAt, &res.UpdatedAt)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
 
-		u.logger.Println(errLogMsg, err.Error())
+		u.logger.Println(errLogMsg + err.Error())
 		return nil, errors.New(noti.InternalErr)
 	}
 
 	return res, nil
+}
+
+// GetInvoledAccountsAmountFromUser implements repo.IUserRepo.
+func (u *userRepo) GetInvoledAccountsAmountFromUser(req dto.GetInvoledAccouuntsRequest, ctx context.Context) ([]string, error) {
+	var field string = getFieldFromInvoledRequest(req.InvolvedType)
+	if field == "" {
+		return nil, errors.New(noti.GenericsErrorWarnMsg)
+	}
+
+	var query string = "Select " + field + " from " + business_object.GetUserTable() + " where id = ?"
+	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetUserTable()) + "GetInvoledAccountsAmountFromUser - "
+	defer u.db.Close()
+
+	var combinedString string
+	if err := u.db.QueryRow(query, req.UserId).Scan(&combinedString); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+
+		u.logger.Println(errLogMsg + err.Error())
+		return nil, errors.New(noti.InternalErr)
+	}
+
+	return util.ToSliceString(combinedString, "|"), nil
+}
+
+// GetUsersByKeyword implements repo.IUserRepo.
+func (u *userRepo) GetUsersByKeyword(keyword string, ctx context.Context) (*[]dto.UserDBResModel, error) {
+	var query string = "Select * from " + business_object.GetUserTable() + " where lower(username) like lower('%?%') or lower(full_name) like ('%?%') or lower(email) like ('%?%')"
+	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetUserTable()) + "GetUsersByKeyword - "
+	var internalErr error = errors.New(noti.InternalErr)
+
+	defer u.db.Close()
+
+	rows, err := u.db.Query(query, keyword, keyword, keyword)
+	if err != nil {
+		u.logger.Println(errLogMsg, err.Error())
+		return nil, internalErr
+	}
+
+	var res *[]dto.UserDBResModel
+	for rows.Next() {
+		var x dto.UserDBResModel
+
+		if err := rows.Scan(&x.UserId, &x.RoleId, &x.FullName, &x.Username, &x.Email, &x.DateOfBirth, &x.ProfileAvatar, &x.Bio, &x.Followers, &x.Followings, &x.BlockUsers, &x.Conversations, &x.IsActive, &x.IsActive, &x.CreatedAt, &x.UpdatedAt); err != nil {
+			u.logger.Println(errLogMsg, err.Error())
+			return nil, internalErr
+		}
+
+		*res = append(*res, x)
+	}
+
+	return res, nil
+}
+
+func getFieldFromInvoledRequest(req string) string {
+	var res string
+
+	switch req {
+	case friends_involed:
+		res = "friends"
+	case followers_involed:
+		res = "followers"
+	case followings_involed:
+		res = "followings"
+	case blocks_involed:
+		res = "block_users"
+	}
+
+	return res
 }

@@ -12,3 +12,7 @@ func GetPrimitiveTime() time.Time {
 	// 1/1/1900 - 00:00:00
 	return time.Date(1900, time.January, 1, 0, 0, 0, 0, time.UTC)
 }
+
+func IsActionExpired(exp time.Time) bool {
+	return time.Now().UTC().After(exp)
+}
