@@ -11,26 +11,26 @@ import (
 	"social_network/interfaces/repo"
 )
 
-type addFriendRqRepo struct {
+type socialRequestRepo struct {
 	db     *sql.DB
 	logger *log.Logger
 }
 
-func InitializeAddFriendRqRepo(db *sql.DB, logger *log.Logger) repo.IAddFriendRqRepo {
-	return &addFriendRqRepo{
+func InitializeSocialRequestRepo(db *sql.DB, logger *log.Logger) repo.ISocialRequestRepo {
+	return &socialRequestRepo{
 		db:     db,
 		logger: logger,
 	}
 }
 
-// CreateAddFrRq implements repo.IAddFriendRqRepo.
-func (a *addFriendRqRepo) CreateAddFrRq(req business_object.AddFrRequest, ctx context.Context) error {
-	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetAddFriendRequestTable()) + "CreateAddFrRq - "
-	var query string = "Insert into " + business_object.GetAddFriendRequestTable() + "(id, author_id, account_id, created_at) values (?, ?, ?, ?)"
+// CreateRequest implements repo.ISocialRequestRepo.
+func (a *socialRequestRepo) CreateRequest(req business_object.SocialRequest, ctx context.Context) error {
+	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetSocialRequestTable()) + "CreateAddFrRq - "
+	var query string = "Insert into " + business_object.GetSocialRequestTable() + "(id, author_id, account_id, request_type, created_at) values (?, ?, ?, ?, ?)"
 
 	defer a.db.Close()
 
-	if _, err := a.db.Exec(query, req.RequestId, req.AuthorId, req.AccountId, req.CreatedAt); err != nil {
+	if _, err := a.db.Exec(query, req.RequestId, req.AuthorId, req.AccountId, req.RequestType, req.CreatedAt); err != nil {
 		a.logger.Println(errLogMsg + err.Error())
 		return errors.New(noti.InternalErr)
 	}
@@ -38,14 +38,14 @@ func (a *addFriendRqRepo) CreateAddFrRq(req business_object.AddFrRequest, ctx co
 	return nil
 }
 
-// GetAddFrRq implements repo.IAddFriendRqRepo.
-func (a *addFriendRqRepo) GetAddFrRq(id string, ctx context.Context) (*business_object.AddFrRequest, error) {
-	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetAddFriendRequestTable()) + "GetAddFrRq - "
-	var query string = "Select * from " + business_object.GetAddFriendRequestTable() + " where id = ?"
+// GetRequest implements repo.ISocialRequestRepo.
+func (a *socialRequestRepo) GetRequest(id string, ctx context.Context) (*business_object.SocialRequest, error) {
+	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetSocialRequestTable()) + "GetRequest - "
+	var query string = "Select * from " + business_object.GetSocialRequestTable() + " where id = ?"
 
 	defer a.db.Close()
 
-	var res *business_object.AddFrRequest
+	var res *business_object.SocialRequest
 	if err := a.db.QueryRow(query, id).Scan(&res.RequestId, &res.AuthorId, &res.AccountId, &res.CreatedAt); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
@@ -58,25 +58,25 @@ func (a *addFriendRqRepo) GetAddFrRq(id string, ctx context.Context) (*business_
 	return res, nil
 }
 
-// GetAddFrRqsToUser implements repo.IAddFriendRqRepo.
-func (a *addFriendRqRepo) GetAddFrRqsToUser(id string, ctx context.Context) (*[]business_object.AddFrRequest, error) {
-	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetAddFriendRequestTable()) + "GetAddFrRqsToUser - "
-	var query string = "Select * from " + business_object.GetAddFriendRequestTable() + " where account_id = ?"
+// GetRequestsToUser implements repo.ISocialRequestRepo.
+func (a *socialRequestRepo) GetRequestsToUser(id string, requestType string, ctx context.Context) (*[]business_object.SocialRequest, error) {
+	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetSocialRequestTable()) + "GetRequestsToUser - "
+	var query string = "Select * from " + business_object.GetSocialRequestTable() + " where request_type = ? and account_id = ?"
 	var internalErr error = errors.New(noti.InternalErr)
 
 	defer a.db.Close()
 
-	rows, err := a.db.Query(query, id)
+	rows, err := a.db.Query(query, requestType, id)
 	if err != nil {
 		a.logger.Println(errLogMsg + err.Error())
 		return nil, internalErr
 	}
 
-	var res *[]business_object.AddFrRequest
+	var res *[]business_object.SocialRequest
 	for rows.Next() {
-		var x business_object.AddFrRequest
+		var x business_object.SocialRequest
 
-		if err := rows.Scan(&x.RequestId, &x.AuthorId, &x.AccountId, &x.CreatedAt); err != nil {
+		if err := rows.Scan(&x.RequestId, &x.AuthorId, &x.AccountId, &x.RequestType, &x.CreatedAt); err != nil {
 			a.logger.Println(errLogMsg + err.Error())
 			return nil, internalErr
 		}
@@ -87,10 +87,10 @@ func (a *addFriendRqRepo) GetAddFrRqsToUser(id string, ctx context.Context) (*[]
 	return res, nil
 }
 
-// GetAllAddFrRqs implements repo.IAddFriendRqRepo.
-func (a *addFriendRqRepo) GetAllAddFrRqs(ctx context.Context) (*[]business_object.AddFrRequest, error) {
-	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetAddFriendRequestTable()) + "GetAllAddFrRqs - "
-	var query string = "Select * from " + business_object.GetAddFriendRequestTable()
+// GetAllRequests implements repo.ISocialRequestRepo.
+func (a *socialRequestRepo) GetAllRequests(ctx context.Context) (*[]business_object.SocialRequest, error) {
+	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetSocialRequestTable()) + "GetAllRequests - "
+	var query string = "Select * from " + business_object.GetSocialRequestTable()
 	var internalErr error = errors.New(noti.InternalErr)
 
 	defer a.db.Close()
@@ -101,11 +101,11 @@ func (a *addFriendRqRepo) GetAllAddFrRqs(ctx context.Context) (*[]business_objec
 		return nil, internalErr
 	}
 
-	var res *[]business_object.AddFrRequest
+	var res *[]business_object.SocialRequest
 	for rows.Next() {
-		var x business_object.AddFrRequest
+		var x business_object.SocialRequest
 
-		if err := rows.Scan(&x.RequestId, &x.AuthorId, &x.AccountId, &x.CreatedAt); err != nil {
+		if err := rows.Scan(&x.RequestId, &x.AuthorId, &x.AccountId, &x.RequestType, &x.CreatedAt); err != nil {
 			a.logger.Println(errLogMsg + err.Error())
 			return nil, internalErr
 		}
@@ -116,25 +116,25 @@ func (a *addFriendRqRepo) GetAllAddFrRqs(ctx context.Context) (*[]business_objec
 	return res, nil
 }
 
-// GetUserAddFrRqs implements repo.IAddFriendRqRepo.
-func (a *addFriendRqRepo) GetUserAddFrRqs(id string, ctx context.Context) (*[]business_object.AddFrRequest, error) {
-	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetAddFriendRequestTable()) + "GetUserAddFrRqs - "
-	var query string = "Select * from " + business_object.GetAddFriendRequestTable() + " where author_id = ?"
+// GetUserRequests implements repo.ISocialRequestRepo.
+func (a *socialRequestRepo) GetUserRequests(id string, requestType string, ctx context.Context) (*[]business_object.SocialRequest, error) {
+	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetSocialRequestTable()) + "GetUserRequests - "
+	var query string = "Select * from " + business_object.GetSocialRequestTable() + " where request_type = ? and author_id = ?"
 	var internalErr error = errors.New(noti.InternalErr)
 
 	defer a.db.Close()
 
-	rows, err := a.db.Query(query, id)
+	rows, err := a.db.Query(query, requestType, id)
 	if err != nil {
 		a.logger.Println(errLogMsg + err.Error())
 		return nil, internalErr
 	}
 
-	var res *[]business_object.AddFrRequest
+	var res *[]business_object.SocialRequest
 	for rows.Next() {
-		var x business_object.AddFrRequest
+		var x business_object.SocialRequest
 
-		if err := rows.Scan(&x.RequestId, &x.AuthorId, &x.AccountId, &x.CreatedAt); err != nil {
+		if err := rows.Scan(&x.RequestId, &x.AuthorId, &x.AccountId, &x.RequestType, &x.CreatedAt); err != nil {
 			a.logger.Println(errLogMsg + err.Error())
 			return nil, internalErr
 		}
@@ -145,16 +145,15 @@ func (a *addFriendRqRepo) GetUserAddFrRqs(id string, ctx context.Context) (*[]bu
 	return res, nil
 }
 
-// RemoveAddFrRq implements repo.IAddFriendRqRepo.
-func (a *addFriendRqRepo) RemoveAddFrRq(id string, ctx context.Context) error {
-	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetAddFriendRequestTable()) + "RemoveAddFrRq - "
-	var query string = "Delete from " + business_object.GetAddFriendRequestTable() + " where id = ?"
+// RemoveRequest implements repo.ISocialRequestRepo.
+func (a *socialRequestRepo) RemoveRequest(id string, ctx context.Context) error {
+	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetSocialRequestTable()) + "RemoveRequest - "
+	var query string = "Delete from " + business_object.GetSocialRequestTable() + " where id = ?"
+	var internalErrMsg error = errors.New(noti.InternalErr)
 
 	defer a.db.Close()
 
 	res, err := a.db.Exec(query, id)
-	var internalErrMsg error = errors.New(noti.InternalErr)
-
 	if err != nil {
 		a.logger.Println(errLogMsg, err.Error())
 		return internalErrMsg
@@ -167,7 +166,7 @@ func (a *addFriendRqRepo) RemoveAddFrRq(id string, ctx context.Context) error {
 	}
 
 	if rowsAffected == 0 {
-		return errors.New(fmt.Sprintf(noti.UndefinedObjectWarnMsg, business_object.GetLikeTable()))
+		return errors.New(fmt.Sprintf(noti.UndefinedObjectWarnMsg, business_object.GetSocialRequestTable()))
 	}
 
 	return nil

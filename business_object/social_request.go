@@ -4,11 +4,13 @@ import "time"
 
 // Delete after update request
 type SocialRequest struct {
-	FollowId    string    `json:"post_id"`
+	RequestId   string    `json:"request_id"`
 	AuthorId    string    `json:"author_id"`
 	AccountId   string    `json:"account_id"`
 	RequestType string    `json:"request_type"`
-	CreatedAt   time.Time `json:"create_at"`
+	CreatedAt   time.Time `json:"created_at"`
 }
 
-func GetFollowTable() string { return "SocialRequest" }
+func GetSocialRequestTable() string {
+	return "social_request"
+}
