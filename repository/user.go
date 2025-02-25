@@ -263,6 +263,27 @@ func (u *userRepo) GetInvoledAccountsAmountFromUser(req dto.GetInvoledAccouuntsR
 	return util.ToSliceString(combinedString, "|"), nil
 }
 
+// GetInvolvedAccountsFromTag implements repo.IUserRepo.
+func (u *userRepo) GetInvolvedAccountsFromTag(id string, ctx context.Context) ([]string, error) {
+	var query string = "Select friends, followers, followings from " + business_object.GetUserTable() + " where id = ?"
+	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetUserTable()) + "GetInvolvedAccountsFromTag - "
+
+	defer u.db.Close()
+
+	var friends, followers, followings string
+
+	if err := u.db.QueryRow(query, id).Scan(&friends, &followers, &followings); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+
+		u.logger.Println(errLogMsg + err.Error())
+		return nil, errors.New(noti.InternalErr)
+	}
+
+	return util.ToSliceString(friends+"|"+followers+"|"+followings, "|"), nil
+}
+
 // GetUsersByKeyword implements repo.IUserRepo.
 func (u *userRepo) GetUsersByKeyword(keyword string, ctx context.Context) (*[]dto.UserDBResModel, error) {
 	var query string = "Select * from " + business_object.GetUserTable() + " where lower(username) like lower('%?%') or lower(full_name) like ('%?%') or lower(email) like ('%?%')"

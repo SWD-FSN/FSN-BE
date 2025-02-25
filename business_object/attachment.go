@@ -2,7 +2,7 @@ package businessobject
 
 import "time"
 
-type Attachment struct {
+type Attachment struct { // Chưa cần tạo
 	AttachmentId string    `json:"attachment_id"`
 	ObjectId     string    `json:"object_id"`
 	Kind         string    `json:"kind"`

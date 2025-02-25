@@ -77,6 +77,7 @@ type GetInvoledAccouuntsRequest struct {
 }
 
 type GetInvolvedAccountsFromTagResponse struct {
-	UserId   string `json:"user_id"`
-	Username string `json:"username"`
+	UserId        string `json:"user_id"`
+	Username      string `json:"username"`
+	ProfileAvatar string `json:"profile_avatar"`
 }
