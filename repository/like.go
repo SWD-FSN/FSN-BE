@@ -34,13 +34,13 @@ func (l *likeRepo) CancelLike(id string, ctx context.Context) error {
 	var internalErrMsg error = errors.New(noti.InternalErr)
 
 	if err != nil {
-		l.logger.Println(errLogMsg, err.Error())
+		l.logger.Println(errLogMsg + err.Error())
 		return internalErrMsg
 	}
 
 	rowsAffected, err := res.RowsAffected()
 	if err != nil {
-		l.logger.Println(errLogMsg, err.Error())
+		l.logger.Println(errLogMsg + err.Error())
 		return internalErrMsg
 	}
 

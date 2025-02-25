@@ -13,7 +13,6 @@ import (
 	"social_network/repository"
 	"social_network/repository/db"
 	"social_network/util"
-	"sort"
 	"sync"
 	"time"
 )
@@ -39,7 +38,7 @@ func GeneratePostService() (service.IPostService, error) {
 		return nil, err
 	}
 
-	return InitializePostService(cnn, &log.Logger{}), nil
+	return InitializePostService(cnn, util.GetLogConfig()), nil
 }
 
 // GetAllPosts implements service.IPostService.
@@ -64,9 +63,9 @@ func (p *postService) GetPostsByUser(id string, ctx context.Context) (*[]busines
 	}
 
 	// Sort
-	sort.Slice(res, func(i, j int) bool {
-		return (*res)[i].CreatedAt.After((*res)[j].CreatedAt)
-	})
+	util.SortByTime(*res, func(item business_object.Post) time.Time {
+		return item.CreatedAt
+	}, false)
 
 	return res, nil
 }

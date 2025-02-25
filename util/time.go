@@ -1,6 +1,9 @@
 package util
 
-import "time"
+import (
+	"sort"
+	"time"
+)
 
 const (
 	NormalActionDuration time.Duration = time.Minute * 15   // 15'
@@ -15,4 +18,15 @@ func GetPrimitiveTime() time.Time {
 
 func IsActionExpired(exp time.Time) bool {
 	return time.Now().UTC().After(exp)
+}
+
+// Generic function to sort any slice of structs based on a time.Time field
+func SortByTime[T any](items []T, getTime func(T) time.Time, ascending bool) {
+	sort.Slice(items, func(i, j int) bool {
+		if ascending {
+			return getTime(items[i]).Before(getTime(items[j]))
+		}
+
+		return getTime(items[i]).After(getTime(items[j]))
+	})
 }

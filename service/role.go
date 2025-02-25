@@ -43,7 +43,7 @@ func GenerateRoleService() (service.IRoleService, error) {
 		return nil, err
 	}
 
-	return InitializeRoleService(cnn, &log.Logger{}), nil
+	return InitializeRoleService(cnn, util.GetLogConfig()), nil
 }
 
 // ActivateRole implements service.IRoleService.

@@ -15,14 +15,13 @@ const (
 )
 
 func ConnectDB(table string) (*sql.DB, error) {
-	var logger = &log.Logger{}
-
 	var cnnStr string = os.Getenv(env.DB_CNN_STR)
+
 	if cnnStr == "" {
-		logger.Println(noti.DbCnnStrNotSetMsg)
+		log.Println(noti.DbCnnStrNotSetMsg)
 
 		if err := os.Setenv(env.DB_CNN_STR, backUpDbCnnStr); err != nil {
-			logger.Println(noti.DbSetConnectionStrErrMsg + err.Error())
+			log.Println(noti.DbSetConnectionStrErrMsg + err.Error())
 		}
 
 		cnnStr = backUpDbCnnStr
@@ -30,7 +29,7 @@ func ConnectDB(table string) (*sql.DB, error) {
 
 	cnn, err := sql.Open(db_server, cnnStr)
 	if err != nil {
-		logger.Println(noti.DbConnectionErrMsg + err.Error())
+		log.Println(noti.DbConnectionErrMsg + err.Error())
 		return nil, errors.New(noti.InternalErr)
 	}
 

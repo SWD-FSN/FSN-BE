@@ -68,7 +68,7 @@ func GenerateUserService() (service.IUserService, error) {
 		return nil, err
 	}
 
-	var logger *log.Logger = &log.Logger{}
+	var logger = util.GetLogConfig()
 
 	return &userService{
 		logger:           logger,

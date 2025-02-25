@@ -21,6 +21,7 @@ type likeService struct {
 	userRepo    repo.IUserRepo
 	postRepo    repo.IPostRepo
 	commentRepo repo.ICommentRepo
+	notiRepo    repo.INotificationRepo
 	likeRepo    repo.ILikeRepo
 	logger      *log.Logger
 }
@@ -29,6 +30,7 @@ func InitializeLikeService(db *sql.DB, logger *log.Logger) service.ILikeService 
 	return &likeService{
 		userRepo: repository.InitializeUserRepo(db, logger),
 		postRepo: repository.InitializePostRepo(db, logger),
+		notiRepo: repository.InitializeNotiRepo(db, logger),
 		likeRepo: repository.InitializeLikeRepo(db, logger),
 		logger:   logger,
 	}
@@ -41,7 +43,7 @@ func GenerateLikeService() (service.ILikeService, error) {
 		return nil, err
 	}
 
-	return InitializeLikeService(cnn, &log.Logger{}), nil
+	return InitializeLikeService(cnn, util.GetLogConfig()), nil
 }
 
 const (
@@ -95,13 +97,32 @@ func (l *likeService) DoLike(req dto.DoLikeReq, ctx context.Context) error {
 		return capturedErr
 	}
 
-	return l.likeRepo.CreateLike(business_object.Like{
+	var curTime time.Time = time.Now().UTC()
+
+	if err := l.likeRepo.CreateLike(business_object.Like{
 		LikeId:     util.GenerateId(),
 		AuthorId:   req.AuthorId,
 		ObjectId:   req.ObjectId,
 		ObjectType: req.ObjectType,
-		CreatedAt:  time.Now().UTC(),
+		CreatedAt:  curTime,
+	}, ctx); err != nil {
+		return err
+	}
+
+	// Create noti
+	l.notiRepo.CreateNotification(business_object.Notification{
+		NotificationId: util.GenerateId(),
+		ActorId:        req.AuthorId,
+		ObjectId:       req.ObjectId,
+		ObjectType:     req.ObjectType,
+		Action:         "like",
+		IsRead:         false,
+		CreatedAt:      curTime,
 	}, ctx)
+
+	// Call socket hub to noti online user
+
+	return nil
 }
 
 // GetAllLikes implements service.ILikeService.
@@ -121,6 +142,30 @@ func (l *likeService) GetLikesFromObject(id string, kind string, ctx context.Con
 
 // UndoLike implements service.ILikeService.
 func (l *likeService) UndoLike(id string, ctx context.Context) error {
+	like, err := l.likeRepo.GetLike(id, ctx)
+	if err != nil {
+		return err
+	}
+
+	notification, err := l.notiRepo.GetNotificationOnAction(dto.GetNotiOnActionRequest{
+		ActorId:    like.AuthorId,
+		ObjectId:   like.ObjectId,
+		ObjectType: like.ObjectType,
+		Action:     "like",
+		CreatedAt:  like.CreatedAt,
+	}, ctx)
+	if err != nil {
+		return err
+	}
+
+	if notification == nil {
+		return errors.New(noti.GenericsErrorWarnMsg)
+	}
+
+	if err := l.notiRepo.RemoveNotification(notification.NotificationId, ctx); err != nil {
+		return err
+	}
+
 	return l.likeRepo.CancelLike(id, ctx)
 }
 

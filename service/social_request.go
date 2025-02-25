@@ -19,6 +19,7 @@ import (
 
 type socialRequestService struct {
 	userRepo    repo.IUserRepo
+	notiRepo    repo.INotificationRepo
 	requestRepo repo.ISocialRequestRepo
 	logger      *log.Logger
 }
@@ -26,6 +27,7 @@ type socialRequestService struct {
 func InitializeSocialRequestService(db *sql.DB, logger *log.Logger) service.ISocialRequestService {
 	return &socialRequestService{
 		userRepo:    repository.InitializeUserRepo(db, logger),
+		notiRepo:    repository.InitializeNotiRepo(db, logger),
 		requestRepo: repository.InitializeSocialRequestRepo(db, logger),
 		logger:      logger,
 	}
@@ -38,7 +40,7 @@ func GenerateAddFriendService() (service.ISocialRequestService, error) {
 		return nil, err
 	}
 
-	return InitializeSocialRequestService(cnn, &log.Logger{}), nil
+	return InitializeSocialRequestService(cnn, util.GetLogConfig()), nil
 }
 
 const (
@@ -270,13 +272,29 @@ func (s *socialRequestService) ProcessRequest(req dto.SocialRequest, ctx context
 		return errors.New("")
 	}
 
-	return s.requestRepo.CreateRequest(business_object.SocialRequest{
+	var curTime time.Time = time.Now().UTC()
+
+	if err := s.requestRepo.CreateRequest(business_object.SocialRequest{
 		RequestId:   util.GenerateId(),
 		AuthorId:    req.AuthorId,
 		AccountId:   req.AccountId,
 		RequestType: req.ActionType,
-		CreatedAt:   time.Now().UTC(),
+		CreatedAt:   curTime,
+	}, ctx); err != nil {
+		return err
+	}
+
+	s.notiRepo.CreateNotification(business_object.Notification{
+		NotificationId: util.GenerateId(),
+		ActorId:        req.AuthorId,
+		ObjectId:       req.AccountId,
+		ObjectType:     "user",
+		Action:         req.ActionType,
+		IsRead:         false,
+		CreatedAt:      curTime,
 	}, ctx)
+
+	return nil
 }
 
 func verifyRequest(id string, repo repo.ISocialRequestRepo, req *business_object.SocialRequest, ctx context.Context) error {

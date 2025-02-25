@@ -20,6 +20,6 @@ func Execute() {
 	api_route.InitializePostAPIRoute(server, logger)
 
 	if err := server.Run(":8080"); err != nil {
-		logger.Println(err.Error())
+		logger.Println("Error run server " + err.Error())
 	}
 }
