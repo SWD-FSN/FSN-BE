@@ -4,12 +4,12 @@ import "time"
 
 type Notification struct {
 	NotificationId string    `json:"notification_id"`
-	ActionId       string    `json:"action_id"`
+	ActorId        string    `json:"actor_id"`  // Người thực hiện hành động like, follow, ...
 	ObjectId       string    `json:"object_id"` // Post, cmt, follow của tài khoản được tác động
 	ObjectType     string    `json:"object_type"`
-	CreatedAt      time.Time `json:"created_at"`
+	Action         string    `json:"action"` // Like, follow
 	IsRead         bool      `json:"is_read"`
-	Status         bool      `json:"status"`
+	CreatedAt      time.Time `json:"created_at"`
 }
 
 func GetNotificationTable() string {
