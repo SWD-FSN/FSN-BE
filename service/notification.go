@@ -47,7 +47,7 @@ func (n *notiService) CreateNotification(req dto.CreateNotiRequest, ctx context.
 		ObjectType:     req.ObjectType,
 		Action:         req.Action,
 		IsRead:         false,
-		CreatedAt:      time.Now().UTC(),
+		CreatedAt:      time.Now(),
 	}, ctx)
 }
 

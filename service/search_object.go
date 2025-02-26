@@ -13,6 +13,7 @@ import (
 	"social_network/util"
 	"strings"
 	"sync"
+	"time"
 )
 
 type searchObjectService struct {
@@ -121,6 +122,10 @@ func (s *searchObjectService) GetObjectsByKeyword(id string, keyword string, ctx
 				})
 			}
 		}
+
+		util.SortByTime(*postsRes, func(item dto.PostResponse) time.Time {
+			return item.CreatedAt
+		}, false)
 	}()
 
 	wg.Wait()

@@ -98,8 +98,8 @@ func (p *postService) UpPost(req dto.UpPostReq, ctx context.Context) error {
 		Content:   req.Content,
 		IsPrivate: *req.IsPrivate,
 		IsHidden:  *req.IsHidden,
-		CreatedAt: time.Now().UTC(),
-		UpdatedAt: time.Now().UTC(),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
 		Status:    true,
 	}, ctx)
 }
@@ -144,7 +144,7 @@ func (p *postService) UpdatePost(req dto.UpdatePostReq, ctx context.Context) err
 	// Wait for 3 goroutines to be done
 	wg.Wait()
 
-	post.UpdatedAt = time.Now().UTC()
+	post.UpdatedAt = time.Now()
 
 	return p.postRepo.UpdatePost(*post, ctx)
 }

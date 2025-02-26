@@ -99,7 +99,7 @@ func (l *likeService) DoLike(req dto.DoLikeReq, ctx context.Context) error {
 		return capturedErr
 	}
 
-	var curTime time.Time = time.Now().UTC()
+	var curTime time.Time = time.Now()
 
 	if err := l.likeRepo.CreateLike(business_object.Like{
 		LikeId:     util.GenerateId(),

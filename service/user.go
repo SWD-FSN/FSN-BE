@@ -370,6 +370,8 @@ func (u *userService) CreateUser(req dto.CreateUserReq, actorId string, ctx cont
 		fullName = req.Username
 	}
 
+	var curTiem time.Time = time.Now()
+
 	// Save new account to database
 	if err := u.userRepo.CreateUser(dto.UserDBResModel{
 		UserId:          id,
@@ -389,8 +391,8 @@ func (u *userService) CreateUser(req dto.CreateUserReq, actorId string, ctx cont
 		IsActive:        isActive,
 		IsActivated:     false,
 		IsHaveToResetPw: isHaveToResetPw,
-		CreatedAt:       time.Now().UTC(),
-		UpdatedAt:       time.Now().UTC(),
+		CreatedAt:       curTiem,
+		UpdatedAt:       curTiem,
 	}, ctx); err != nil {
 		return "", err
 	}

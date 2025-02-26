@@ -274,7 +274,7 @@ func (s *socialRequestService) ProcessRequest(req dto.SocialRequest, ctx context
 		return errors.New("")
 	}
 
-	var curTime time.Time = time.Now().UTC()
+	var curTime time.Time = time.Now()
 
 	if err := s.requestRepo.CreateRequest(business_object.SocialRequest{
 		RequestId:   util.GenerateId(),

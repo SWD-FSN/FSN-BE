@@ -17,7 +17,7 @@ func GetPrimitiveTime() time.Time {
 }
 
 func IsActionExpired(exp time.Time) bool {
-	return time.Now().UTC().After(exp)
+	return time.Now().After(exp)
 }
 
 // Generic function to sort any slice of structs based on a time.Time field

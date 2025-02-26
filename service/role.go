@@ -65,12 +65,13 @@ func (r *roleService) CreateRole(name string, ctx context.Context) error {
 		return errors.New(noti.ItemExistedWarnMsg)
 	}
 	//---------------------------------------
+	var curTime time.Time = time.Now()
 	return r.roleRepo.CreateRole(business_object.Role{
 		RoleId:       fmt.Sprint(uuid.New()),
 		RoleName:     name,
 		ActiveStatus: true,
-		CreatedAt:    time.Now().UTC(),
-		UpdatedAt:    time.Now().UTC(),
+		CreatedAt:    curTime,
+		UpdatedAt:    curTime,
 	}, ctx)
 }
 
@@ -139,7 +140,7 @@ func (r *roleService) UpdateRole(role business_object.Role, ctx context.Context)
 	}
 
 	role.RoleName = strings.TrimSpace(role.RoleName)
-	role.UpdatedAt = time.Now().UTC()
+	role.UpdatedAt = time.Now()
 	return r.roleRepo.UpdateRole(role, ctx)
 }
 
