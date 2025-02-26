@@ -34,13 +34,15 @@ func InitializeSocialRequestService(db *sql.DB, logger *log.Logger) service.ISoc
 }
 
 func GenerateAddFriendService() (service.ISocialRequestService, error) {
-	cnn, err := db.ConnectDB(business_object.GetSocialRequestTable())
+	var logger = util.GetLogConfig()
+
+	cnn, err := db.ConnectDB(logger)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return InitializeSocialRequestService(cnn, util.GetLogConfig()), nil
+	return InitializeSocialRequestService(cnn, logger), nil
 }
 
 const (

@@ -28,13 +28,13 @@ type userService struct {
 }
 
 func GenerateUserService() (service.IUserService, error) {
-	db, err := db.ConnectDB(business_object.GetUserTable())
+	var logger = util.GetLogConfig()
+
+	db, err := db.ConnectDB(logger)
 
 	if err != nil {
 		return nil, err
 	}
-
-	var logger = util.GetLogConfig()
 
 	return &userService{
 		logger:           logger,

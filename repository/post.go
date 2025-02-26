@@ -68,6 +68,35 @@ func (p *postRepo) GetAllPosts(ctx context.Context) (*[]business_object.Post, er
 	return res, nil
 }
 
+// GetPostsByKeyword implements repo.IPostRepo.
+func (p *postRepo) GetPostsByKeyword(keyword string, ctx context.Context) (*[]business_object.Post, error) {
+	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetPostTable()) + "GetPostsByKeyword - "
+	var query string = "Select * from " + business_object.GetPostTable() + " where is_private = false, is_hidden = false, status = true and lower(content) like lower('%?%')"
+	var internalErr error = errors.New(noti.InternalErr)
+
+	defer p.db.Close()
+
+	rows, err := p.db.Query(query, keyword)
+	if err != nil {
+		p.logger.Println(errLogMsg + err.Error())
+		return nil, internalErr
+	}
+
+	var res *[]business_object.Post
+	for rows.Next() {
+		var x business_object.Post
+
+		if err := rows.Scan(&x.PostId, &x.AuthorId, &x.Content, &x.IsPrivate, &x.IsHidden, &x.CreatedAt, &x.UpdatedAt, &x.Status); err != nil {
+			p.logger.Println(errLogMsg + err.Error())
+			return nil, internalErr
+		}
+
+		*res = append(*res, x)
+	}
+
+	return res, nil
+}
+
 // GetPost implements repo.IPostRepo.
 func (p *postRepo) GetPost(id string, ctx context.Context) (*business_object.Post, error) {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetPostTable()) + "GetPost - "

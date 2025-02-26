@@ -14,14 +14,14 @@ const (
 	backUpDbCnnStr string = "Your back up database connection string"
 )
 
-func ConnectDB(table string) (*sql.DB, error) {
+func ConnectDB(logger *log.Logger) (*sql.DB, error) {
 	var cnnStr string = os.Getenv(env.DB_CNN_STR)
 
 	if cnnStr == "" {
-		log.Println(noti.DbCnnStrNotSetMsg)
+		logger.Println(noti.DbCnnStrNotSetMsg)
 
 		if err := os.Setenv(env.DB_CNN_STR, backUpDbCnnStr); err != nil {
-			log.Println(noti.DbSetConnectionStrErrMsg + err.Error())
+			logger.Println(noti.DbSetConnectionStrErrMsg + err.Error())
 		}
 
 		cnnStr = backUpDbCnnStr
@@ -29,7 +29,7 @@ func ConnectDB(table string) (*sql.DB, error) {
 
 	cnn, err := sql.Open(db_server, cnnStr)
 	if err != nil {
-		log.Println(noti.DbConnectionErrMsg + err.Error())
+		logger.Println(noti.DbConnectionErrMsg + err.Error())
 		return nil, errors.New(noti.InternalErr)
 	}
 

@@ -37,13 +37,15 @@ func InitializeRoleService(db *sql.DB, logger *log.Logger) service.IRoleService 
 }
 
 func GenerateRoleService() (service.IRoleService, error) {
-	cnn, err := db.ConnectDB(business_object.GetRoleTable())
+	var logger = util.GetLogConfig()
+
+	cnn, err := db.ConnectDB(logger)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return InitializeRoleService(cnn, util.GetLogConfig()), nil
+	return InitializeRoleService(cnn, logger), nil
 }
 
 // ActivateRole implements service.IRoleService.

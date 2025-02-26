@@ -32,13 +32,15 @@ func InitializePostService(db *sql.DB, logger *log.Logger) service.IPostService 
 }
 
 func GeneratePostService() (service.IPostService, error) {
-	cnn, err := db.ConnectDB(business_object.GetRoleTable())
+	var logger = util.GetLogConfig()
+
+	cnn, err := db.ConnectDB(logger)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return InitializePostService(cnn, util.GetLogConfig()), nil
+	return InitializePostService(cnn, logger), nil
 }
 
 // GetAllPosts implements service.IPostService.

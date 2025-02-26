@@ -37,13 +37,15 @@ func InitializeLikeService(db *sql.DB, logger *log.Logger) service.ILikeService 
 }
 
 func GenerateLikeService() (service.ILikeService, error) {
-	cnn, err := db.ConnectDB(business_object.GetLikeTable())
+	var logger = util.GetLogConfig()
+
+	cnn, err := db.ConnectDB(logger)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return InitializeLikeService(cnn, util.GetLogConfig()), nil
+	return InitializeLikeService(cnn, logger), nil
 }
 
 const (

@@ -10,6 +10,7 @@ import (
 	"social_network/interfaces/service"
 	"social_network/repository"
 	"social_network/repository/db"
+	"social_network/util"
 )
 
 type userSecurityService struct {
@@ -18,13 +19,13 @@ type userSecurityService struct {
 }
 
 func GenerateUserSecurityService() (service.IUserSecurityService, error) {
-	db, err := db.ConnectDB(businessobject.GetUserSecurityTable())
+	var logger = util.GetLogConfig()
+
+	db, err := db.ConnectDB(logger)
 
 	if err != nil {
 		return nil, err
 	}
-
-	var logger *log.Logger = &log.Logger{}
 
 	return &userSecurityService{
 		userSecurityRepo: repository.InitializeUserSecurityRepo(db, logger),

@@ -27,13 +27,15 @@ func InitializeNotiService(db *sql.DB, logger *log.Logger) service.INotification
 }
 
 func GenerateNotiService() (service.INotificationService, error) {
-	db, err := db.ConnectDB(business_object.GetNotificationTable())
+	var logger = util.GetLogConfig()
+
+	db, err := db.ConnectDB(logger)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return InitializeNotiService(db, util.GetLogConfig()), nil
+	return InitializeNotiService(db, logger), nil
 }
 
 // CreateNotification implements service.INotificationService.
