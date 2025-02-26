@@ -15,6 +15,7 @@ import (
 	"social_network/repository"
 	"social_network/repository/db"
 	"social_network/util"
+	"strings"
 	"sync"
 	"time"
 )
@@ -24,41 +25,6 @@ type userService struct {
 	roleRepo         repo.IRoleRepo
 	userSecurityRepo repo.IUserSecurityRepo
 	userRepo         repo.IUserRepo
-}
-
-// GetInvoledAccountsFromUser implements service.IUserService.
-func (u *userService) GetInvoledAccountsFromUser(req dto.GetInvoledAccouuntsRequest, ctx context.Context) (*[]business_object.User, error) {
-	var user *dto.UserDBResModel
-	if err := verifyAccount(req.UserId, id_validate, user, u.userRepo, ctx); err != nil {
-		return nil, err
-	}
-
-	var ids []string
-	switch req.InvolvedType {
-	case friends_involed:
-		ids = util.ToSliceString(user.Friends, sepChar)
-	case followers_involed:
-		ids = util.ToSliceString(user.Followers, sepChar)
-	case followings_involed:
-		ids = util.ToSliceString(user.Followings, sepChar)
-	case blocks_involed:
-		ids = util.ToSliceString(user.BlockUsers, sepChar)
-	default:
-		return nil, errors.New(noti.GenericsErrorWarnMsg)
-	}
-
-	if len(ids) == 0 {
-		return nil, nil
-	}
-
-	var res *[]business_object.User
-
-	for _, id := range ids {
-		account, _ := u.userRepo.GetUser(id, ctx)
-		*res = append(*res, toUserModel(*account))
-	}
-
-	return res, nil
 }
 
 func GenerateUserService() (service.IUserService, error) {
@@ -131,6 +97,123 @@ func getLoginUrl() string {
 // func (u *userService) ChangeUserStatus(rawStatus string, userId string, actorId string, c context.Context) (string, error) {
 // 	panic("unimplemented")
 // }
+
+// GetUsersFromSearchBar implements service.IUserService.
+func (u *userService) GetUsersFromSearchBar(id string, keyword string, ctx context.Context) *[]dto.GetInvolvedAccountsSearchResponse {
+	var res *[]dto.GetInvolvedAccountsSearchResponse
+	var maxResLength int = 8
+
+	tmpStorage1, _ := u.userRepo.GetInvolvedAccountsFromTag(id, ctx)
+	var idMap map[string]string = make(map[string]string)
+
+	for _, id := range tmpStorage1 {
+		// Lọc trùng user
+		// Vd list follow và list friend có cùng 1 user
+		if _, isExist := idMap[id]; !isExist {
+			account, _ := u.userRepo.GetUser(id, ctx)
+
+			if account != nil && strings.Contains(strings.ToLower(account.Username), strings.ToLower(keyword)) {
+				*res = append(*res, dto.GetInvolvedAccountsSearchResponse{
+					UserId:        id,
+					Username:      account.Username,
+					ProfileAvatar: account.ProfileAvatar,
+				})
+			}
+
+			if len(*res) == maxResLength {
+				return res
+			}
+
+			idMap[id] = id
+		}
+	}
+
+	users, _ := u.userRepo.GetUsersByKeyword(keyword, ctx)
+	for _, user := range *users {
+		if _, isExist := idMap[user.UserId]; !isExist {
+			*res = append(*res, dto.GetInvolvedAccountsSearchResponse{
+				UserId:        user.UserId,
+				Username:      user.Username,
+				ProfileAvatar: user.ProfileAvatar,
+			})
+
+			if len(*res) == maxResLength {
+				return res
+			}
+
+			idMap[user.UserId] = user.UserId
+		}
+	}
+
+	return res
+}
+
+// GetInvolvedAccountsFromTag implements service.IUserService.
+func (u *userService) GetInvolvedAccountsFromTag(id string, keyword string, ctx context.Context) *[]dto.GetInvolvedAccountsSearchResponse {
+	tmpStorage, _ := u.userRepo.GetInvolvedAccountsFromTag(id, ctx)
+
+	if len(tmpStorage) == 0 {
+		return nil
+	}
+
+	var res *[]dto.GetInvolvedAccountsSearchResponse
+	var idMap map[string]string = make(map[string]string)
+
+	for _, id := range tmpStorage {
+		// Lọc trùng user
+		// Vd list follow và list friend có cùng 1 user
+		if _, isExist := idMap[id]; !isExist {
+			account, _ := u.userRepo.GetUser(id, ctx)
+
+			if account != nil && strings.Contains(strings.ToLower(account.Username), strings.ToLower(keyword)) {
+				*res = append(*res, dto.GetInvolvedAccountsSearchResponse{
+					UserId:        id,
+					Username:      account.Username,
+					ProfileAvatar: account.ProfileAvatar,
+				})
+			}
+
+			idMap[id] = id
+		}
+	}
+
+	return res
+}
+
+// GetInvoledAccountsFromUser implements service.IUserService.
+func (u *userService) GetInvoledAccountsFromUser(req dto.GetInvoledAccouuntsRequest, ctx context.Context) (*[]business_object.User, error) {
+	var user *dto.UserDBResModel
+	if err := verifyAccount(req.UserId, id_validate, user, u.userRepo, ctx); err != nil {
+		return nil, err
+	}
+
+	var ids []string
+	switch req.InvolvedType {
+	case friends_involed:
+		ids = util.ToSliceString(user.Friends, sepChar)
+	case followers_involed:
+		ids = util.ToSliceString(user.Followers, sepChar)
+	case followings_involed:
+		ids = util.ToSliceString(user.Followings, sepChar)
+	case blocks_involed:
+		ids = util.ToSliceString(user.BlockUsers, sepChar)
+	default:
+		return nil, errors.New(noti.GenericsErrorWarnMsg)
+	}
+
+	if len(ids) == 0 {
+		return nil, nil
+	}
+
+	var res *[]business_object.User
+
+	for _, id := range ids {
+		account, _ := u.userRepo.GetUser(id, ctx)
+		*res = append(*res, toUserModel(*account))
+	}
+
+	return res, nil
+}
 
 // GetAllUsers implements service.IUserService.
 func (u *userService) GetAllUsers(ctx context.Context) (*[]business_object.User, error) {

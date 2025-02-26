@@ -4,6 +4,7 @@ import (
 	business_object "social_network/business_object"
 	action_type "social_network/constant/action_type"
 	"social_network/dto"
+	"social_network/service"
 	"social_network/util"
 
 	"github.com/gin-gonic/gin"
@@ -57,25 +58,25 @@ var samplePosts = &[]business_object.Post{
 }
 
 func GetAllPosts(ctx *gin.Context) {
-	// service, err := service.GeneratePostService()
+	service, err := service.GeneratePostService()
 
-	// if err != nil {
-	// 	util.ProcessResponse(util.GenerateInvalidRequestAndSystemProblemModel(ctx, err))
-	// 	return
-	// }
+	if err != nil {
+		util.ProcessResponse(util.GenerateInvalidRequestAndSystemProblemModel(ctx, err))
+		return
+	}
 
-	// res, err := service.GetAllPosts(ctx)
-
-	// util.ProcessResponse(dto.APIReponse{
-	// 	Data1:    res,
-	// 	ErrMsg:   err,
-	// 	PostType: action_type.Non_post,
-	// 	Context:  ctx,
-	// })
+	res, err := service.GetAllPosts(ctx)
 
 	util.ProcessResponse(dto.APIReponse{
-		Data1:    samplePosts,
+		Data1:    res,
+		ErrMsg:   err,
 		PostType: action_type.Non_post,
 		Context:  ctx,
 	})
+
+	// util.ProcessResponse(dto.APIReponse{
+	// 	Data1:    samplePosts,
+	// 	PostType: action_type.Non_post,
+	// 	Context:  ctx,
+	// })
 }

@@ -76,8 +76,16 @@ type GetInvoledAccouuntsRequest struct {
 	InvolvedType string `json:"involed_type"`
 }
 
-type GetInvolvedAccountsFromTagResponse struct {
+type GetInvolvedAccountsSearchResponse struct {
 	UserId        string `json:"user_id"`
 	Username      string `json:"username"`
 	ProfileAvatar string `json:"profile_avatar"`
+}
+
+type UserSearchDoneResponse struct {
+	UserId            string `json:"user_id"`
+	Username          string `json:"username"`
+	ProfileAvatar     string `json:"profile_avatar"`
+	FollowerAmount    int    `json:"follower_amount"`
+	IsFriendWithActor bool   `json:"is_friend_with_actor"`
 }

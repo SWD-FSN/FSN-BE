@@ -11,6 +11,8 @@ type IUserService interface {
 	GetUsersByRole(role string, ctx context.Context) (*[]business_object.User, error)
 	GetUsersByStatus(rawStatus string, ctx context.Context) (*[]business_object.User, error)
 	GetInvoledAccountsFromUser(req dto.GetInvoledAccouuntsRequest, ctx context.Context) (*[]business_object.User, error)
+	GetInvolvedAccountsFromTag(id, keyword string, ctx context.Context) *[]dto.GetInvolvedAccountsSearchResponse
+	GetUsersFromSearchBar(id, keyword string, ctx context.Context) *[]dto.GetInvolvedAccountsSearchResponse
 	GetUser(id string, ctx context.Context) (*business_object.User, error)
 	CreateUser(req dto.CreateUserReq, actorId string, ctx context.Context) (string, error)
 	UpdateUser(req dto.UpdateUserReq, actorId string, ctx context.Context) (string, error)

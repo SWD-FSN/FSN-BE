@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	db_server      string = "postgre"
+	db_server      string = "Postgre"
 	backUpDbCnnStr string = "Your back up database connection string"
 )
 
