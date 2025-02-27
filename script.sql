@@ -12,7 +12,7 @@ CREATE TABLE "user" (
     id VARCHAR(100) PRIMARY KEY NOT NULL,
     role_id VARCHAR(100),
     full_name VARCHAR(255) NOT NULL,
-    username VARCHAR(100) UNIQUE NOT NULL,
+    username VARCHAR(100) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
     date_of_birth DATE,
