@@ -92,7 +92,7 @@ CREATE TABLE notification (
 CREATE TABLE conversation (
     id VARCHAR(100) PRIMARY KEY NOT NULL,
     name VARCHAR(200),
-    host_id VARCHAR(100),
+    host_id VARCHAR(100) NULL,
     members VARCHAR(500),
     is_group BOOLEAN,
     is_delete BOOLEAN DEFAULT NULL,
