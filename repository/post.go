@@ -31,7 +31,7 @@ func (p *postRepo) CreatePost(post business_object.Post, ctx context.Context) er
 
 	defer p.db.Close()
 
-	if _, err := p.db.Exec(query, post.PostId, post.AuthorId, post.Content, post.IsPrivate, post.IsHidden, post.UpdatedAt, post.Status); err != nil {
+	if _, err := p.db.Exec(query, post.PostId, post.AuthorId, post.Content, post.IsPrivate, post.IsHidden, post.CreatedAt, post.UpdatedAt, post.Status); err != nil {
 		p.logger.Println(errLogMsg + err.Error())
 		return errors.New(noti.InternalErr)
 	}

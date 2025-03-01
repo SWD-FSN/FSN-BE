@@ -7,3 +7,7 @@ type Message struct {
 	Content       string `json:"content"`
 	CreatedAt     string `json:"created_at"`
 }
+
+func GetMessageTable() string {
+	return "message"
+}
