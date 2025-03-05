@@ -970,6 +970,7 @@ func processSuccessLogin(user *dto.UserDBResModel, securityRepo repo.IUserSecuri
 			return "", "", err
 		}
 
+		res1 = action_type.Redirect_post
 		res2 = util.ToCombinedString([]string{
 			getResetPassUrl(),
 			token,
@@ -998,7 +999,7 @@ func processFailLogin(id string, securityRepo repo.IUserSecurityRepo, ctx contex
 
 	if security != nil {
 		security.FailAccess += 1
-		*security.LastFail = time.Now().UTC()
+		*security.LastFail = time.Now()
 		securityRepo.EditUserSecurity(*security, ctx)
 	}
 

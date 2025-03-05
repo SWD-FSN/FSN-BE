@@ -8,6 +8,7 @@ import (
 type IConversationRepo interface {
 	GetAllConversations(ctx context.Context) (*[]business_object.Conversation, error)
 	GetConversationsFromUser(id string, ctx context.Context) (*[]business_object.Conversation, error)
+	GetConversationOfTwoUsers(userId1, userId2 string, ctx context.Context) (*business_object.Conversation, error)
 	GetConversationsByKeyword(id, keyword string, ctx context.Context) (*[]business_object.Conversation, error)
 	GetConversation(id string, ctx context.Context) (*business_object.Conversation, error)
 	CreateConversation(conversation business_object.Conversation, ctx context.Context) error

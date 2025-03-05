@@ -207,3 +207,63 @@ func GetAllUsers(ctx *gin.Context) {
 	// 	Context:  ctx,
 	// })
 }
+
+func CreateUser(ctx *gin.Context) {
+	var request dto.CreateUserReq
+	if ctx.ShouldBindJSON(&request) != nil {
+		util.ProcessResponse(util.GenerateInvalidRequestAndSystemProblemModel(ctx, nil))
+		return
+	}
+
+	service, err := service.GenerateUserService()
+	if err != nil {
+		util.ProcessResponse(util.GenerateInvalidRequestAndSystemProblemModel(ctx, err))
+		return
+	}
+
+	res, err := service.CreateUser(request, ctx.GetString("user_id"), ctx)
+
+	util.ProcessResponse(dto.APIReponse{
+		Data2:    res,
+		ErrMsg:   err,
+		PostType: action_type.Inform_post,
+		Context:  ctx,
+	})
+}
+
+func Login(ctx *gin.Context) {
+	var request dto.LoginRequest
+	if ctx.ShouldBindJSON(&request) != nil {
+		util.ProcessResponse(util.GenerateInvalidRequestAndSystemProblemModel(ctx, nil))
+		return
+	}
+
+	service, err := service.GenerateUserService()
+	if err != nil {
+		util.ProcessResponse(util.GenerateInvalidRequestAndSystemProblemModel(ctx, err))
+		return
+	}
+
+	res1, res2, err := service.Login(request, ctx)
+	util.ProcessLoginResponse(dto.APIReponse{
+		Data1:   res1,
+		Data2:   res2,
+		ErrMsg:  err,
+		Context: ctx,
+	})
+}
+
+func LogOut(ctx *gin.Context) {
+	service, err := service.GenerateUserService()
+	if err != nil {
+		util.ProcessResponse(util.GenerateInvalidRequestAndSystemProblemModel(ctx, err))
+		return
+	}
+
+	util.ProcessResponse(dto.APIReponse{
+		Data2:    "",
+		ErrMsg:   service.LogOut(ctx.GetString("user_id"), ctx),
+		PostType: action_type.Redirect_post,
+		Context:  ctx,
+	})
+}

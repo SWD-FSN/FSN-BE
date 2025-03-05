@@ -39,6 +39,28 @@ func GenerateInvalidRequestAndSystemProblemModel(c *gin.Context, err error) dto.
 	}
 }
 
+func ProcessLoginResponse(data dto.APIReponse) {
+	if data.ErrMsg != nil {
+		processFailResponse(data.ErrMsg, data.Context)
+		return
+	}
+
+	var stringRes1 string = fmt.Sprint(data.Data1)
+	var stringRes2 string = fmt.Sprint(data.Data2)
+
+	switch stringRes1 {
+	case action_type.ActivateCase:
+		data.Context.IndentedJSON(http.StatusContinue, gin.H{"message": stringRes2})
+	case action_type.Redirect_post:
+		processRedirectResponse(stringRes2, data.Context)
+	default:
+		data.Context.IndentedJSON(http.StatusOK, gin.H{
+			"access_token":  stringRes1,
+			"refresh_token": stringRes2,
+		})
+	}
+}
+
 func processFailResponse(err error, c *gin.Context) {
 	var errCode int
 

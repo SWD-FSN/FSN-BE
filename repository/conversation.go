@@ -27,6 +27,35 @@ func InitializeConversationRepo(db *sql.DB, logger *log.Logger) repo.IConversati
 	}
 }
 
+// GetConversationOfTwoUsers implements repo.IConversationRepo.
+func (c *conversationRepo) GetConversationOfTwoUsers(userId1, userId2 string, ctx context.Context) (*businessobject.Conversation, error) {
+	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetConversationTable()) + "GetConversationOfTwoUsers - "
+	var query string = "Select * from " + business_object.GetConversationTable() + " where members like '%?%' and members like '%?%"
+	var internalErr error = errors.New(noti.InternalErr)
+
+	rows, err := c.db.Query(query, userId1, userId2)
+	if err != nil {
+		c.logger.Println(errLogMsg + err.Error())
+		return nil, internalErr
+	}
+
+	for rows.Next() {
+		var x business_object.Conversation
+
+		if err := rows.Scan(&x.ConversationId, &x.ConversationName, &x.HostId, &x.Members, &x.IsGroup, &x.IsDelete, &x.CreatedAt, &x.UpdatedAt); err != nil {
+			c.logger.Println(errLogMsg + err.Error())
+			return nil, internalErr
+		}
+
+		// Not a group chat
+		if x.HostId == nil || !x.IsGroup {
+			return &x, nil
+		}
+	}
+
+	return nil, nil
+}
+
 // UpdateConversation implements repo.IConversationRepo.
 func (c *conversationRepo) UpdateConversation(conversation businessobject.Conversation, ctx context.Context) error {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetConversationTable()) + "UpdateConversation - "
