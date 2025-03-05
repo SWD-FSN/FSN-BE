@@ -319,15 +319,8 @@ func (c *conersationService) GetConversationsFromUser(id string, ctx context.Con
 // LeaveGroupConversation implements service.IConversationService.
 func (c *conersationService) LeaveGroupConversation(memberId string, conversationId string, ctx context.Context) error {
 	var conversation *business_object.Conversation
-	isMember, err := isActorBelongToChat(memberId, conversationId, false, conversation, c.conversationRepo, ctx)
-
-	if err != nil {
+	if err := verifyActorToConversationAction(memberId, conversationId, false, conversation, c.conversationRepo, ctx); err != nil {
 		return err
-	}
-
-	// Not belong to this conversation
-	if !isMember {
-		return errors.New(noti.GenericsRightAccessWarnMsg)
 	}
 
 	var memberSlice []string = util.ToSliceString(conversation.Members, sepChar)
