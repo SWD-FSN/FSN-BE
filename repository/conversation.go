@@ -27,6 +27,33 @@ func InitializeConversationRepo(db *sql.DB, logger *log.Logger) repo.IConversati
 	}
 }
 
+// UpdateConversation implements repo.IConversationRepo.
+func (c *conversationRepo) UpdateConversation(conversation businessobject.Conversation, ctx context.Context) error {
+	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetConversationTable()) + "UpdateConversation - "
+	var query string = "Update " + business_object.GetConversationTable() + " set conversation_avatar = ?, conversation_name = ?, host_id = ?, members = ?, is_delete = ? and updated_at = ? where id = ?"
+	var internalErr error = errors.New(noti.InternalErr)
+
+	defer c.db.Close()
+
+	res, err := c.db.Exec(query, conversation.ConversationAvatar, conversation.ConversationName, conversation.HostId, conversation.Members, conversation.IsDelete, conversation.UpdatedAt, conversation.ConversationId)
+	if err != nil {
+		c.logger.Println(errLogMsg, err.Error())
+		return internalErr
+	}
+
+	rowsAffected, err := res.RowsAffected()
+	if err != nil {
+		c.logger.Println(errLogMsg, err.Error())
+		return internalErr
+	}
+
+	if rowsAffected == 0 {
+		return errors.New(fmt.Sprintf(noti.UndefinedObjectWarnMsg, business_object.GetConversationTable()))
+	}
+
+	return nil
+}
+
 // CreateConversation implements repo.IConversationRepo.
 func (c *conversationRepo) CreateConversation(conversation businessobject.Conversation, ctx context.Context) error {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetConversationTable()) + "CreateConversation - "

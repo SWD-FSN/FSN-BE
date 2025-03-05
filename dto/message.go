@@ -1,15 +1,12 @@
-package businessobject
+package dto
 
 import "time"
 
-type Message struct {
+type MessageUIResponse struct {
 	MessageId     string    `json:"message_id"`
+	ConvesationId string    `json:"conversation_id"`
 	AuthorId      string    `json:"author_id"`
-	CoversationId string    `json:"conversation_id"`
+	AuthorAvatar  string    `json:"author_avatar"`
 	Content       string    `json:"content"`
 	CreatedAt     time.Time `json:"created_at"`
-}
-
-func GetMessageTable() string {
-	return "message"
 }
