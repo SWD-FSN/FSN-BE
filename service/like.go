@@ -65,7 +65,7 @@ func (l *likeService) DoLike(req dto.DoLikeReq, ctx context.Context) error {
 	// Verify author
 	go func() {
 		defer wg.Done()
-		if err := verifyUser(req.AuthorId, l.userRepo, ctx); err != nil {
+		if err := verifyUser(req.ActorId, l.userRepo, ctx); err != nil {
 			mu.Lock()
 
 			if capturedErr == nil {
@@ -103,7 +103,7 @@ func (l *likeService) DoLike(req dto.DoLikeReq, ctx context.Context) error {
 
 	if err := l.likeRepo.CreateLike(business_object.Like{
 		LikeId:     util.GenerateId(),
-		AuthorId:   req.AuthorId,
+		AuthorId:   req.ActorId,
 		ObjectId:   req.ObjectId,
 		ObjectType: req.ObjectType,
 		CreatedAt:  curTime,
@@ -114,7 +114,7 @@ func (l *likeService) DoLike(req dto.DoLikeReq, ctx context.Context) error {
 	// Create noti
 	l.notiRepo.CreateNotification(business_object.Notification{
 		NotificationId: util.GenerateId(),
-		ActorId:        req.AuthorId,
+		ActorId:        req.ActorId,
 		ObjectId:       req.ObjectId,
 		ObjectType:     req.ObjectType,
 		Action:         "like",
@@ -123,6 +123,10 @@ func (l *likeService) DoLike(req dto.DoLikeReq, ctx context.Context) error {
 	}, ctx)
 
 	// Call socket hub to noti online user
+
+	util.SendMessage(dto.WSSendMessageRequest{
+		ContentType: "",
+	}, nil)
 
 	return nil
 }

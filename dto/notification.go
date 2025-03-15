@@ -16,3 +16,7 @@ type GetNotiOnActionRequest struct {
 	Action     string    `json:"action"` // Like, follow
 	CreatedAt  time.Time `json:"created_at"`
 }
+
+type NotificationResponse struct {
+	NotificationId string `json:"notification_id"`
+}

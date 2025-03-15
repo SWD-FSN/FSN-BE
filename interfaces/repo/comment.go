@@ -6,5 +6,9 @@ import (
 )
 
 type ICommentRepo interface {
+	CreateComment(cmt business_object.Comment, ctx context.Context) error
 	GetComment(id string, ctx context.Context) (*business_object.Comment, error)
+	GetCommemtsFromPost(id string, ctx context.Context) (*[]business_object.Comment, error)
+	RemoveComment(id string, ctx context.Context) error
+	EditComment(cmt business_object.Comment, ctx context.Context) error
 }

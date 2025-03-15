@@ -1,6 +1,11 @@
 package dto
 
-import "time"
+import (
+	"net/http"
+	"time"
+
+	"github.com/gorilla/websocket"
+)
 
 type CreateUserReq struct {
 	Username      string    `json:"username"`
@@ -88,4 +93,12 @@ type UserSearchDoneResponse struct {
 	ProfileAvatar     string `json:"profile_avatar"`
 	FollowerAmount    int    `json:"follower_amount"`
 	IsFriendWithActor bool   `json:"is_friend_with_actor"`
+}
+
+type UserConnectionRequest struct {
+	Id       string
+	Request  *http.Request
+	Writer   http.ResponseWriter
+	Upgrader *websocket.Upgrader
+	Clients  map[string]*websocket.Conn
 }

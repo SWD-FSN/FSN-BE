@@ -267,3 +267,125 @@ func LogOut(ctx *gin.Context) {
 		Context:  ctx,
 	})
 }
+
+func GetUsersFromSearchBar(ctx *gin.Context) {
+	service, err := service.GenerateUserService()
+	if err != nil {
+		util.ProcessResponse(util.GenerateInvalidRequestAndSystemProblemModel(ctx, err))
+		return
+	}
+
+	util.ProcessResponse(dto.APIReponse{
+		Data1:    service.GetUsersFromSearchBar(ctx.Param("id"), ctx.Param("keyword"), ctx),
+		Context:  ctx,
+		PostType: action_type.Non_post,
+	})
+}
+
+func GetInvolvedAccountsFromTag(ctx *gin.Context) {
+	service, err := service.GenerateUserService()
+	if err != nil {
+		util.ProcessResponse(util.GenerateInvalidRequestAndSystemProblemModel(ctx, err))
+		return
+	}
+
+	util.ProcessResponse(dto.APIReponse{
+		Data1:    service.GetInvolvedAccountsFromTag(ctx.Param("id"), ctx.Param("keyword"), ctx),
+		Context:  ctx,
+		PostType: action_type.Non_post,
+	})
+}
+
+func GetInvoledAccountsFromUser(ctx *gin.Context) {
+	var request dto.GetInvoledAccouuntsRequest
+
+	service, err := service.GenerateUserService()
+	if err != nil {
+		util.ProcessResponse(util.GenerateInvalidRequestAndSystemProblemModel(ctx, err))
+		return
+	}
+
+	res, err := service.GetInvoledAccountsFromUser(request, ctx)
+
+	util.ProcessResponse(dto.APIReponse{
+		Data1:    res,
+		ErrMsg:   err,
+		Context:  ctx,
+		PostType: action_type.Non_post,
+	})
+}
+
+func GetUsersByRole(ctx *gin.Context) {
+	service, err := service.GenerateUserService()
+	if err != nil {
+		util.ProcessResponse(util.GenerateInvalidRequestAndSystemProblemModel(ctx, err))
+		return
+	}
+
+	res, err := service.GetUsersByRole(ctx.Param("role"), ctx)
+
+	util.ProcessResponse(dto.APIReponse{
+		Data1:    res,
+		ErrMsg:   err,
+		Context:  ctx,
+		PostType: action_type.Non_post,
+	})
+}
+
+func GetUsersByStatus(ctx *gin.Context) {
+	service, err := service.GenerateUserService()
+	if err != nil {
+		util.ProcessResponse(util.GenerateInvalidRequestAndSystemProblemModel(ctx, err))
+		return
+	}
+
+	res, err := service.GetUsersByRole(ctx.Param("status"), ctx)
+
+	util.ProcessResponse(dto.APIReponse{
+		Data1:    res,
+		ErrMsg:   err,
+		Context:  ctx,
+		PostType: action_type.Non_post,
+	})
+}
+
+func UpdateUser(ctx *gin.Context) {
+	var request dto.UpdateUserReq
+	if ctx.ShouldBindJSON(&request) != nil {
+		util.GenerateInvalidRequestAndSystemProblemModel(ctx, nil)
+		return
+	}
+
+	service, err := service.GenerateUserService()
+	if err != nil {
+		util.ProcessResponse(util.GenerateInvalidRequestAndSystemProblemModel(ctx, err))
+		return
+	}
+
+	res, err := service.UpdateUser(request, ctx.Param("actorId"), ctx)
+
+	util.ProcessResponse(dto.APIReponse{
+		Data1:    res,
+		ErrMsg:   err,
+		Context:  ctx,
+		PostType: action_type.Inform_post,
+	})
+}
+
+func VerifyAction(ctx *gin.Context) {
+	service, err := service.GenerateUserService()
+	if err != nil {
+		util.ProcessResponse(util.GenerateInvalidRequestAndSystemProblemModel(ctx, err))
+		return
+	}
+
+	res, err := service.VerifyAction(ctx.Param("rawToken"), ctx)
+
+	util.ProcessResponse(dto.APIReponse{
+		Data1:    res,
+		Data2:    res,
+		ErrMsg:   err,
+		Context:  ctx,
+		PostType: action_type.Redirect_post,
+	})
+}

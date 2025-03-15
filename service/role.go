@@ -15,8 +15,6 @@ import (
 	"social_network/util"
 	"strings"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 type roleService struct {
@@ -67,7 +65,7 @@ func (r *roleService) CreateRole(name string, ctx context.Context) error {
 	//---------------------------------------
 	var curTime time.Time = time.Now()
 	return r.roleRepo.CreateRole(business_object.Role{
-		RoleId:       fmt.Sprint(uuid.New()),
+		RoleId:       util.GenerateId(),
 		RoleName:     name,
 		ActiveStatus: true,
 		CreatedAt:    curTime,

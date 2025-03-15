@@ -33,7 +33,7 @@ func InitializeSocialRequestService(db *sql.DB, logger *log.Logger) service.ISoc
 	}
 }
 
-func GenerateAddFriendService() (service.ISocialRequestService, error) {
+func GenerateSocialRequestService() (service.ISocialRequestService, error) {
 	var logger = util.GetLogConfig()
 
 	cnn, err := db.ConnectDB(logger)

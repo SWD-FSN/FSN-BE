@@ -58,6 +58,7 @@ CREATE TABLE post (
     id VARCHAR(100) PRIMARY KEY NOT NULL,
     author_id VARCHAR(100),
     content TEXT NOT NULL,
+    attachment TEXT,
     is_private BOOLEAN NOT NULL,
     is_hidden BOOLEAN NOT NULL,
     status BOOLEAN NOT NULL,
@@ -97,6 +98,7 @@ CREATE TABLE conversation (
     is_group BOOLEAN,
     is_delete BOOLEAN DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT FK_Conversation_User FOREIGN KEY (host_id) REFERENCES user(id) ON DELETE CASCADE
 );
 
@@ -109,4 +111,15 @@ CREATE TABLE message (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT Fk_Message_User FOREIGN KEY (author_id) REFERENCES user(id) ON DELETE CASCADE,
     CONSTRAINT Fk_Message_Conversation FOREIGN KEY (conversation_id) REFERENCES conversation(id) ON DELETE CASCADE
+);
+
+CREATE TABLE comment (
+    id VARCHAR(100) PRIMARY KEY NOT NULL,
+    author_id VARCHAR(100) NOT NULL,
+    post_id VARCHAR(100) NOT NULL,
+    content TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT Fk_Comment_Post FOREIGN KEY (post_id) REFERENCES post(id) ON DELETE CASCADE,
+    CONSTRAINT Fk_Comment_User FOREIGN KEY (author_id) REFERENCES user(id) ON DELETE CASCADE,
 );
