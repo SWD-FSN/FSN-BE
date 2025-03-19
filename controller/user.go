@@ -332,6 +332,23 @@ func GetUsersByRole(ctx *gin.Context) {
 	})
 }
 
+func GetUser(ctx *gin.Context) {
+	service, err := service.GenerateUserService()
+	if err != nil {
+		util.ProcessResponse(util.GenerateInvalidRequestAndSystemProblemModel(ctx, err))
+		return
+	}
+
+	res, err := service.GetUser(ctx.Param("id"), ctx)
+
+	util.ProcessResponse(dto.APIReponse{
+		Data1:    res,
+		ErrMsg:   err,
+		Context:  ctx,
+		PostType: action_type.Non_post,
+	})
+}
+
 func GetUsersByStatus(ctx *gin.Context) {
 	service, err := service.GenerateUserService()
 	if err != nil {
@@ -380,6 +397,24 @@ func VerifyAction(ctx *gin.Context) {
 	}
 
 	res, err := service.VerifyAction(ctx.Param("rawToken"), ctx)
+
+	util.ProcessResponse(dto.APIReponse{
+		Data1:    res,
+		Data2:    res,
+		ErrMsg:   err,
+		Context:  ctx,
+		PostType: action_type.Redirect_post,
+	})
+}
+
+func ResetPassword(ctx *gin.Context) {
+	service, err := service.GenerateUserService()
+	if err != nil {
+		util.ProcessResponse(util.GenerateInvalidRequestAndSystemProblemModel(ctx, err))
+		return
+	}
+
+	res, err := service.ResetPassword(ctx.Param("password"), ctx.Param("confirmPassword"), ctx.Query("token"), ctx)
 
 	util.ProcessResponse(dto.APIReponse{
 		Data1:    res,

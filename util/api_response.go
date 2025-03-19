@@ -39,6 +39,13 @@ func GenerateInvalidRequestAndSystemProblemModel(c *gin.Context, err error) dto.
 	}
 }
 
+func GetUnAuthBodyResponse(ctx *gin.Context) dto.APIReponse {
+	return dto.APIReponse{
+		ErrMsg:  errors.New(noti.GenericsRightAccessWarnMsg),
+		Context: ctx,
+	}
+}
+
 func ProcessLoginResponse(data dto.APIReponse) {
 	if data.ErrMsg != nil {
 		processFailResponse(data.ErrMsg, data.Context)

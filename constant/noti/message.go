@@ -22,3 +22,8 @@ const (
 
 	InactiveAccountMsg string = "Your account is not active now. If you have any need, please contact admin for more information or request a demand to reactivate your account."
 )
+
+// API
+const (
+	ApiPortNotSetMsg string = "API port has not been set yet."
+)

@@ -28,11 +28,12 @@ type likeService struct {
 
 func InitializeLikeService(db *sql.DB, logger *log.Logger) service.ILikeService {
 	return &likeService{
-		userRepo: repository.InitializeUserRepo(db, logger),
-		postRepo: repository.InitializePostRepo(db, logger),
-		notiRepo: repository.InitializeNotiRepo(db, logger),
-		likeRepo: repository.InitializeLikeRepo(db, logger),
-		logger:   logger,
+		userRepo:    repository.InitializeUserRepo(db, logger),
+		postRepo:    repository.InitializePostRepo(db, logger),
+		commentRepo: repository.InitializeCommentRepo(db, logger),
+		notiRepo:    repository.InitializeNotiRepo(db, logger),
+		likeRepo:    repository.InitializeLikeRepo(db, logger),
+		logger:      logger,
 	}
 }
 
@@ -60,12 +61,13 @@ func (l *likeService) DoLike(req dto.DoLikeReq, ctx context.Context) error {
 	var wg sync.WaitGroup
 	var mu sync.Mutex
 
+	var actor *dto.UserDBResModel
 	wg.Add(2)
 
 	// Verify author
 	go func() {
 		defer wg.Done()
-		if err := verifyUser(req.ActorId, l.userRepo, ctx); err != nil {
+		if err := verifyAccount(req.ActorId, id_validate, actor, l.userRepo, ctx); err != nil {
 			mu.Lock()
 
 			if capturedErr == nil {
@@ -112,21 +114,19 @@ func (l *likeService) DoLike(req dto.DoLikeReq, ctx context.Context) error {
 	}
 
 	// Create noti
+	var actionType string = "like"
 	l.notiRepo.CreateNotification(business_object.Notification{
 		NotificationId: util.GenerateId(),
 		ActorId:        req.ActorId,
 		ObjectId:       req.ObjectId,
 		ObjectType:     req.ObjectType,
-		Action:         "like",
+		Action:         actionType,
 		IsRead:         false,
 		CreatedAt:      curTime,
 	}, ctx)
 
 	// Call socket hub to noti online user
-
-	util.SendMessage(dto.WSSendMessageRequest{
-		ContentType: "",
-	}, nil)
+	sendMsgSocket(req.ObjectId, req.ObjectType, actor.Username, actor.ProfileAvatar, actionType, "", curTime, nil, l.commentRepo, l.postRepo, ctx)
 
 	return nil
 }
@@ -241,4 +241,40 @@ func getObjectType(kind string) string {
 	}
 
 	return res
+}
+
+func getAuthorOfObject(objectId, objectType string, cmtRepo repo.ICommentRepo, postRepo repo.IPostRepo, ctx context.Context) string {
+	var res string
+
+	switch objectType {
+	case post_object:
+		if post, _ := postRepo.GetPost(objectId, ctx); post != nil {
+			res = post.AuthorId
+		}
+	case comment_object:
+		if cmt, _ := cmtRepo.GetComment(objectId, ctx); cmt != nil {
+			res = cmt.AuthorId
+		}
+	case user_object:
+		res = objectId
+	}
+
+	return res
+}
+
+func sendMsgSocket(objectId, objectType, actorUsername, actorAvatar, actionType, orgContent string, createdAt time.Time, containerId *string, cmtRepo repo.ICommentRepo, postRepo repo.IPostRepo, ctx context.Context) {
+	if userId := getAuthorOfObject(objectId, objectType, cmtRepo, postRepo, ctx); userId != "" {
+		if cnn, isExist := clients[userId]; isExist {
+			content, contentType := generateContentAndContentTypeOfMsg(actorUsername, actionType, objectType, orgContent)
+
+			sendMessage(dto.WSSendMessageRequest{
+				UserId:             userId,
+				UserAvatar:         actorAvatar,
+				Content:            content,
+				ContentType:        contentType,
+				CreatedAt:          createdAt,
+				ContentContainerId: containerId,
+			}, nil, cnn)
+		}
+	}
 }

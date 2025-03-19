@@ -229,7 +229,7 @@ func (s *socialRequestService) ProcessRequest(req dto.SocialRequest, ctx context
 
 	wg.Add(2)
 
-	var account *dto.UserDBResModel
+	var account, actor *dto.UserDBResModel
 
 	// Validate requested account
 	go func() {
@@ -251,7 +251,7 @@ func (s *socialRequestService) ProcessRequest(req dto.SocialRequest, ctx context
 	go func() {
 		defer wg.Done()
 
-		if err := verifyUser(req.AuthorId, s.userRepo, ctx); err != nil {
+		if err := verifyAccount(req.AuthorId, id_validate, actor, s.userRepo, ctx); err != nil {
 			mu.Lock()
 
 			if capturedErr != nil {
@@ -286,15 +286,18 @@ func (s *socialRequestService) ProcessRequest(req dto.SocialRequest, ctx context
 		return err
 	}
 
+	var objectType string = "user"
 	s.notiRepo.CreateNotification(business_object.Notification{
 		NotificationId: util.GenerateId(),
 		ActorId:        req.AuthorId,
 		ObjectId:       req.AccountId,
-		ObjectType:     "user",
+		ObjectType:     objectType,
 		Action:         req.ActionType,
 		IsRead:         false,
 		CreatedAt:      curTime,
 	}, ctx)
+
+	sendMsgSocket(req.AccountId, objectType, actor.Username, actor.ProfileAvatar, req.ActionType, "", curTime, nil, nil, nil, ctx)
 
 	return nil
 }

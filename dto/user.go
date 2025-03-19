@@ -3,8 +3,6 @@ package dto
 import (
 	"net/http"
 	"time"
-
-	"github.com/gorilla/websocket"
 )
 
 type CreateUserReq struct {
@@ -96,9 +94,7 @@ type UserSearchDoneResponse struct {
 }
 
 type UserConnectionRequest struct {
-	Id       string
-	Request  *http.Request
-	Writer   http.ResponseWriter
-	Upgrader *websocket.Upgrader
-	Clients  map[string]*websocket.Conn
+	UserId  string
+	Request *http.Request
+	Writer  http.ResponseWriter
 }

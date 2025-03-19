@@ -20,6 +20,7 @@ import (
 type commentService struct {
 	likeRepo    repo.ILikeRepo
 	postRepo    repo.IPostRepo
+	notiRepo    repo.INotificationRepo
 	userRepo    repo.IUserRepo
 	commentRepo repo.ICommentRepo
 	logger      *log.Logger
@@ -29,6 +30,7 @@ func InitializeCommentService(db *sql.DB, logger *log.Logger) service.ICommentSe
 	return &commentService{
 		likeRepo:    repository.InitializeLikeRepo(db, logger),
 		postRepo:    repository.InitializePostRepo(db, logger),
+		notiRepo:    repository.InitializeNotiRepo(db, logger),
 		userRepo:    repository.InitializeUserRepo(db, logger),
 		commentRepo: repository.InitializeCommentRepo(db, logger),
 		logger:      logger,
@@ -48,6 +50,7 @@ func GenerateCommentService() (service.ICommentService, error) {
 }
 
 const (
+	user_object    string = "user"
 	post_object    string = "post"
 	like_object    string = "like"
 	comment_object string = "comment"
@@ -118,6 +121,11 @@ func (c *commentService) PostComment(req dto.CreateCommentRequest, ctx context.C
 		return err
 	}
 
+	actor, err := c.userRepo.GetUser(req.ActorId, ctx)
+	if err != nil {
+		return err
+	}
+
 	var res error = errors.New(noti.GenericsRightAccessWarnMsg)
 	if post.IsHidden {
 		return res
@@ -150,14 +158,33 @@ func (c *commentService) PostComment(req dto.CreateCommentRequest, ctx context.C
 
 	// Create comment
 	var curTime time.Time = time.Now()
-	return c.commentRepo.CreateComment(business_object.Comment{
+	if err := c.commentRepo.CreateComment(business_object.Comment{
 		CommentId: util.GenerateId(),
 		AuthorId:  req.ActorId,
 		PostId:    req.PostId,
 		Content:   req.Content,
 		CreatedAt: curTime,
 		UpdatedAt: curTime,
+	}, ctx); err != nil {
+		return err
+	}
+
+	var objectType string = "post"
+	var actionType string = "comment"
+	c.notiRepo.CreateNotification(business_object.Notification{
+		NotificationId: util.GenerateId(),
+		ActorId:        req.ActorId,
+		ObjectId:       req.PostId,
+		ObjectType:     objectType,
+		Action:         actionType,
+		IsRead:         false,
+		CreatedAt:      curTime,
 	}, ctx)
+
+	// Send message socket
+	sendMsgSocket(req.PostId, objectType, actor.Username, actor.ProfileAvatar, actionType, "", curTime, nil, c.commentRepo, c.postRepo, ctx)
+
+	return nil
 }
 
 // RemoveComment implements service.ICommentService.
@@ -173,7 +200,7 @@ func isObjectBelongActor(objectId, objectType, userId string, likeRepo repo.ILik
 	var res bool = false
 
 	switch objectType {
-	case post_obj:
+	case post_object:
 		obj, _ := postRepo.GetPost(objectId, ctx)
 		res = obj.AuthorId == userId
 	case like_object:

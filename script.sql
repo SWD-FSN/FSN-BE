@@ -86,7 +86,10 @@ CREATE TABLE notification (
     action VARCHAR(50),
     is_read BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT FK_Notification_User FOREIGN KEY (actor_id) REFERENCES user(id) ON DELETE CASCADE
+    CONSTRAINT FK_Notification_User FOREIGN KEY (actor_id) REFERENCES user(id) ON DELETE CASCADE,
+    CONSTRAINT FK_Notification_User1 FOREIGN KEY (object_id) REFERENCES user(id) ON DELETE CASCADE,
+    CONSTRAINT FK_Notification_Post FOREIGN KEY (object_id) REFERENCES post(id) ON DELETE CASCADE,
+    CONSTRAINT FK_Notification_Comment FOREIGN KEY (object_id) REFERENCES comment(id) ON DELETE CASCADE,
 );
 
 -- Bảng Conversation
@@ -123,3 +126,9 @@ CREATE TABLE comment (
     CONSTRAINT Fk_Comment_Post FOREIGN KEY (post_id) REFERENCES post(id) ON DELETE CASCADE,
     CONSTRAINT Fk_Comment_User FOREIGN KEY (author_id) REFERENCES user(id) ON DELETE CASCADE,
 );
+
+-- Select *
+-- From notification n
+-- Join post p on n.object_id = p.id
+-- Join comment c on n.object_id = c.id
+-- where p.author_id = '1' or c.id = '1'

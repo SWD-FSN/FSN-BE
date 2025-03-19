@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"log"
-	"net/http"
 	"os"
 	business_object "social_network/business_object"
 	action_type "social_network/constant/action_type"
@@ -21,7 +20,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/gorilla/websocket"
 )
 
 type userService struct {
@@ -101,12 +99,6 @@ func getLoginUrl() string {
 // func (u *userService) ChangeUserStatus(rawStatus string, userId string, actorId string, c context.Context) (string, error) {
 // 	panic("unimplemented")
 // }
-
-var upgrader = websocket.Upgrader{
-	CheckOrigin: func(r *http.Request) bool { return true }, // Allow all origins
-}
-
-var clients = make(map[string]*websocket.Conn) // Map userID to WebSocket connection
 
 // GetUsersFromSearchBar implements service.IUserService.
 func (u *userService) GetUsersFromSearchBar(id string, keyword string, ctx context.Context) *[]dto.GetInvolvedAccountsSearchResponse {
@@ -999,14 +991,6 @@ func processSuccessLogin(user *dto.UserDBResModel, securityRepo repo.IUserSecuri
 
 		*security.AccessToken = accessToken
 		*security.RefreshToken = refreshToken
-
-		util.HandleUserConnection(dto.UserConnectionRequest{
-			Id:       user.UserId,
-			Request:  ctx.Request,
-			Writer:   ctx.Writer,
-			Upgrader: &upgrader,
-			Clients:  clients,
-		})
 	}
 
 	return res1, res2, securityRepo.EditUserSecurity(*security, ctx)
