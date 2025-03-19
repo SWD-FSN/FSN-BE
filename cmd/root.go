@@ -23,7 +23,7 @@ func Execute() {
 	config(logger)
 	setUpApiRoutes(server, logger, apiPort)
 
-	if err := server.Run(":" + apiPort); err != nil {
+	if err := server.Run(":" + "8080"); err != nil {
 		logger.Println("Error run server " + err.Error())
 	}
 }

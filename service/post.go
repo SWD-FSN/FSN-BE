@@ -18,6 +18,7 @@ import (
 )
 
 type postService struct {
+	likeRepo repo.ILikeRepo
 	userRepo repo.IUserRepo
 	postRepo repo.IPostRepo
 	logger   *log.Logger
@@ -25,6 +26,7 @@ type postService struct {
 
 func InitializePostService(db *sql.DB, logger *log.Logger) service.IPostService {
 	return &postService{
+		likeRepo: repository.InitializeLikeRepo(db, logger),
 		userRepo: repository.InitializeUserRepo(db, logger),
 		postRepo: repository.InitializePostRepo(db, logger),
 		logger:   logger,
@@ -102,6 +104,33 @@ func (p *postService) UpPost(req dto.UpPostReq, ctx context.Context) error {
 		UpdatedAt: time.Now(),
 		Status:    true,
 	}, ctx)
+}
+
+// GetPosts implements service.IPostService.
+func (p *postService) GetPosts(ctx context.Context) *[]dto.PostResponse {
+	var res *[]dto.PostResponse
+	posts, _ := p.postRepo.GetPosts(ctx)
+
+	for _, post := range *posts {
+		likes, _ := p.likeRepo.GetLikesFromObject(post.PostId, business_object.GetPostTable(), ctx)
+		author, _ := p.userRepo.GetUser(post.AuthorId, ctx)
+
+		if likes != nil && author != nil {
+			*res = append(*res, dto.PostResponse{
+				PostId:        post.PostId,
+				Content:       post.Content,
+				IsPrivate:     post.IsPrivate,
+				IsHidden:      post.IsHidden,
+				LikeAmount:    len(*likes),
+				CreatedAt:     post.CreatedAt,
+				AuthorId:      author.UserId,
+				Username:      author.Username,
+				ProfileAvatar: author.ProfileAvatar,
+			})
+		}
+	}
+
+	return res
 }
 
 // UpdatePost implements service.IPostService.

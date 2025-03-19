@@ -14,5 +14,5 @@ func InitializePostAPIRoute(server *gin.Engine, logger *log.Logger, port string)
 
 	var contextPath string = "posts"
 
-	server.GET(contextPath, controller.GetAllPosts)
+	server.GET(contextPath, controller.GetPostsDisplayUI)
 }
