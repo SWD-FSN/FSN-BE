@@ -30,7 +30,7 @@ func InitializeConversationRepo(db *sql.DB, logger *log.Logger) repo.IConversati
 // GetConversationOfTwoUsers implements repo.IConversationRepo.
 func (c *conversationRepo) GetConversationOfTwoUsers(userId1, userId2 string, ctx context.Context) (*businessobject.Conversation, error) {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetConversationTable()) + "GetConversationOfTwoUsers - "
-	var query string = "Select * from " + business_object.GetConversationTable() + " where members like '%?%' and members like '%?%"
+	var query string = "SELECT * FROM " + business_object.GetConversationTable() + " WHERE members LIKE '%?%' AND members LIKE '%?%"
 	var internalErr error = errors.New(noti.InternalErr)
 
 	rows, err := c.db.Query(query, userId1, userId2)
@@ -59,7 +59,7 @@ func (c *conversationRepo) GetConversationOfTwoUsers(userId1, userId2 string, ct
 // UpdateConversation implements repo.IConversationRepo.
 func (c *conversationRepo) UpdateConversation(conversation businessobject.Conversation, ctx context.Context) error {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetConversationTable()) + "UpdateConversation - "
-	var query string = "Update " + business_object.GetConversationTable() + " set conversation_avatar = ?, conversation_name = ?, host_id = ?, members = ?, is_delete = ? and updated_at = ? where id = ?"
+	var query string = "UPDATE " + business_object.GetConversationTable() + " SET conversation_avatar = ?, conversation_name = ?, host_id = ?, members = ?, is_delete = ? AND updated_at = ? WHERE id = ?"
 	var internalErr error = errors.New(noti.InternalErr)
 
 	defer c.db.Close()
@@ -86,7 +86,7 @@ func (c *conversationRepo) UpdateConversation(conversation businessobject.Conver
 // CreateConversation implements repo.IConversationRepo.
 func (c *conversationRepo) CreateConversation(conversation businessobject.Conversation, ctx context.Context) error {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetConversationTable()) + "CreateConversation - "
-	var query string = "Insert into " + business_object.GetConversationTable() + "(id, conversation_name, host_id, members, is_group, is_delete, created_at, updated_at) values (?, ?, ?, ?, ?, ?, ?, ?)"
+	var query string = "INSERT INTO " + business_object.GetConversationTable() + "(id, conversation_name, host_id, members, is_group, is_delete, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
 
 	defer c.db.Close()
 
@@ -101,7 +101,7 @@ func (c *conversationRepo) CreateConversation(conversation businessobject.Conver
 // DissovelGroupConversation implements repo.IConversationRepo.
 func (c *conversationRepo) DissovelGroupConversation(id string, ctx context.Context) error {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetConversationTable()) + "DissovelGroupConversation - "
-	var query string = "Update " + business_object.GetConversationTable() + " set status = false and updated_at = ? where id = ?"
+	var query string = "UPDATE " + business_object.GetConversationTable() + " SET status = false AND updated_at = ? WHERE id = ?"
 	var internalErr error = errors.New(noti.InternalErr)
 
 	defer c.db.Close()
@@ -128,7 +128,7 @@ func (c *conversationRepo) DissovelGroupConversation(id string, ctx context.Cont
 // GetAllConversations implements repo.IConversationRepo.
 func (c *conversationRepo) GetAllConversations(ctx context.Context) (*[]businessobject.Conversation, error) {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetConversationTable()) + "GetAllConversations - "
-	var query string = "Select * from " + business_object.GetConversationTable()
+	var query string = "SELECT * FROM " + business_object.GetConversationTable()
 	var internalErr error = errors.New(noti.InternalErr)
 
 	defer c.db.Close()
@@ -157,7 +157,7 @@ func (c *conversationRepo) GetAllConversations(ctx context.Context) (*[]business
 // GetConversation implements repo.IConversationRepo.
 func (c *conversationRepo) GetConversation(id string, ctx context.Context) (*businessobject.Conversation, error) {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetConversationTable()) + "GetConversation - "
-	var query string = "Select * from " + business_object.GetConversationTable() + " where id = ?"
+	var query string = "SELECT * FROM " + business_object.GetConversationTable() + " WHERE id = ?"
 
 	defer c.db.Close()
 
@@ -216,7 +216,7 @@ func (c *conversationRepo) GetConversationsByKeyword(id string, keyword string, 
 // GetConversationsFromUser implements repo.IConversationRepo.
 func (c *conversationRepo) GetConversationsFromUser(id string, ctx context.Context) (*[]businessobject.Conversation, error) {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetConversationTable()) + "GetConversationsFromUser - "
-	var query string = "Select * from " + business_object.GetConversationTable() + " where members like '%?%'"
+	var query string = "SELECT * FROM " + business_object.GetConversationTable() + " WHERE members LIKE '%?%'"
 	var internalErr error = errors.New(noti.InternalErr)
 
 	defer c.db.Close()

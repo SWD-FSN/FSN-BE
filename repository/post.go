@@ -27,7 +27,7 @@ func InitializePostRepo(db *sql.DB, logger *log.Logger) repo.IPostRepo {
 // CreatePost implements repo.IPostRepo.
 func (p *postRepo) CreatePost(post business_object.Post, ctx context.Context) error {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetPostTable()) + "CreatePost - "
-	var query string = "Insert into " + business_object.GetPostTable() + "(id, author_id, content, is_private, is_hidden, created_at, updated_at, status) values (?, ?, ?, ?, ?, ?, ?, ?)"
+	var query string = "INSERT INTO " + business_object.GetPostTable() + "(id, author_id, content, is_private, is_hidden, created_at, updated_at, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
 
 	defer p.db.Close()
 
@@ -42,7 +42,7 @@ func (p *postRepo) CreatePost(post business_object.Post, ctx context.Context) er
 // GetAllPosts implements repo.IPostRepo.
 func (p *postRepo) GetAllPosts(ctx context.Context) (*[]business_object.Post, error) {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetPostTable()) + "GetAllPosts - "
-	var query string = "Select * from " + business_object.GetPostTable()
+	var query string = "SELECT * FROM " + business_object.GetPostTable()
 	var internalErr error = errors.New(noti.InternalErr)
 
 	defer p.db.Close()
@@ -71,7 +71,7 @@ func (p *postRepo) GetAllPosts(ctx context.Context) (*[]business_object.Post, er
 // GetPostsByKeyword implements repo.IPostRepo.
 func (p *postRepo) GetPostsByKeyword(keyword string, ctx context.Context) (*[]business_object.Post, error) {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetPostTable()) + "GetPostsByKeyword - "
-	var query string = "Select * from " + business_object.GetPostTable() + " where is_private = false, is_hidden = false, status = true and lower(content) like lower('%?%')"
+	var query string = "SELECT * FROM " + business_object.GetPostTable() + " WHERE is_private = false, is_hidden = false, status = true AND LOWER(content) LIKE LOWER('%?%')"
 	var internalErr error = errors.New(noti.InternalErr)
 
 	defer p.db.Close()
@@ -100,7 +100,7 @@ func (p *postRepo) GetPostsByKeyword(keyword string, ctx context.Context) (*[]bu
 // GetPosts implements repo.IPostRepo.
 func (p *postRepo) GetPosts(ctx context.Context) (*[]business_object.Post, error) {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetPostTable()) + "GetPosts - "
-	var query string = "Select * from " + business_object.GetPostTable() + " where is_private = false, is_hidden = false and status = true"
+	var query string = "SELECT * FROM " + business_object.GetPostTable() + " WHERE is_private = false, is_hidden = false AND status = true"
 	var internalErr error = errors.New(noti.InternalErr)
 
 	defer p.db.Close()
@@ -129,7 +129,7 @@ func (p *postRepo) GetPosts(ctx context.Context) (*[]business_object.Post, error
 // GetPost implements repo.IPostRepo.
 func (p *postRepo) GetPost(id string, ctx context.Context) (*business_object.Post, error) {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetPostTable()) + "GetPost - "
-	var query string = "Select * from " + business_object.GetPostTable() + " where id = ?"
+	var query string = "SELECT * FROM " + business_object.GetPostTable() + " WHERE id = ?"
 
 	defer p.db.Close()
 
@@ -149,7 +149,7 @@ func (p *postRepo) GetPost(id string, ctx context.Context) (*business_object.Pos
 // GetPostsByUser implements repo.IPostRepo.
 func (p *postRepo) GetPostsByUser(id string, ctx context.Context) (*[]business_object.Post, error) {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetLikeTable()) + "GetPostsByUser - "
-	var query string = "Select * from " + business_object.GetPostTable() + " where author_id = ?"
+	var query string = "SELECT * FROM " + business_object.GetPostTable() + " WHERE author_id = ?"
 	var internalErr error = errors.New(noti.InternalErr)
 
 	defer p.db.Close()
@@ -178,7 +178,7 @@ func (p *postRepo) GetPostsByUser(id string, ctx context.Context) (*[]business_o
 // RemovePost implements repo.IPostRepo.
 func (p *postRepo) RemovePost(id string, ctx context.Context) error {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetPostTable()) + "RemovePost - "
-	var query string = "Update " + business_object.GetPostTable() + " set status = false, updated_at = ? where id = ?"
+	var query string = "UPDATE " + business_object.GetPostTable() + " SET status = false, updated_at = ? WHERE id = ?"
 	var internalErr error = errors.New(noti.InternalErr)
 
 	defer p.db.Close()
@@ -205,7 +205,7 @@ func (p *postRepo) RemovePost(id string, ctx context.Context) error {
 // UpdatePost implements repo.IPostRepo.
 func (p *postRepo) UpdatePost(post business_object.Post, ctx context.Context) error {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetPostTable()) + "UpdatePost - "
-	var query string = "Update " + business_object.GetPostTable() + " set content = ?, is_private = ?, is_hidden = ?, updated_at = ? and status = ? where id = ?"
+	var query string = "UPDATE " + business_object.GetPostTable() + " SET content = ?, is_private = ?, is_hidden = ?, updated_at = ? WHERE status = ? WHERE id = ?"
 	var internalErr error = errors.New(noti.InternalErr)
 
 	defer p.db.Close()

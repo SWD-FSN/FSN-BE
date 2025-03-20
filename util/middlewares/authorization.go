@@ -29,7 +29,7 @@ func Authorize(ctx *gin.Context) {
 	ctx.Next()
 }
 
-func AdminAuhthorization(ctx *gin.Context) {
+func AdminAuthorization(ctx *gin.Context) {
 	if ctx.GetString("role") != constant.ADMIN_ROLE {
 		util.ProcessResponse(util.GetUnAuthBodyResponse(ctx))
 		return

@@ -27,7 +27,7 @@ func InitializeRoleRepo(db *sql.DB, logger *log.Logger) repo.IRoleRepo {
 // ActivateRole implements repo.IRoleRepo.
 func (r *roleRepo) ActivateRole(id string, ctx context.Context) error {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetRoleTable()) + "ActivateRole - "
-	var query string = "Update " + business_object.GetRoleTable() + " set active_status = true, updated_at = ? where id = ?"
+	var query string = "UPDATE " + business_object.GetRoleTable() + " SET active_status = true, updated_at = ? WHERE id = ?"
 	defer r.db.Close()
 
 	if _, err := r.db.Exec(query, fmt.Sprint(time.Now().UTC()), id); err != nil {
@@ -41,7 +41,7 @@ func (r *roleRepo) ActivateRole(id string, ctx context.Context) error {
 // CreateRole implements repo.IRoleRepo.
 func (r *roleRepo) CreateRole(role business_object.Role, ctx context.Context) error {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetRoleTable()) + "CreateRole - "
-	var query string = "Insert into " + business_object.GetRoleTable() + "(id, role_name, active_status, created_at, updated_at) values (?, ?, ?, ?, ?)"
+	var query string = "INSERT INTO " + business_object.GetRoleTable() + "(id, role_name, active_status, created_at, updated_at) VALUES (?, ?, ?, ?, ?)"
 	defer r.db.Close()
 
 	if _, err := r.db.Exec(query, role.RoleId, role.RoleName, role.ActiveStatus, role.CreatedAt, role.UpdatedAt); err != nil {
@@ -55,7 +55,7 @@ func (r *roleRepo) CreateRole(role business_object.Role, ctx context.Context) er
 // GetAllRoles implements repo.IRoleRepo.
 func (r *roleRepo) GetAllRoles(ctx context.Context) (*[]business_object.Role, error) {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetRoleTable()) + "GetAllRoles - "
-	var query string = "Select * from " + business_object.GetRoleTable()
+	var query string = "SELECT * FROM " + business_object.GetRoleTable()
 	var internalErr error = errors.New(noti.InternalErr)
 	defer r.db.Close()
 
@@ -82,7 +82,7 @@ func (r *roleRepo) GetAllRoles(ctx context.Context) (*[]business_object.Role, er
 // GetRoleById implements repo.IRoleRepo.
 func (r *roleRepo) GetRoleById(id string, ctx context.Context) (*business_object.Role, error) {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetRoleTable()) + "GetRoleById - "
-	var query string = "Select * from " + business_object.GetRoleTable() + " where id = ?"
+	var query string = "SELECT * FROM " + business_object.GetRoleTable() + " WHERE id = ?"
 	defer r.db.Close()
 
 	var res *business_object.Role
@@ -101,7 +101,7 @@ func (r *roleRepo) GetRoleById(id string, ctx context.Context) (*business_object
 // GetRolesByName implements repo.IRoleRepo.
 func (r *roleRepo) GetRolesByName(name string, ctx context.Context) (*[]business_object.Role, error) {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetRoleTable()) + "GetRolesByName - "
-	var query string = "Select * from " + business_object.GetRoleTable() + " where lower(name) = lower($1)"
+	var query string = "SELECT * FROM " + business_object.GetRoleTable() + " WHERE LOWER(name) = LOWER($1)"
 	var internalErr error = errors.New(noti.InternalErr)
 	defer r.db.Close()
 
@@ -128,7 +128,7 @@ func (r *roleRepo) GetRolesByName(name string, ctx context.Context) (*[]business
 // GetRolesByStatus implements repo.IRoleRepo.
 func (r *roleRepo) GetRolesByStatus(status bool, ctx context.Context) (*[]business_object.Role, error) {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetRoleTable()) + "GetRolesByStatus - "
-	var query string = "Select * from " + business_object.GetRoleTable() + " where active_status = ?"
+	var query string = "SELECT * FROM " + business_object.GetRoleTable() + " WHERE active_status = ?"
 	var internalErr error = errors.New(noti.InternalErr)
 	defer r.db.Close()
 
@@ -155,7 +155,7 @@ func (r *roleRepo) GetRolesByStatus(status bool, ctx context.Context) (*[]busine
 // RemoveRole implements repo.IRoleRepo.
 func (r *roleRepo) RemoveRole(id string, ctx context.Context) error {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetRoleTable()) + "RemoveRole - "
-	var query string = "Update " + business_object.GetRoleTable() + " set active_status = false, updated_at = ? where id = ?"
+	var query string = "UPDATE " + business_object.GetRoleTable() + " SET active_status = false, updated_at = ? WHERE id = ?"
 	var internalErr error = errors.New(noti.InternalErr)
 	defer r.db.Close()
 
@@ -181,7 +181,7 @@ func (r *roleRepo) RemoveRole(id string, ctx context.Context) error {
 // UpdateRole implements repo.IRoleRepo.
 func (r *roleRepo) UpdateRole(role business_object.Role, ctx context.Context) error {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetRoleTable()) + "UpdateRole - "
-	var query string = "Update " + business_object.GetRoleTable() + " set role_name = ?, active_status = ?, updated_at = ? where id = ?"
+	var query string = "UPDATE " + business_object.GetRoleTable() + " SET role_name = ?, active_status = ?, updated_at = ? WHERE id = ?"
 	var internalErr error = errors.New(noti.InternalErr)
 	defer r.db.Close()
 

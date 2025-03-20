@@ -6,5 +6,5 @@ const (
 
 // API ports
 const (
-	API_PORT string = "API_PORT"
+	API_PORT string = "8888"
 )
