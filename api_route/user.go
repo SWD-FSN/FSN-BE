@@ -30,7 +30,7 @@ func InitializeUserAPIRoute(server *gin.Engine, logger *log.Logger, port string)
 
 	var contextPath string = "users"
 
-	var adminAuthGroup = server.Group(contextPath, middlewares.Authorize, middlewares.AdminAuhthorization)
+	var adminAuthGroup = server.Group(contextPath, middlewares.Authorize, middlewares.AdminAuthorization)
 	adminAuthGroup.GET("", controller.GetAllUsers)
 	adminAuthGroup.GET("/:role", controller.GetUsersByRole)
 	adminAuthGroup.GET("/:status", controller.GetUsersByStatus)

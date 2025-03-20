@@ -26,7 +26,7 @@ func InitializeLikeRepo(db *sql.DB, logger *log.Logger) repo.ILikeRepo {
 // CancelLike implements repo.ILikeRepo.
 func (l *likeRepo) CancelLike(id string, ctx context.Context) error {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetLikeTable()) + "CancelLike - "
-	var query string = "Delete from " + business_object.GetLikeTable() + " where id = ?"
+	var query string = "DELETE FROM " + business_object.GetLikeTable() + " WHERE id = ?"
 
 	defer l.db.Close()
 
@@ -54,7 +54,7 @@ func (l *likeRepo) CancelLike(id string, ctx context.Context) error {
 // CreateLike implements repo.ILikeRepo.
 func (l *likeRepo) CreateLike(like business_object.Like, ctx context.Context) error {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetLikeTable()) + "CreateLike - "
-	var query string = "Insert into " + business_object.GetLikeTable() + "(id, author_id, object_id, object_type, created_at) values (?, ?, ?, ?, ?)"
+	var query string = "INSERT INTO " + business_object.GetLikeTable() + "(id, author_id, object_id, object_type, created_at) values (?, ?, ?, ?, ?)"
 
 	defer l.db.Close()
 
@@ -69,7 +69,7 @@ func (l *likeRepo) CreateLike(like business_object.Like, ctx context.Context) er
 // GetAllLikes implements repo.ILikeRepo.
 func (l *likeRepo) GetAllLikes(ctx context.Context) (*[]business_object.Like, error) {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetLikeTable()) + "GetAllLikes - "
-	var query string = "Select * from " + business_object.GetLikeTable()
+	var query string = "SELECT * FROM " + business_object.GetLikeTable()
 	var internalErr error = errors.New(noti.InternalErr)
 
 	defer l.db.Close()
@@ -98,7 +98,7 @@ func (l *likeRepo) GetAllLikes(ctx context.Context) (*[]business_object.Like, er
 // GetLike implements repo.ILikeRepo.
 func (l *likeRepo) GetLike(id string, ctx context.Context) (*business_object.Like, error) {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetLikeTable()) + "GetLike - "
-	var query string = "Select * from " + business_object.GetLikeTable() + " where id = ?"
+	var query string = "SELECT * FROM " + business_object.GetLikeTable() + " WHERE id = ?"
 
 	defer l.db.Close()
 
@@ -118,7 +118,7 @@ func (l *likeRepo) GetLike(id string, ctx context.Context) (*business_object.Lik
 // GetLikesFromObject implements repo.ILikeRepo.
 func (l *likeRepo) GetLikesFromObject(id string, kind string, ctx context.Context) (*[]business_object.Like, error) {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetLikeTable()) + "GetLikesFromObject - "
-	var query string = "Select * from " + business_object.GetLikeTable() + " where object_id = ? and object_type = ?"
+	var query string = "SELECT * FROM " + business_object.GetLikeTable() + " WHERE object_id = ? AND object_type = ?"
 	var internalErr error = errors.New(noti.InternalErr)
 
 	defer l.db.Close()

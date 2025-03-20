@@ -28,7 +28,7 @@ func InitializeNotiRepo(db *sql.DB, logger *log.Logger) repo.INotificationRepo {
 // CreateNotification implements repo.INotificationRepo.
 func (n *notificationRepo) CreateNotification(notification businessobject.Notification, ctx context.Context) error {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetNotificationTable()) + "CreateNotification - "
-	var query string = "Insert into " + business_object.GetSocialRequestTable() + "(id, actor_id, object_id, object_type, action, is_read, created_at) values (?, ?, ?, ?, ?, ?, ?)"
+	var query string = "INSERT INTO " + business_object.GetSocialRequestTable() + "(id, actor_id, object_id, object_type, action, is_read, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
 
 	defer n.db.Close()
 
@@ -72,7 +72,7 @@ func (n *notificationRepo) GetAllNotifications(ctx context.Context) (*[]business
 // GetNotificationOnAction implements repo.INotificationRepo.
 func (n *notificationRepo) GetNotificationOnAction(req dto.GetNotiOnActionRequest, ctx context.Context) (*businessobject.Notification, error) {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetNotificationTable()) + "GetNotificationOnAction - "
-	var query string = "Select * from " + business_object.GetNotificationTable() + " where actor_id = ?, object_id = ?, object_type = ?, action = ? and created_at = ?"
+	var query string = "SELECT * FROM " + business_object.GetNotificationTable() + " WHERE actor_id = ?, object_id = ?, object_type = ?, action = ? and created_at = ?"
 
 	defer n.db.Close()
 

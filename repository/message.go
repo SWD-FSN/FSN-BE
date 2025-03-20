@@ -26,7 +26,7 @@ func InitializeMessageRepo(db *sql.DB, logger *log.Logger) repo.IMessageRepo {
 // GetMessagesFromConversationByKeyword implements repo.IMessageRepo.
 func (m *messageRepo) GetMessagesFromConversationByKeyword(id string, keyword string, ctx context.Context) (*[]business_object.Message, error) {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetMessageTable()) + "GetMessagesFromConversationByKeyword - "
-	var query string = "Select * from " + business_object.GetMessageTable() + " where lower(content) like lower('%?%') and conversation_id = ?"
+	var query string = "SELECT * FROM " + business_object.GetMessageTable() + " WHERE lower(content) LIKE lower('%?%') AND conversation_id = ?"
 	var internalErr error = errors.New(noti.InternalErr)
 
 	defer m.db.Close()

@@ -43,8 +43,8 @@ func (u *userRepo) ChangeUserStatus(id string, status bool, ctx context.Context)
 		lastFailValueQuery = fmt.Sprint(time.Date(1900, time.January, 1, 0, 0, 0, 0, time.UTC))
 	}
 
-	var userQuery string = "Update " + business_object.GetUserTable() + " set is_active = ?, updated_at = ? where id = ?"
-	var securityQuery string = "Update " + business_object.GetUserSecurityTable() + " set access_token = NULL, access_expiration = NULL, refresh_token = NULL, refresh_expiration = NULL, action_token = NULL, action_expiration = NULL, fail_access = 0, last_fail = " + lastFailValueQuery + " where id = ?"
+	var userQuery string = "UPDATE " + business_object.GetUserTable() + " SET is_active = ?, updated_at = ? WHERE id = ?"
+	var securityQuery string = "UPDATE " + business_object.GetUserSecurityTable() + " SET access_token = NULL, access_expiration = NULL, refresh_token = NULL, refresh_expiration = NULL, action_token = NULL, action_expiration = NULL, fail_access = 0, last_fail = " + lastFailValueQuery + " WHERE id = ?"
 	defer u.db.Close()
 
 	var errChan chan error = make(chan error, 2)
@@ -81,7 +81,7 @@ func (u *userRepo) ChangeUserStatus(id string, status bool, ctx context.Context)
 // GetAllUsers implements repo.IUserRepo.
 func (u *userRepo) GetAllUsers(ctx context.Context) (*[]dto.UserDBResModel, error) {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetUserTable()) + "GetAllUsers - "
-	var query string = "Select * from " + business_object.GetUserTable()
+	var query string = "SELECT * from " + business_object.GetUserTable()
 	defer u.db.Close()
 
 	rows, err := u.db.Query(query)
@@ -107,7 +107,7 @@ func (u *userRepo) GetAllUsers(ctx context.Context) (*[]dto.UserDBResModel, erro
 // GetUsersByStatus implements repo.IUserRepo.
 func (u *userRepo) GetUsersByStatus(status bool, ctx context.Context) (*[]dto.UserDBResModel, error) {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetUserTable()) + "GetUsersByStatus - "
-	var query string = "Select * from " + business_object.GetUserTable() + "where is_active = ?"
+	var query string = "SELECT * from " + business_object.GetUserTable() + "WHERE is_active = ?"
 	defer u.db.Close()
 
 	rows, err := u.db.Query(query, status)
@@ -133,7 +133,7 @@ func (u *userRepo) GetUsersByStatus(status bool, ctx context.Context) (*[]dto.Us
 // GetUserByEmail implements repo.IUserRepo.
 func (u *userRepo) GetUserByEmail(email string, ctx context.Context) (*dto.UserDBResModel, error) {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetUserTable()) + "GetUserByEmail - "
-	var query string = "Select top 1 * from " + business_object.GetUserTable() + "where lower(email) = lower($1)"
+	var query string = "SELECT top 1 * from " + business_object.GetUserTable() + "WHERE LOWER(email) = LOWER($1)"
 	defer u.db.Close()
 
 	var res *dto.UserDBResModel
@@ -151,7 +151,7 @@ func (u *userRepo) GetUserByEmail(email string, ctx context.Context) (*dto.UserD
 
 // GetUsersByRole implements repo.IUserRepo.
 func (u *userRepo) GetUsersByRole(id string, ctx context.Context) (*[]dto.UserDBResModel, error) {
-	var query string = "Select * from " + business_object.GetUserTable() + "Where role_id = ?"
+	var query string = "SELECT * from " + business_object.GetUserTable() + "WHERE role_id = ?"
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetUserTable()) + "GetUsersByRole - "
 	defer u.db.Close()
 
@@ -178,7 +178,7 @@ func (u *userRepo) GetUsersByRole(id string, ctx context.Context) (*[]dto.UserDB
 // UpdateUser implements repo.IUserRepo.
 func (u *userRepo) UpdateUser(user dto.UserDBResModel, ctx context.Context) error {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetUserTable()) + "UpdateUser - "
-	var query string = "Update " + business_object.GetUserTable() + " set email = ?, password = ?, role_id = ?, full_name = ?, username = ?, date_of_birth = ?, profile_avatar = ?, bio = ?, followers = ?, followings = ?, block_users = ?, conversations = ?, is_private = ?, is_active = ?, updated_at = ? where id = ?"
+	var query string = "UPDATE " + business_object.GetUserTable() + " SET email = ?, password = ?, role_id = ?, full_name = ?, username = ?, date_of_birth = ?, profile_avatar = ?, bio = ?, followers = ?, followings = ?, block_users = ?, conversations = ?, is_private = ?, is_active = ?, updated_at = ? WHERE id = ?"
 	defer u.db.Close()
 
 	res, err := u.db.Exec(query, user.Email, user.Password, user.RoleId, user.FullName, user.Username, user.DateOfBirth, user.ProfileAvatar, user.Bio, user.Followers, user.Followings, user.BlockUsers, user.Conversations, user.IsPrivate, user.IsActive, time.Now().UTC().GoString(), user.UserId)
@@ -204,7 +204,7 @@ func (u *userRepo) UpdateUser(user dto.UserDBResModel, ctx context.Context) erro
 
 // CreateUser implements repo.IUserRepo.
 func (u *userRepo) CreateUser(user dto.UserDBResModel, ctx context.Context) error {
-	var query string = "Insert into " + business_object.GetUserTable() + "(user_id, role_id, full_name, username, email, password, date_of_birth, profile_avatar, bio, friends, followers, followings, block_users, conversations, is_private, is_active, created_at, updated_at) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+	var query string = "INSERT INTO " + business_object.GetUserTable() + "(user_id, role_id, full_name, username, email, password, date_of_birth, profile_avatar, bio, friends, followers, followings, block_users, conversations, is_private, is_active, created_at, updated_at) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetUserTable()) + "CreateUser - "
 
 	defer u.db.Close()
@@ -219,7 +219,7 @@ func (u *userRepo) CreateUser(user dto.UserDBResModel, ctx context.Context) erro
 
 // GetUser implements repo.IUserRepo.
 func (u *userRepo) GetUser(id string, ctx context.Context) (*dto.UserDBResModel, error) {
-	var query string = "Select top 1 * from " + business_object.GetUserTable() + "Where id = ?"
+	var query string = "SELECT TOP 1 * FROM " + business_object.GetUserTable() + "WHERE id = ?"
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetUserTable()) + "GetUser - "
 
 	defer u.db.Close()
@@ -246,7 +246,7 @@ func (u *userRepo) GetInvoledAccountsAmountFromUser(req dto.GetInvoledAccouuntsR
 		return nil, errors.New(noti.GenericsErrorWarnMsg)
 	}
 
-	var query string = "Select " + field + " from " + business_object.GetUserTable() + " where id = ?"
+	var query string = "SELECT " + field + " FROM " + business_object.GetUserTable() + " WHERE id = ?"
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetUserTable()) + "GetInvoledAccountsAmountFromUser - "
 	defer u.db.Close()
 
@@ -265,7 +265,7 @@ func (u *userRepo) GetInvoledAccountsAmountFromUser(req dto.GetInvoledAccouuntsR
 
 // GetInvolvedAccountsFromTag implements repo.IUserRepo.
 func (u *userRepo) GetInvolvedAccountsFromTag(id string, ctx context.Context) ([]string, error) {
-	var query string = "Select friends, followers, followings from " + business_object.GetUserTable() + " where id = ?"
+	var query string = "SELECT friends, followers, followings FROM " + business_object.GetUserTable() + " WHERE id = ?"
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetUserTable()) + "GetInvolvedAccountsFromTag - "
 
 	defer u.db.Close()
@@ -286,7 +286,7 @@ func (u *userRepo) GetInvolvedAccountsFromTag(id string, ctx context.Context) ([
 
 // GetUsersByKeyword implements repo.IUserRepo.
 func (u *userRepo) GetUsersByKeyword(keyword string, ctx context.Context) (*[]dto.UserDBResModel, error) {
-	var query string = "Select * from " + business_object.GetUserTable() + " where lower(username) like lower('%?%') or lower(full_name) like ('%?%') or lower(email) like ('%?%')"
+	var query string = "SELECT * FROM " + business_object.GetUserTable() + " WHERE LOWER(username) LIKE LOWER('%?%') or LOWER(full_name) LIKE ('%?%') or LOWER(email) LIKE ('%?%')"
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetUserTable()) + "GetUsersByKeyword - "
 	var internalErr error = errors.New(noti.InternalErr)
 

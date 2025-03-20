@@ -19,7 +19,7 @@ type userSecurityRepo struct {
 
 // CreateUserSecurity implements repo.IUserSecurityRepo.
 func (u *userSecurityRepo) CreateUserSecurity(usc business_object.UserSecurity, ctx context.Context) error {
-	var query string = "Insert into " + business_object.GetUserSecurityTable() + "(user_id, access_token, refresh_token, action_token, fail_access, last_fail) values (?, ?, ?, ?, ?, ?)"
+	var query string = "INSERT INTO " + business_object.GetUserSecurityTable() + "(user_id, access_token, refresh_token, action_token, fail_access, last_fail) VALUES (?, ?, ?, ?, ?, ?)"
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetUserSecurityTable()) + "CreateUserSecurity - "
 
 	defer u.db.Close()
@@ -41,7 +41,7 @@ func InitializeUserSecurityRepo(db *sql.DB, logger *log.Logger) repo.IUserSecuri
 
 // Login implements repo.IUserSecurityRepo.
 func (u *userSecurityRepo) Login(req dto.LoginSecurityRequest, ctx context.Context) error {
-	var query string = "Update " + business_object.GetUserSecurityTable() + " set access_token = ?, refresh_token = ? where id = ?"
+	var query string = "UPDATE " + business_object.GetUserSecurityTable() + " SET access_token = ?, refresh_token = ? WHERE id = ?"
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetUserSecurityTable()) + "Login - "
 	var internalErr error = errors.New(noti.InternalErr)
 	defer u.db.Close()
@@ -69,7 +69,7 @@ func (u *userSecurityRepo) Login(req dto.LoginSecurityRequest, ctx context.Conte
 
 // LogOut implements repo.IUserSecurityRepo.
 func (u *userSecurityRepo) LogOut(id string, ctx context.Context) error {
-	var query string = "Update " + business_object.GetUserSecurityTable() + " set access_token = NULL, refresh_token = NULL where id = ?"
+	var query string = "UPDATE " + business_object.GetUserSecurityTable() + " SET access_token = NULL, refresh_token = NULL WHERE id = ?"
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetUserSecurityTable()) + "LogOut - "
 	var internalErr error = errors.New(noti.InternalErr)
 	defer u.db.Close()
@@ -95,7 +95,7 @@ func (u *userSecurityRepo) LogOut(id string, ctx context.Context) error {
 
 // EditUserSecurity implements repo.IUserSecurityRepo.
 func (u *userSecurityRepo) EditUserSecurity(usc business_object.UserSecurity, ctx context.Context) error {
-	var query string = "Update " + business_object.GetUserSecurityTable() + " set access_token = ?, refresh_token = ?, action_token = ?, fail_access = ?, last_fail = ? where id = ?"
+	var query string = "UPDATE " + business_object.GetUserSecurityTable() + " SET access_token = ?, refresh_token = ?, action_token = ?, fail_access = ?, last_fail = ? WHERE id = ?"
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetUserSecurityTable()) + "EditUserSecurity - "
 	var internalErr error = errors.New(noti.InternalErr)
 	defer u.db.Close()
@@ -121,7 +121,7 @@ func (u *userSecurityRepo) EditUserSecurity(usc business_object.UserSecurity, ct
 
 // GetUserSecurity implements repo.IUserSecurityRepo.
 func (u *userSecurityRepo) GetUserSecurity(id string, ctx context.Context) (*business_object.UserSecurity, error) {
-	var query string = "Select top 1 * from " + business_object.GetUserSecurityTable() + "Where id = ?"
+	var query string = "SELECT TOP 1 * FROM  " + business_object.GetUserSecurityTable() + "WHERE id = ?"
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetUserSecurityTable()) + "GetUserSecurity - "
 	defer u.db.Close()
 

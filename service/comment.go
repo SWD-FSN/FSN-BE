@@ -75,7 +75,7 @@ func (c *commentService) EditComment(req dto.EditCommentRequest, ctx context.Con
 
 // GetCommentsFromPost implements service.ICommentService.
 func (c *commentService) GetCommentsFromPost(id string, ctx context.Context) *[]dto.CommentDataResponse {
-	tmpStorage, _ := c.commentRepo.GetCommemtsFromPost(id, ctx)
+	tmpStorage, _ := c.commentRepo.GetCommentsFromPost(id, ctx)
 
 	var res *[]dto.CommentDataResponse
 
