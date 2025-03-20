@@ -32,8 +32,8 @@ func InitializeUserAPIRoute(server *gin.Engine, logger *log.Logger, port string)
 
 	var adminAuthGroup = server.Group(contextPath, middlewares.Authorize, middlewares.AdminAuhthorization)
 	adminAuthGroup.GET("", controller.GetAllUsers)
-	adminAuthGroup.GET("/:role", controller.GetUsersByRole)
-	adminAuthGroup.GET("/:status", controller.GetUsersByStatus)
+	adminAuthGroup.GET("/role/:role", controller.GetUsersByRole)
+	adminAuthGroup.GET("/status/:status", controller.GetUsersByStatus)
 
 	var authGroup = server.Group(contextPath, middlewares.Authorize)
 	authGroup.GET("/:id", controller.GetUser)
@@ -46,5 +46,5 @@ func InitializeUserAPIRoute(server *gin.Engine, logger *log.Logger, port string)
 	norGroup.POST("", controller.CreateUser)
 	//norGroup.PUT("/:email", controller.Re)
 	norGroup.PUT("/password/:password/confirm-password/:confirmPassword")
-	norGroup.PUT("", controller.VerifyAction)
+	norGroup.PUT("/verify-action", controller.VerifyAction)
 }

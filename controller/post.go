@@ -126,7 +126,7 @@ func GetPostsDisplayUI(ctx *gin.Context) {
 	// 	return
 	// }
 
-	util.ProcessLoginResponse(dto.APIReponse{
+	util.ProcessResponse(dto.APIReponse{
 		Data1:    posts,
 		Context:  ctx,
 		PostType: action_type.Non_post,

@@ -6,21 +6,30 @@ import (
 	api_route "social_network/api_route"
 	"social_network/constant/env"
 	"social_network/util"
+	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	//"github.com/joho/godotenv"
 )
 
 func Execute() {
-	// if err := godotenv.Load(); err != nil {
-	// 	log.Fatal("Error loading .env file in main - " + err.Error())
-	// }
+	// Load configuration
+	var logger = util.GetLogConfig()
+	config(logger)
 
 	var server = gin.Default()
-	var logger = util.GetLogConfig()
 	var apiPort string = os.Getenv(env.API_PORT)
 
-	config(logger)
+	// Enable CORS
+	server.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"*"}, // Allow all origins, or specify ["http://example.com"]
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Content-Type", "Authorization"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
+
 	setUpApiRoutes(server, logger, apiPort)
 
 	if err := server.Run(":" + "8080"); err != nil {
