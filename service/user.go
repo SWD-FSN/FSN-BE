@@ -276,7 +276,15 @@ func (u *userService) GetUsersByStatus(rawStatus string, ctx context.Context) (*
 
 // LogOut implements service.IUserService.
 func (u *userService) LogOut(id string, ctx context.Context) error {
-	return u.userSecurityRepo.LogOut(id, ctx)
+	if err := u.userSecurityRepo.LogOut(id, ctx); err != nil {
+		return err
+	}
+
+	if _, isExist := clients[id]; isExist {
+		delete(clients, id)
+	}
+
+	return nil
 }
 
 // Login implements service.IUserService.

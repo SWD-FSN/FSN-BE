@@ -1,5 +1,5 @@
 -- Bảng Role
-CREATE TABLE role (
+CREATE TABLE roles (
     id VARCHAR(100) PRIMARY KEY NOT NULL,
     role_name VARCHAR(100) NOT NULL,
     active_status BOOLEAN NOT NULL DEFAULT TRUE,
@@ -8,7 +8,7 @@ CREATE TABLE role (
 );
 
 -- Bảng User
-CREATE TABLE user (
+CREATE TABLE users (
     id VARCHAR(100) PRIMARY KEY NOT NULL,
     role_id VARCHAR(100),
     full_name VARCHAR(255) NOT NULL,
@@ -29,18 +29,18 @@ CREATE TABLE user (
     is_have_to_reset_password BOOLEAN DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT FK_User_Role FOREIGN KEY (role_id) REFERENCES role(id) ON DELETE CASCADE
+    CONSTRAINT FK_User_Role FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE
 );
 
 -- Bảng User Security (1-1 với User)
-CREATE TABLE user_security (
+CREATE TABLE user_securities (
     user_id VARCHAR(100) PRIMARY KEY NOT NULL,
     access_token TEXT,
     refresh_token TEXT,
     action_token TEXT,
     fail_access INT DEFAULT 0,
     last_fail TIMESTAMP,
-    CONSTRAINT FK_UserSecurity_User FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
+    CONSTRAINT FK_UserSecurity_User FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 -- Bảng Social Request
@@ -49,12 +49,12 @@ CREATE TABLE social_request (
     author_id VARCHAR(100) NOT NULL,
     account_id VARCHAR(100) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT FK_SocialRequest_Sender FOREIGN KEY (author_id) REFERENCES user(id) ON DELETE CASCADE,
-    CONSTRAINT FK_SocialRequest_Receiver FOREIGN KEY (account_id) REFERENCES user(id) ON DELETE CASCADE
+    CONSTRAINT FK_SocialRequest_Sender FOREIGN KEY (author_id) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT FK_SocialRequest_Receiver FOREIGN KEY (account_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 -- Bảng Post
-CREATE TABLE post (
+CREATE TABLE posts (
     id VARCHAR(100) PRIMARY KEY NOT NULL,
     author_id VARCHAR(100),
     content TEXT NOT NULL,
@@ -64,21 +64,23 @@ CREATE TABLE post (
     status BOOLEAN NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT FK_Post_User FOREIGN KEY (author_id) REFERENCES user(id) ON DELETE CASCADE
+    CONSTRAINT FK_Post_User FOREIGN KEY (author_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 -- Bảng Like
-CREATE TABLE like (
+CREATE TABLE likes (
     id VARCHAR(100) PRIMARY KEY NOT NULL,
     author_id VARCHAR(100),
     object_id VARCHAR(100),
     object_type VARCHAR(50),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT FK_Like_User FOREIGN KEY (author_id) REFERENCES user(id) ON DELETE CASCADE
+    CONSTRAINT FK_Like_User FOREIGN KEY (author_id) REFERENCES users(id) ON DELETE CASCADE,
+	CONSTRAINT FK_Like_Post FOREIGN KEY (object_id) REFERENCES posts(id) ON DELETE CASCADE,
+	CONSTRAINT FK_Like_Comment FOREIGN KEY (object_id) REFERENCES comments(id) ON DELETE CASCADE
 );
 
 -- Bảng Notification
-CREATE TABLE notification (
+CREATE TABLE notifications (
     id VARCHAR(100) PRIMARY KEY NOT NULL,
     actor_id VARCHAR(100),
     object_id VARCHAR(100),
@@ -86,14 +88,14 @@ CREATE TABLE notification (
     action VARCHAR(50),
     is_read BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT FK_Notification_User FOREIGN KEY (actor_id) REFERENCES user(id) ON DELETE CASCADE,
-    CONSTRAINT FK_Notification_User1 FOREIGN KEY (object_id) REFERENCES user(id) ON DELETE CASCADE,
-    CONSTRAINT FK_Notification_Post FOREIGN KEY (object_id) REFERENCES post(id) ON DELETE CASCADE,
-    CONSTRAINT FK_Notification_Comment FOREIGN KEY (object_id) REFERENCES comment(id) ON DELETE CASCADE,
+    CONSTRAINT FK_Notification_User FOREIGN KEY (actor_id) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT FK_Notification_User1 FOREIGN KEY (object_id) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT FK_Notification_Post FOREIGN KEY (object_id) REFERENCES posts(id) ON DELETE CASCADE,
+    CONSTRAINT FK_Notification_Comment FOREIGN KEY (object_id) REFERENCES comments(id) ON DELETE CASCADE,
 );
 
 -- Bảng Conversation
-CREATE TABLE conversation (
+CREATE TABLE conversations (
     id VARCHAR(100) PRIMARY KEY NOT NULL,
     name VARCHAR(200),
     host_id VARCHAR(100) NULL,
@@ -102,29 +104,29 @@ CREATE TABLE conversation (
     is_delete BOOLEAN DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT FK_Conversation_User FOREIGN KEY (host_id) REFERENCES user(id) ON DELETE CASCADE
+    CONSTRAINT FK_Conversation_User FOREIGN KEY (host_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 -- Bảng Message
-CREATE TABLE message (
+CREATE TABLE messages (
     id VARCHAR(100) PRIMARY KEY NOT NULL,
     author_id VARCHAR(100) NOT NULL,
     conversation_id VARCHAR(100) NOT NULL,
     content TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT Fk_Message_User FOREIGN KEY (author_id) REFERENCES user(id) ON DELETE CASCADE,
-    CONSTRAINT Fk_Message_Conversation FOREIGN KEY (conversation_id) REFERENCES conversation(id) ON DELETE CASCADE
+    CONSTRAINT Fk_Message_User FOREIGN KEY (author_id) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT Fk_Message_Conversation FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE CASCADE
 );
 
-CREATE TABLE comment (
+CREATE TABLE comments (
     id VARCHAR(100) PRIMARY KEY NOT NULL,
     author_id VARCHAR(100) NOT NULL,
     post_id VARCHAR(100) NOT NULL,
     content TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT Fk_Comment_Post FOREIGN KEY (post_id) REFERENCES post(id) ON DELETE CASCADE,
-    CONSTRAINT Fk_Comment_User FOREIGN KEY (author_id) REFERENCES user(id) ON DELETE CASCADE,
+    CONSTRAINT Fk_Comment_Post FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
+    CONSTRAINT Fk_Comment_User FOREIGN KEY (author_id) REFERENCES users(id) ON DELETE CASCADE,
 );
 
 -- Select *

@@ -50,10 +50,11 @@ func GenerateCommentService() (service.ICommentService, error) {
 }
 
 const (
-	user_object    string = "user"
-	post_object    string = "post"
-	like_object    string = "like"
-	comment_object string = "comment"
+	user_object         string = "user"
+	post_object         string = "post"
+	like_object         string = "like"
+	comment_object      string = "comment"
+	conversation_object string = "conversation"
 )
 
 // EditComment implements service.ICommentService.

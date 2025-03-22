@@ -32,7 +32,7 @@ func Execute() {
 
 	setUpApiRoutes(server, logger, apiPort)
 
-	if err := server.Run(":" + "8080"); err != nil {
+	if err := server.Run(":" + apiPort); err != nil {
 		logger.Println("Error run server " + err.Error())
 	}
 }
@@ -42,4 +42,8 @@ func setUpApiRoutes(server *gin.Engine, logger *log.Logger, port string) {
 	api_route.InitializeUserAPIRoute(server, logger, port)
 	// Post
 	api_route.InitializePostAPIRoute(server, logger, port)
+	// Comment
+	api_route.InitializeCommentAPIRoute(server, logger, port)
+	// Conversation
+	api_route.InitializeConversationAPIRoute(server, logger, port)
 }

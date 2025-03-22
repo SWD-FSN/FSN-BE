@@ -297,7 +297,7 @@ func (s *socialRequestService) ProcessRequest(req dto.SocialRequest, ctx context
 		CreatedAt:      curTime,
 	}, ctx)
 
-	sendMsgSocket(req.AccountId, objectType, actor.Username, actor.ProfileAvatar, req.ActionType, "", curTime, nil, nil, nil, ctx)
+	sendMsgSocket(req.AccountId, objectType, actor.Username, actor.ProfileAvatar, req.ActionType, "", curTime, nil, nil, nil, nil, ctx)
 
 	return nil
 }

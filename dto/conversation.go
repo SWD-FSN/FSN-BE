@@ -33,6 +33,14 @@ type InternalConversationUIResponse struct {
 	MemberMessages     *[]MessageUIResponse `json:"member_messages"`
 }
 
+type InternalConversationUIResponseV2 struct {
+	ConversationId     string               `json:"conversation_id"`
+	ConversationAvatar string               `json:"conversation_avatar"`
+	ConversationName   string               `json:"conversation_name"`
+	RequestUserid      string               `json:"request_user_id"`
+	Messages           *[]MessageUIResponse `json:"messages"`
+}
+
 type ConversationSearchBarResponse struct {
 	ConversationId     string `json:"conversation_id"`
 	ConversationAvatar string `json:"conversation_avatar"`

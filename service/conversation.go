@@ -51,6 +51,35 @@ const (
 	group_avatar_property string = "group_avatar_property"
 )
 
+// CreateMessage implements service.IConversationService.
+func (c *conersationService) CreateMessage(req dto.CreateMessageRequest, ctx context.Context) error {
+	var conversation *business_object.Conversation
+	if err := verifyActorToConversationAction(req.AuthorId, req.ConversationId, false, conversation, c.conversationRepo, ctx); err != nil {
+		return err
+	}
+
+	// Create message
+	var curTime time.Time = time.Now()
+	if err := c.msgRepo.CreateMessage(business_object.Message{
+		MessageId:     util.GenerateId(),
+		AuthorId:      req.AuthorId,
+		CoversationId: req.ConversationId,
+		Content:       req.Content,
+		CreatedAt:     curTime,
+	}, ctx); err != nil {
+		return err
+	}
+
+	actor, _ := c.userRepo.GetUser(req.AuthorId, ctx)
+
+	sendMsgSocket(req.ConversationId, conversation_object,
+		actor.Username, actor.ProfileAvatar, "message",
+		"", curTime, &req.ConversationId, nil,
+		nil, c.conversationRepo, ctx)
+
+	return nil
+}
+
 // GetConversationFromUser implements service.IConversationService.
 func (c *conersationService) GetConversationFromUser(actorId string, conversationId string, ctx context.Context) (*dto.InternalConversationUIResponse, error) {
 	var conversation *business_object.Conversation

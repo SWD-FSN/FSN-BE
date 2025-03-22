@@ -126,7 +126,7 @@ func (l *likeService) DoLike(req dto.DoLikeReq, ctx context.Context) error {
 	}, ctx)
 
 	// Call socket hub to noti online user
-	sendMsgSocket(req.ObjectId, req.ObjectType, actor.Username, actor.ProfileAvatar, actionType, "", curTime, nil, l.commentRepo, l.postRepo, ctx)
+	sendMsgSocket(req.ObjectId, req.ObjectType, actor.Username, actor.ProfileAvatar, actionType, "", curTime, nil, l.commentRepo, l.postRepo, nil, ctx)
 
 	return nil
 }
@@ -243,7 +243,7 @@ func getObjectType(kind string) string {
 	return res
 }
 
-func getAuthorOfObject(objectId, objectType string, cmtRepo repo.ICommentRepo, postRepo repo.IPostRepo, ctx context.Context) string {
+func getAuthorOfObject(objectId, objectType string, cmtRepo repo.ICommentRepo, postRepo repo.IPostRepo, conversationRepo repo.IConversationRepo, ctx context.Context) string {
 	var res string
 
 	switch objectType {
@@ -255,6 +255,10 @@ func getAuthorOfObject(objectId, objectType string, cmtRepo repo.ICommentRepo, p
 		if cmt, _ := cmtRepo.GetComment(objectId, ctx); cmt != nil {
 			res = cmt.AuthorId
 		}
+	case conversation_object:
+		if conversation, _ := conversationRepo.GetConversation(objectId, ctx); conversation != nil {
+			res = conversation.Members
+		}
 	case user_object:
 		res = objectId
 	}
@@ -262,19 +266,23 @@ func getAuthorOfObject(objectId, objectType string, cmtRepo repo.ICommentRepo, p
 	return res
 }
 
-func sendMsgSocket(objectId, objectType, actorUsername, actorAvatar, actionType, orgContent string, createdAt time.Time, containerId *string, cmtRepo repo.ICommentRepo, postRepo repo.IPostRepo, ctx context.Context) {
-	if userId := getAuthorOfObject(objectId, objectType, cmtRepo, postRepo, ctx); userId != "" {
-		if cnn, isExist := clients[userId]; isExist {
-			content, contentType := generateContentAndContentTypeOfMsg(actorUsername, actionType, objectType, orgContent)
+func sendMsgSocket(objectId, objectType, actorUsername, actorAvatar, actionType, orgContent string, createdAt time.Time, containerId *string, cmtRepo repo.ICommentRepo, postRepo repo.IPostRepo, conversationRepo repo.IConversationRepo, ctx context.Context) {
+	if userId := getAuthorOfObject(objectId, objectType, cmtRepo, postRepo, conversationRepo, ctx); userId != "" {
+		var users []string = util.ToSliceString(userId, sepChar)
 
-			sendMessage(dto.WSSendMessageRequest{
-				UserId:             userId,
-				UserAvatar:         actorAvatar,
-				Content:            content,
-				ContentType:        contentType,
-				CreatedAt:          createdAt,
-				ContentContainerId: containerId,
-			}, nil, cnn)
+		for _, user := range users {
+			if cnn, isExist := clients[user]; isExist {
+				content, contentType := generateContentAndContentTypeOfMsg(actorUsername, actionType, objectType, orgContent)
+
+				sendMessage(dto.WSSendMessageRequest{
+					UserId:             user,
+					UserAvatar:         actorAvatar,
+					Content:            content,
+					ContentType:        contentType,
+					CreatedAt:          createdAt,
+					ContentContainerId: containerId,
+				}, nil, cnn)
+			}
 		}
 	}
 }
