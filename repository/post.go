@@ -129,7 +129,7 @@ func (p *postRepo) GetPosts(ctx context.Context) (*[]business_object.Post, error
 // GetPost implements repo.IPostRepo.
 func (p *postRepo) GetPost(id string, ctx context.Context) (*business_object.Post, error) {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetPostTable()) + "GetPost - "
-	var query string = "SELECT * FROM " + business_object.GetPostTable() + " WHERE id = ?"
+	var query string = "SELECT * FROM " + business_object.GetPostTable() + " WHERE id = $1"
 
 	defer p.db.Close()
 
@@ -149,7 +149,7 @@ func (p *postRepo) GetPost(id string, ctx context.Context) (*business_object.Pos
 // GetPostsByUser implements repo.IPostRepo.
 func (p *postRepo) GetPostsByUser(id string, ctx context.Context) (*[]business_object.Post, error) {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetLikeTable()) + "GetPostsByUser - "
-	var query string = "SELECT * FROM " + business_object.GetPostTable() + " WHERE author_id = ?"
+	var query string = "SELECT * FROM " + business_object.GetPostTable() + " WHERE author_id = $1"
 	var internalErr error = errors.New(noti.InternalErr)
 
 	defer p.db.Close()
@@ -178,7 +178,7 @@ func (p *postRepo) GetPostsByUser(id string, ctx context.Context) (*[]business_o
 // RemovePost implements repo.IPostRepo.
 func (p *postRepo) RemovePost(id string, ctx context.Context) error {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetPostTable()) + "RemovePost - "
-	var query string = "UPDATE " + business_object.GetPostTable() + " SET status = false, updated_at = ? WHERE id = ?"
+	var query string = "UPDATE " + business_object.GetPostTable() + " SET status = false, updated_at = $1 WHERE id = $2"
 	var internalErr error = errors.New(noti.InternalErr)
 
 	defer p.db.Close()
@@ -205,7 +205,7 @@ func (p *postRepo) RemovePost(id string, ctx context.Context) error {
 // UpdatePost implements repo.IPostRepo.
 func (p *postRepo) UpdatePost(post business_object.Post, ctx context.Context) error {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetPostTable()) + "UpdatePost - "
-	var query string = "UPDATE " + business_object.GetPostTable() + " SET content = ?, is_private = ?, is_hidden = ?, updated_at = ? WHERE status = ? WHERE id = ?"
+	var query string = "UPDATE " + business_object.GetPostTable() + " SET content = $1, is_private = $2, is_hidden = $3, updated_at = $4 AND status = $5 WHERE id = $6"
 	var internalErr error = errors.New(noti.InternalErr)
 
 	defer p.db.Close()

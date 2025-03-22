@@ -14,5 +14,5 @@ type Post struct {
 }
 
 func GetPostTable() string {
-	return "post"
+	return "posts"
 }

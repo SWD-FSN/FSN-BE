@@ -15,12 +15,14 @@ import (
 )
 
 type notiService struct {
+	userRepo repo.IUserRepo
 	notiRepo repo.INotificationRepo
 	logger   *log.Logger
 }
 
 func InitializeNotiService(db *sql.DB, logger *log.Logger) service.INotificationService {
 	return &notiService{
+		userRepo: repository.InitializeUserRepo(db, logger),
 		notiRepo: repository.InitializeNotiRepo(db, logger),
 		logger:   logger,
 	}
@@ -64,15 +66,35 @@ func (n *notiService) GetAllNotifications(ctx context.Context) (*[]business_obje
 }
 
 // GetUserNotifications implements service.INotificationService.
-func (n *notiService) GetUserNotifications(id string, ctx context.Context) (*[]business_object.Notification, error) {
-	res, err := n.notiRepo.GetUserNotifications(id, ctx)
+func (n *notiService) GetUserNotifications(id string, ctx context.Context) *dto.NotificationDialogResponseV2 {
+	tmpStorage, _ := n.notiRepo.GetUserNotifications(id, ctx)
 
-	if err != nil {
-		return nil, err
+	var unreadNotis int = 0
+	var notis []dto.NotificationResponseV2
+
+	for _, noti := range *tmpStorage {
+		// Get actor
+		actor, _ := n.userRepo.GetUser(noti.ActorId, ctx)
+
+		// Check actor
+		if actor != nil {
+			content, _ := generateContentAndContentTypeOfMsg(actor.Username, noti.Action, noti.ObjectType, "")
+			notis = append(notis, dto.NotificationResponseV2{
+				NotificationId: noti.NotificationId,
+				Content:        content,
+				CreatedAt:      noti.CreatedAt,
+			})
+
+			if !noti.IsRead {
+				unreadNotis += 1
+			}
+		}
 	}
 
-	util.SortByTime(*res, func(noti business_object.Notification) time.Time { return noti.CreatedAt }, false)
-	return res, nil
+	return &dto.NotificationDialogResponseV2{
+		Notifications:    notis,
+		UnreadNotiAmount: unreadNotis,
+	}
 }
 
 // GetUserUnreadNotifications implements service.INotificationService.

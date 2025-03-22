@@ -11,5 +11,5 @@ type Message struct {
 }
 
 func GetMessageTable() string {
-	return "message"
+	return "messages"
 }

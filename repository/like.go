@@ -54,7 +54,7 @@ func (l *likeRepo) CancelLike(id string, ctx context.Context) error {
 // CreateLike implements repo.ILikeRepo.
 func (l *likeRepo) CreateLike(like business_object.Like, ctx context.Context) error {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetLikeTable()) + "CreateLike - "
-	var query string = "INSERT INTO " + business_object.GetLikeTable() + "(id, author_id, object_id, object_type, created_at) values (?, ?, ?, ?, ?)"
+	var query string = "INSERT INTO " + business_object.GetLikeTable() + "(id, author_id, object_id, object_type, created_at) values ($1, $2, $3, $4, $5)"
 
 	defer l.db.Close()
 
@@ -98,7 +98,7 @@ func (l *likeRepo) GetAllLikes(ctx context.Context) (*[]business_object.Like, er
 // GetLike implements repo.ILikeRepo.
 func (l *likeRepo) GetLike(id string, ctx context.Context) (*business_object.Like, error) {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetLikeTable()) + "GetLike - "
-	var query string = "SELECT * FROM " + business_object.GetLikeTable() + " WHERE id = ?"
+	var query string = "SELECT * FROM " + business_object.GetLikeTable() + " WHERE id = $1"
 
 	defer l.db.Close()
 
@@ -118,7 +118,7 @@ func (l *likeRepo) GetLike(id string, ctx context.Context) (*business_object.Lik
 // GetLikesFromObject implements repo.ILikeRepo.
 func (l *likeRepo) GetLikesFromObject(id string, kind string, ctx context.Context) (*[]business_object.Like, error) {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetLikeTable()) + "GetLikesFromObject - "
-	var query string = "SELECT * FROM " + business_object.GetLikeTable() + " WHERE object_id = ? AND object_type = ?"
+	var query string = "SELECT * FROM " + business_object.GetLikeTable() + " WHERE object_id = $1 AND object_type = $2"
 	var internalErr error = errors.New(noti.InternalErr)
 
 	defer l.db.Close()

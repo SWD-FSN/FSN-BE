@@ -12,5 +12,5 @@ type UserSecurity struct {
 }
 
 func GetUserSecurityTable() string {
-	return "user_security"
+	return "user_securities"
 }

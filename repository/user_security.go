@@ -19,7 +19,7 @@ type userSecurityRepo struct {
 
 // CreateUserSecurity implements repo.IUserSecurityRepo.
 func (u *userSecurityRepo) CreateUserSecurity(usc business_object.UserSecurity, ctx context.Context) error {
-	var query string = "INSERT INTO " + business_object.GetUserSecurityTable() + "(user_id, access_token, refresh_token, action_token, fail_access, last_fail) VALUES (?, ?, ?, ?, ?, ?)"
+	var query string = "INSERT INTO " + business_object.GetUserSecurityTable() + "(user_id, access_token, refresh_token, action_token, fail_access, last_fail) VALUES ($1, $2, $3, $4, $5, $6)"
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetUserSecurityTable()) + "CreateUserSecurity - "
 
 	defer u.db.Close()
@@ -41,22 +41,20 @@ func InitializeUserSecurityRepo(db *sql.DB, logger *log.Logger) repo.IUserSecuri
 
 // Login implements repo.IUserSecurityRepo.
 func (u *userSecurityRepo) Login(req dto.LoginSecurityRequest, ctx context.Context) error {
-	var query string = "UPDATE " + business_object.GetUserSecurityTable() + " SET access_token = ?, refresh_token = ? WHERE id = ?"
+	var query string = "UPDATE " + business_object.GetUserSecurityTable() + " SET access_token = $1 AND refresh_token = $2 WHERE id = $3"
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetUserSecurityTable()) + "Login - "
 	var internalErr error = errors.New(noti.InternalErr)
 	defer u.db.Close()
 
-	defer u.db.Close()
-
 	res, err := u.db.Exec(query, req.AccessToken, req.RefreshToken, req.UserId)
 	if err != nil {
-		u.logger.Println(errLogMsg, err.Error())
+		u.logger.Println(errLogMsg + err.Error())
 		return internalErr
 	}
 
 	rowsAffected, err := res.RowsAffected()
 	if err != nil {
-		u.logger.Println(errLogMsg, err.Error())
+		u.logger.Println(errLogMsg + err.Error())
 		return internalErr
 	}
 
@@ -69,20 +67,20 @@ func (u *userSecurityRepo) Login(req dto.LoginSecurityRequest, ctx context.Conte
 
 // LogOut implements repo.IUserSecurityRepo.
 func (u *userSecurityRepo) LogOut(id string, ctx context.Context) error {
-	var query string = "UPDATE " + business_object.GetUserSecurityTable() + " SET access_token = NULL, refresh_token = NULL WHERE id = ?"
+	var query string = "UPDATE " + business_object.GetUserSecurityTable() + " SET access_token = NULL, refresh_token = NULL WHERE id = $1"
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetUserSecurityTable()) + "LogOut - "
 	var internalErr error = errors.New(noti.InternalErr)
 	defer u.db.Close()
 
 	res, err := u.db.Exec(query, id)
 	if err != nil {
-		u.logger.Println(errLogMsg, err.Error())
+		u.logger.Println(errLogMsg + err.Error())
 		return internalErr
 	}
 
 	rowsAffected, err := res.RowsAffected()
 	if err != nil {
-		u.logger.Println(errLogMsg, err.Error())
+		u.logger.Println(errLogMsg + err.Error())
 		return internalErr
 	}
 
@@ -95,7 +93,7 @@ func (u *userSecurityRepo) LogOut(id string, ctx context.Context) error {
 
 // EditUserSecurity implements repo.IUserSecurityRepo.
 func (u *userSecurityRepo) EditUserSecurity(usc business_object.UserSecurity, ctx context.Context) error {
-	var query string = "UPDATE " + business_object.GetUserSecurityTable() + " SET access_token = ?, refresh_token = ?, action_token = ?, fail_access = ?, last_fail = ? WHERE id = ?"
+	var query string = "UPDATE " + business_object.GetUserSecurityTable() + " SET access_token = $1, refresh_token = $2, action_token = $3, fail_access = $4 AND last_fail = $5 WHERE id = $6"
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetUserSecurityTable()) + "EditUserSecurity - "
 	var internalErr error = errors.New(noti.InternalErr)
 	defer u.db.Close()
@@ -121,7 +119,7 @@ func (u *userSecurityRepo) EditUserSecurity(usc business_object.UserSecurity, ct
 
 // GetUserSecurity implements repo.IUserSecurityRepo.
 func (u *userSecurityRepo) GetUserSecurity(id string, ctx context.Context) (*business_object.UserSecurity, error) {
-	var query string = "SELECT TOP 1 * FROM  " + business_object.GetUserSecurityTable() + "WHERE id = ?"
+	var query string = "SELECT TOP 1 * FROM  " + business_object.GetUserSecurityTable() + "WHERE id = $1"
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetUserSecurityTable()) + "GetUserSecurity - "
 	defer u.db.Close()
 

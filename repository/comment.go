@@ -26,7 +26,7 @@ func InitializeCommentRepo(db *sql.DB, logger *log.Logger) repo.ICommentRepo {
 // CreateComment implements repo.ICommentRepo.
 func (c *commentRepo) CreateComment(cmt business_object.Comment, ctx context.Context) error {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetCommentTable()) + "CreateComment - "
-	var query string = "INSERT INTO " + business_object.GetCommentTable() + "(id, author_id, post_id, content, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)"
+	var query string = "INSERT INTO " + business_object.GetCommentTable() + "(id, author_id, post_id, content, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6)"
 
 	defer c.db.Close()
 
@@ -41,7 +41,7 @@ func (c *commentRepo) CreateComment(cmt business_object.Comment, ctx context.Con
 // EditComment implements repo.ICommentRepo.
 func (c *commentRepo) EditComment(cmt business_object.Comment, ctx context.Context) error {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetCommentTable()) + "EditComment - "
-	var query string = "UPDATE " + business_object.GetPostTable() + " SET content = ? AND updated_at = ? WHERE id = ?"
+	var query string = "UPDATE " + business_object.GetPostTable() + " SET content = $1 AND updated_at = $2 WHERE id = $3"
 	var internalErr error = errors.New(noti.InternalErr)
 
 	defer c.db.Close()
@@ -68,7 +68,7 @@ func (c *commentRepo) EditComment(cmt business_object.Comment, ctx context.Conte
 // GetCommentsFromPost implements repo.ICommentRepo.
 func (c *commentRepo) GetCommentsFromPost(id string, ctx context.Context) (*[]business_object.Comment, error) {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetCommentTable()) + "GetCommentsFromPost - "
-	var query string = "SELECT * FROM " + business_object.GetCommentTable() + " WHERE post_id = ?"
+	var query string = "SELECT * FROM " + business_object.GetCommentTable() + " WHERE post_id = $1"
 	var internalErr error = errors.New(noti.InternalErr)
 
 	defer c.db.Close()
@@ -97,7 +97,7 @@ func (c *commentRepo) GetCommentsFromPost(id string, ctx context.Context) (*[]bu
 // GetComment implements repo.ICommentRepo.
 func (c *commentRepo) GetComment(id string, ctx context.Context) (*business_object.Comment, error) {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetCommentTable()) + "GetComment - "
-	var query string = "SELECT * FROM  " + business_object.GetCommentTable() + " WHERE id = ?"
+	var query string = "SELECT * FROM  " + business_object.GetCommentTable() + " WHERE id = $1"
 
 	defer c.db.Close()
 
@@ -117,7 +117,7 @@ func (c *commentRepo) GetComment(id string, ctx context.Context) (*business_obje
 // RemoveComment implements repo.ICommentRepo.
 func (c *commentRepo) RemoveComment(id string, ctx context.Context) error {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetCommentTable()) + "RemoveComment - "
-	var query string = "DELETE FROM " + business_object.GetCommentTable() + " WHERE id = ?"
+	var query string = "DELETE FROM " + business_object.GetCommentTable() + " WHERE id = $1"
 
 	defer c.db.Close()
 

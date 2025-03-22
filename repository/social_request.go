@@ -26,7 +26,7 @@ func InitializeSocialRequestRepo(db *sql.DB, logger *log.Logger) repo.ISocialReq
 // CreateRequest implements repo.ISocialRequestRepo.
 func (a *socialRequestRepo) CreateRequest(req business_object.SocialRequest, ctx context.Context) error {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetSocialRequestTable()) + "CreateAddFrRq - "
-	var query string = "INSERT INTO " + business_object.GetSocialRequestTable() + "(id, author_id, account_id, request_type, created_at) VALUES (?, ?, ?, ?, ?)"
+	var query string = "INSERT INTO " + business_object.GetSocialRequestTable() + "(id, author_id, account_id, request_type, created_at) VALUES ($1, $2, $3, $4, $5)"
 
 	defer a.db.Close()
 
@@ -41,7 +41,7 @@ func (a *socialRequestRepo) CreateRequest(req business_object.SocialRequest, ctx
 // GetRequest implements repo.ISocialRequestRepo.
 func (a *socialRequestRepo) GetRequest(id string, ctx context.Context) (*business_object.SocialRequest, error) {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetSocialRequestTable()) + "GetRequest - "
-	var query string = "SELECT * FROM " + business_object.GetSocialRequestTable() + " WHERE id = ?"
+	var query string = "SELECT * FROM " + business_object.GetSocialRequestTable() + " WHERE id = $1"
 
 	defer a.db.Close()
 
@@ -61,7 +61,7 @@ func (a *socialRequestRepo) GetRequest(id string, ctx context.Context) (*busines
 // GetRequestsToUser implements repo.ISocialRequestRepo.
 func (a *socialRequestRepo) GetRequestsToUser(id string, requestType string, ctx context.Context) (*[]business_object.SocialRequest, error) {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetSocialRequestTable()) + "GetRequestsToUser - "
-	var query string = "SELECT * FROM " + business_object.GetSocialRequestTable() + " WHERE request_type = ? AND account_id = ?"
+	var query string = "SELECT * FROM " + business_object.GetSocialRequestTable() + " WHERE request_type = $1 AND account_id = $2"
 	var internalErr error = errors.New(noti.InternalErr)
 
 	defer a.db.Close()
@@ -119,7 +119,7 @@ func (a *socialRequestRepo) GetAllRequests(ctx context.Context) (*[]business_obj
 // GetUserRequests implements repo.ISocialRequestRepo.
 func (a *socialRequestRepo) GetUserRequests(id string, requestType string, ctx context.Context) (*[]business_object.SocialRequest, error) {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetSocialRequestTable()) + "GetUserRequests - "
-	var query string = "SELECT * FROM " + business_object.GetSocialRequestTable() + " WHERE request_type = ? AND author_id = ?"
+	var query string = "SELECT * FROM " + business_object.GetSocialRequestTable() + " WHERE request_type = $1 AND author_id = $2"
 	var internalErr error = errors.New(noti.InternalErr)
 
 	defer a.db.Close()
@@ -148,7 +148,7 @@ func (a *socialRequestRepo) GetUserRequests(id string, requestType string, ctx c
 // RemoveRequest implements repo.ISocialRequestRepo.
 func (a *socialRequestRepo) RemoveRequest(id string, ctx context.Context) error {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetSocialRequestTable()) + "RemoveRequest - "
-	var query string = "DELETE FROM " + business_object.GetSocialRequestTable() + " WHERE id = ?"
+	var query string = "DELETE FROM " + business_object.GetSocialRequestTable() + " WHERE id = $1"
 	var internalErrMsg error = errors.New(noti.InternalErr)
 
 	defer a.db.Close()

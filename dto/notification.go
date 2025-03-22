@@ -30,3 +30,14 @@ type NotificationResponse struct {
 	CreatedAt      time.Time `json:"created_at"`
 	IsRead         bool      `json:"is_read"`
 }
+
+type NotificationResponseV2 struct {
+	NotificationId string    `json:"notification_id"`
+	Content        string    `json:"content"`
+	CreatedAt      time.Time `json:"created_at"`
+}
+
+type NotificationDialogResponseV2 struct {
+	Notifications    []NotificationResponseV2 `json:"notifications"`
+	UnreadNotiAmount int                      `json:"unread_noti_amount"`
+}

@@ -12,5 +12,5 @@ type Comment struct {
 }
 
 func GetCommentTable() string {
-	return "comment"
+	return "comments"
 }

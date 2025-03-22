@@ -12,5 +12,5 @@ type SocialRequest struct { // Request kết bạn, request foilow
 }
 
 func GetSocialRequestTable() string {
-	return "social_request"
+	return "social_requests"
 }

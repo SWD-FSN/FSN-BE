@@ -23,10 +23,10 @@ func InitializeMessageRepo(db *sql.DB, logger *log.Logger) repo.IMessageRepo {
 	}
 }
 
-// GetMessagesFromConversationByKeyword implements repo.IMessageRepo.
+// GetMessagesFROMConversationByKeyword implements repo.IMessageRepo.
 func (m *messageRepo) GetMessagesFromConversationByKeyword(id string, keyword string, ctx context.Context) (*[]business_object.Message, error) {
-	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetMessageTable()) + "GetMessagesFromConversationByKeyword - "
-	var query string = "SELECT * FROM " + business_object.GetMessageTable() + " WHERE lower(content) LIKE lower('%?%') AND conversation_id = ?"
+	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetMessageTable()) + "GetMessagesFROMConversationByKeyword - "
+	var query string = "SELECT * FROM " + business_object.GetMessageTable() + " WHERE lower(content) LIKE lower('%$1%') AND conversation_id = $2"
 	var internalErr error = errors.New(noti.InternalErr)
 
 	defer m.db.Close()
@@ -55,7 +55,7 @@ func (m *messageRepo) GetMessagesFromConversationByKeyword(id string, keyword st
 // CreateMessage implements repo.IMessageRepo.
 func (m *messageRepo) CreateMessage(message business_object.Message, ctx context.Context) error {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetMessageTable()) + "CreateMessage - "
-	var query string = "Insert into " + business_object.GetMessageTable() + "(id, author_id, conversation_id, content, created_at) values (?, ?, ?, ?, ?)"
+	var query string = "INSERT INTO " + business_object.GetMessageTable() + "(id, author_id, conversation_id, content, created_at) values ($1, $2, $3, $4, $5)"
 
 	defer m.db.Close()
 
@@ -70,7 +70,7 @@ func (m *messageRepo) CreateMessage(message business_object.Message, ctx context
 // GetAllMessages implements repo.IMessageRepo.
 func (m *messageRepo) GetAllMessages(ctx context.Context) (*[]business_object.Message, error) {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetMessageTable()) + "GetAllMessages - "
-	var query string = "Select * from " + business_object.GetMessageTable()
+	var query string = "SELECT * FROM " + business_object.GetMessageTable()
 	var internalErr error = errors.New(noti.InternalErr)
 
 	defer m.db.Close()
@@ -99,7 +99,7 @@ func (m *messageRepo) GetAllMessages(ctx context.Context) (*[]business_object.Me
 // GetMessage implements repo.IMessageRepo.
 func (m *messageRepo) GetMessage(id string, ctx context.Context) (*business_object.Message, error) {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetMessageTable()) + "GetMessage - "
-	var query string = "Select * from " + business_object.GetMessageTable() + " where id = ?"
+	var query string = "SELECT * FROM " + business_object.GetMessageTable() + " WHERE id = $1"
 
 	defer m.db.Close()
 
@@ -116,10 +116,10 @@ func (m *messageRepo) GetMessage(id string, ctx context.Context) (*business_obje
 	return res, nil
 }
 
-// GetMessagesFromConversation implements repo.IMessageRepo.
+// GetMessagesFROMConversation implements repo.IMessageRepo.
 func (m *messageRepo) GetMessagesFromConversation(id string, ctx context.Context) (*[]business_object.Message, error) {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetMessageTable()) + "GetAllMessages - "
-	var query string = "Select * from " + business_object.GetMessageTable() + " where conversation_id = ?"
+	var query string = "SELECT * FROM " + business_object.GetMessageTable() + " WHERE conversation_id = $1\n ORDER BY created_at DESC"
 	var internalErr error = errors.New(noti.InternalErr)
 
 	defer m.db.Close()
@@ -145,10 +145,10 @@ func (m *messageRepo) GetMessagesFromConversation(id string, ctx context.Context
 	return res, nil
 }
 
-// GetMessagesFromUser implements repo.IMessageRepo.
+// GetMessagesFROMUser implements repo.IMessageRepo.
 func (m *messageRepo) GetMessagesFromUser(id string, ctx context.Context) (*[]business_object.Message, error) {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetMessageTable()) + "GetAllMessages - "
-	var query string = "Select * from " + business_object.GetMessageTable() + " where author_id = ?"
+	var query string = "SELECT * FROM " + business_object.GetMessageTable() + " WHERE author_id = $1"
 	var internalErr error = errors.New(noti.InternalErr)
 
 	defer m.db.Close()

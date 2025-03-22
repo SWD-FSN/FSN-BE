@@ -11,5 +11,5 @@ type Like struct {
 }
 
 func GetLikeTable() string {
-	return "like"
+	return "likes"
 }
