@@ -183,7 +183,8 @@ func (c *commentService) PostComment(req dto.CreateCommentRequest, ctx context.C
 	}, ctx)
 
 	// Send message socket
-	sendMsgSocket(req.PostId, objectType, actor.Username, actor.ProfileAvatar, actionType, "", curTime, nil, c.commentRepo, c.postRepo, ctx)
+	var conversationRepo repo.IConversationRepo = nil
+	sendMsgSocket(req.PostId, objectType, actor.Username, actor.ProfileAvatar, actionType, "", curTime, nil, c.commentRepo, c.postRepo, conversationRepo, ctx)
 
 	return nil
 }
