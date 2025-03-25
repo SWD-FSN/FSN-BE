@@ -15,5 +15,5 @@ type Conversation struct {
 }
 
 func GetConversationTable() string {
-	return "conversation"
+	return "conversations"
 }
