@@ -185,7 +185,8 @@ func (u *userService) GetInvolvedAccountsFromTag(id string, keyword string, ctx 
 // GetInvoledAccountsFromUser implements service.IUserService.
 func (u *userService) GetInvoledAccountsFromUser(req dto.GetInvoledAccouuntsRequest, ctx context.Context) (*[]business_object.User, error) {
 	var user *dto.UserDBResModel
-	if err := verifyAccount(req.UserId, id_validate, user, u.userRepo, ctx); err != nil {
+
+	if err := verifyAccount(req.UserId, id_validate, &user, u.userRepo, ctx); err != nil {
 		return nil, err
 	}
 
@@ -274,9 +275,9 @@ func (u *userService) GetUsersByStatus(rawStatus string, ctx context.Context) (*
 	return toSliceUserModel(tmpStorage), nil
 }
 
-// LogOut implements service.IUserService.
-func (u *userService) LogOut(id string, ctx context.Context) error {
-	if err := u.userSecurityRepo.LogOut(id, ctx); err != nil {
+// Logout implements service.IUserService.
+func (u *userService) Logout(id string, ctx context.Context) error {
+	if err := u.userSecurityRepo.Logout(id, ctx); err != nil {
 		return err
 	}
 
@@ -287,18 +288,40 @@ func (u *userService) LogOut(id string, ctx context.Context) error {
 	return nil
 }
 
-// Login implements service.IUserService.
-func (u *userService) Login(req dto.LoginRequest, ctx *gin.Context) (string, string, error) {
-	var user *dto.UserDBResModel
-	if err := verifyAccount(req.Email, email_validate, user, u.userRepo, ctx); err != nil {
-		return "", "", err
+func verifyAccount(
+	field, validateField string, user **dto.UserDBResModel,
+	repo repo.IUserRepo, ctx context.Context) error {
+
+	if field == "" {
+		return errors.New(noti.GenericsErrorWarnMsg)
 	}
 
-	if !util.IsHashStringMatched(req.Password, user.Password) {
-		return processFailLogin(user.UserId, u.userSecurityRepo, ctx)
+	var res error
+	var tmpUser *dto.UserDBResModel
+
+	switch validateField {
+	case id_validate:
+		tmpUser, res = repo.GetUser(field, ctx)
+	case email_validate:
+		tmpUser, res = repo.GetUserByEmail(field, ctx)
 	}
 
-	return processSuccessLogin(user, u.userSecurityRepo, ctx)
+	// User không tồn tại
+	if tmpUser == nil && res == nil {
+		// Phân chia lỗi trả về
+		switch validateField {
+		case id_validate:
+			res = errors.New("no user with this ID")
+		case email_validate:
+			res = errors.New("no user with this email")
+		}
+	}
+
+	if tmpUser != nil {
+		*user = tmpUser
+	}
+
+	return res
 }
 
 // CreateUser implements service.IUserService.
@@ -307,7 +330,7 @@ func (u *userService) CreateUser(req dto.CreateUserReq, actorId string, ctx cont
 
 	// If this request executed by an account
 	if actorId != "" {
-		if err := verifyAccount(actorId, id_validate, actor, u.userRepo, ctx); err != nil {
+		if err := verifyAccount(actorId, id_validate, &actor, u.userRepo, ctx); err != nil {
 			return "", err
 		}
 	}
@@ -451,7 +474,7 @@ func (u *userService) CreateUser(req dto.CreateUserReq, actorId string, ctx cont
 // GetUser implements service.IUserService.
 func (u *userService) GetUser(id string, ctx context.Context) (*business_object.User, error) {
 	var user *dto.UserDBResModel
-	if err := verifyAccount(id, id_validate, user, u.userRepo, ctx); err != nil {
+	if err := verifyAccount(id, id_validate, &user, u.userRepo, ctx); err != nil {
 		return nil, err
 	}
 
@@ -472,7 +495,7 @@ func (u *userService) ResetPassword(newPass string, re_newPass string, token str
 	}
 
 	var user *dto.UserDBResModel
-	if err := verifyAccount(id, id_validate, user, u.userRepo, ctx); err != nil {
+	if err := verifyAccount(id, id_validate, &user, u.userRepo, ctx); err != nil {
 		return getLoginUrl(), err
 	}
 
@@ -577,7 +600,7 @@ func (u *userService) UpdateUser(req dto.UpdateUserReq, actorId string, ctx cont
 	go func() {
 		defer wg.Done()
 
-		if err := verifyAccount(req.UserId, id_validate, account, u.userRepo, ctx); err != nil {
+		if err := verifyAccount(req.UserId, id_validate, &account, u.userRepo, ctx); err != nil {
 			mu.Lock()
 
 			if capturedErr == nil {
@@ -593,7 +616,7 @@ func (u *userService) UpdateUser(req dto.UpdateUserReq, actorId string, ctx cont
 	go func() {
 		defer wg.Done()
 
-		if err := verifyAccount(actorId, id_validate, actor, u.userRepo, ctx); err != nil {
+		if err := verifyAccount(actorId, id_validate, &actor, u.userRepo, ctx); err != nil {
 			mu.Lock()
 
 			if capturedErr == nil {
@@ -641,7 +664,7 @@ func (u *userService) UpdateUser(req dto.UpdateUserReq, actorId string, ctx cont
 
 	// Check if need to verify new email
 	if email != account.Email {
-		if err := verifyAccount(email, email_validate, nil, u.userRepo, ctx); err != errors.New("Lỗi email ko tồn tại") { // ~~ Tức mail tồn tại -> invalid
+		if err := verifyAccount(email, email_validate, &account, u.userRepo, ctx); err != errors.New("Lỗi email ko tồn tại") { // ~~ Tức mail tồn tại -> invalid
 			return res, errors.New(noti.EmailRegisteredWarnMsg)
 		}
 
@@ -832,40 +855,6 @@ func toUserModel(src dto.UserDBResModel) business_object.User {
 	}
 }
 
-func verifyAccount(field, validateField string, user *dto.UserDBResModel, repo repo.IUserRepo, ctx context.Context) error {
-	if field == "" {
-		return errors.New(noti.GenericsErrorWarnMsg)
-	}
-
-	var res error
-	var tmpUser *dto.UserDBResModel
-
-	switch validateField {
-	case id_validate:
-		tmpUser, res = repo.GetUser(field, ctx)
-	case email_validate:
-		tmpUser, res = repo.GetUserByEmail(field, ctx)
-	}
-
-	// User ko tồn tại
-	if tmpUser == nil && res == nil {
-		// Phân chia lỗi trả về
-		switch validateField {
-		case id_validate:
-			res = errors.New("")
-		case email_validate:
-			res = errors.New("")
-		}
-	}
-
-	// Only set user if the pointer is not nil
-	if user != nil {
-		*user = *tmpUser
-	}
-
-	return res
-}
-
 func prepareActivateAccount(security *business_object.UserSecurity, email, actionType, templatePath, subject string) error {
 	var logger *log.Logger
 
@@ -897,7 +886,7 @@ func prepareActivateAccount(security *business_object.UserSecurity, email, actio
 
 func setUpVerifyAccount(security *business_object.UserSecurity, email string, secureRepo repo.IUserSecurityRepo, ctx context.Context) (string, string, error) {
 	var capturedErr error
-	_, cancel := context.WithCancel(ctx)
+	ctx, cancel := context.WithCancel(ctx)
 	var wg sync.WaitGroup
 	var mu sync.Mutex
 
@@ -929,12 +918,10 @@ func setUpVerifyAccount(security *business_object.UserSecurity, email string, se
 
 		if err := prepareActivateAccount(security, email, actionType, templatePath, subject); err != nil {
 			mu.Lock()
-
 			if capturedErr == nil {
 				capturedErr = err // Capture the first error
 				cancel()          // Cancel the other goroutine
 			}
-
 			mu.Unlock()
 		}
 	}()
@@ -943,7 +930,13 @@ func setUpVerifyAccount(security *business_object.UserSecurity, email string, se
 		defer wg.Done()
 
 		security.FailAccess = 0
-		*security.LastFail = util.GetPrimitiveTime()
+		// Check if LastFail is nil before dereferencing
+		if security.LastFail == nil {
+			currentTime := util.GetPrimitiveTime()
+			security.LastFail = &currentTime
+		} else {
+			*security.LastFail = util.GetPrimitiveTime()
+		}
 
 		if err := secureRepo.EditUserSecurity(*security, ctx); err != nil {
 			mu.Lock()
@@ -966,22 +959,36 @@ func setUpVerifyAccount(security *business_object.UserSecurity, email string, se
 	return res1, res2, nil
 }
 
-func processSuccessLogin(user *dto.UserDBResModel, securityRepo repo.IUserSecurityRepo, ctx *gin.Context) (string, string, error) {
+// Login implements service.IUserService.
+func (u *userService) Login(req dto.LoginRequest, ctx *gin.Context) (string, string, error) {
+
+	var user *dto.UserDBResModel
+	if err := verifyAccount(req.Email, email_validate, &user, u.userRepo, ctx); err != nil {
+		return "", "", err
+	}
+
+	if !util.IsHashStringMatched(req.Password, user.Password) {
+		return processFailLogin(user.UserId, u.userSecurityRepo, ctx)
+	}
+
+	return processSuccessLogin(*user, u.userSecurityRepo, ctx)
+}
+
+func processSuccessLogin(user dto.UserDBResModel, securityRepo repo.IUserSecurityRepo, ctx *gin.Context) (string, string, error) {
 	security, err := securityRepo.GetUserSecurity(user.UserId, ctx)
 
 	if err != nil {
 		return "", "", err
 	}
 
-	if !user.IsActivated || security.FailAccess > verifyFailLimit {
-		return setUpVerifyAccount(security, user.Email, securityRepo, ctx)
-	}
+	//if !user.IsActivated || security.FailAccess > verifyFailLimit {
+	//	return setUpVerifyAccount(security, user.Email, securityRepo, ctx)
+	//}
 
 	var res1, res2 string
 
 	if user.IsHaveToResetPw != nil && *user.IsHaveToResetPw {
 		token, err := util.GenerateActionToken(user.Email, user.UserId, user.RoleId, log.Default())
-
 		if err != nil {
 			return "", "", err
 		}
@@ -992,7 +999,7 @@ func processSuccessLogin(user *dto.UserDBResModel, securityRepo repo.IUserSecuri
 			token,
 		}, mailSepChar)
 
-		*security.ActionToken = token
+		security.ActionToken = &token
 	} else {
 		accessToken, refreshToken, err := util.GenerateTokens(user.Email, user.UserId, user.RoleId, log.Default())
 
@@ -1002,9 +1009,8 @@ func processSuccessLogin(user *dto.UserDBResModel, securityRepo repo.IUserSecuri
 
 		res1 = accessToken
 		res2 = refreshToken
-
-		*security.AccessToken = accessToken
-		*security.RefreshToken = refreshToken
+		security.AccessToken = &accessToken
+		security.RefreshToken = &refreshToken
 	}
 
 	return res1, res2, securityRepo.EditUserSecurity(*security, ctx)

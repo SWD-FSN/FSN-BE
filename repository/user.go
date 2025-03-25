@@ -234,14 +234,19 @@ func (u *userRepo) CreateUser(user dto.UserDBResModel, ctx context.Context) erro
 
 // GetUser implements repo.IUserRepo.
 func (u *userRepo) GetUser(id string, ctx context.Context) (*dto.UserDBResModel, error) {
-	var query string = "SELECT TOP 1 * FROM " + business_object.GetUserTable() + "WHERE id = $1"
+	var query string = "SELECT TOP 1 * FROM " + business_object.GetUserTable() + " WHERE id = $1"
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetUserTable()) + "GetUser - "
 
 	defer u.db.Close()
 
 	var res *dto.UserDBResModel
 
-	var err error = u.db.QueryRow(query, id).Scan(&res.Username, &res.RoleId, &res.FullName, &res.Email, &res.DateOfBirth, &res.ProfileAvatar, &res.Bio, &res.Followers, &res.Followings, &res.BlockUsers, &res.Conversations, &res.IsPrivate, &res.IsActive, &res.CreatedAt, &res.UpdatedAt)
+	var err error = u.db.QueryRow(query, id).Scan(
+		&res.Username, &res.RoleId, &res.FullName, &res.Email,
+		&res.DateOfBirth, &res.ProfileAvatar, &res.Bio, &res.Followers,
+		&res.Followings, &res.BlockUsers, &res.Conversations, &res.IsPrivate,
+		&res.IsActive, &res.CreatedAt, &res.UpdatedAt)
+
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
