@@ -274,7 +274,7 @@ func (u *userService) GetUsersByStatus(rawStatus string, ctx context.Context) (*
 }
 
 // Logout implements service.IUserService.
-func (u *userService) LogOut(id string, ctx context.Context) error {
+func (u *userService) Logout(id string, ctx context.Context) error {
 	if err := u.userSecurityRepo.Logout(id, ctx); err != nil {
 		return err
 	}
@@ -288,8 +288,8 @@ func (u *userService) LogOut(id string, ctx context.Context) error {
 
 // Login implements service.IUserService.
 func (u *userService) Login(req dto.LoginRequest, ctx context.Context) (string, string, error) {
-	var user *dto.UserDBResModel
-	if err := verifyAccount(req.Email, email_validate, user, u.userRepo, ctx); err != nil {
+	var user dto.UserDBResModel
+	if err := verifyAccount(req.Email, email_validate, &user, u.userRepo, ctx); err != nil {
 		return "", "", err
 	}
 
@@ -297,7 +297,7 @@ func (u *userService) Login(req dto.LoginRequest, ctx context.Context) (string, 
 		return processFailLogin(user.UserId, u.userSecurityRepo, ctx)
 	}
 
-	return processSuccessLogin(user, u.userSecurityRepo, ctx)
+	return processSuccessLogin(&user, u.userSecurityRepo, ctx)
 }
 
 // CreateUser implements service.IUserService.

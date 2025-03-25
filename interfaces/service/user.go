@@ -18,7 +18,7 @@ type IUserService interface {
 	UpdateUser(req dto.UpdateUserReq, actorId string, ctx context.Context) (string, error)
 	ChangeUserStatus(rawStatus, userId, actorId string, ctx context.Context) (string, error)
 	Login(req dto.LoginRequest, ctx context.Context) (string, string, error)
-	LogOut(id string, ctx context.Context) error
+	Logout(id string, ctx context.Context) error
 
 	VerifyAction(rawToken string, ctx context.Context) (string, error)
 	ResetPassword(newPass, re_newPass, token string, ctx context.Context) (string, error)

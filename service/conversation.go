@@ -212,7 +212,7 @@ func (c *conersationService) CreateConversation(req dto.CreateConversationReques
 	go func() {
 		defer wg.Done()
 
-		if err := verifyAccount(req.ActorId, id_validate, &actor, c.userRepo, ctx); err != nil {
+		if err := verifyAccount(req.ActorId, id_validate, actor, c.userRepo, ctx); err != nil {
 			mu.Lock()
 
 			if capturedErr == nil {
@@ -231,7 +231,7 @@ func (c *conersationService) CreateConversation(req dto.CreateConversationReques
 		for _, id := range req.Members {
 			var member *dto.UserDBResModel
 
-			if err := verifyAccount(id, id_validate, &member, c.userRepo, ctx); err != nil {
+			if err := verifyAccount(id, id_validate, member, c.userRepo, ctx); err != nil {
 				mu.Lock()
 
 				if capturedErr == nil {

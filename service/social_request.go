@@ -79,7 +79,7 @@ func (s *socialRequestService) AcceptRequest(requestId, actorId string, ctx cont
 	go func() {
 		defer wg1.Done()
 
-		if err := verifyAccount(req.AuthorId, id_validate, &author, s.userRepo, ctx); err != nil {
+		if err := verifyAccount(req.AuthorId, id_validate, author, s.userRepo, ctx); err != nil {
 			mu1.Lock()
 
 			if capturedErr == nil {
@@ -95,7 +95,7 @@ func (s *socialRequestService) AcceptRequest(requestId, actorId string, ctx cont
 	go func() {
 		defer wg1.Done()
 
-		if err := verifyAccount(req.AccountId, id_validate, &account, s.userRepo, ctx); err != nil {
+		if err := verifyAccount(req.AccountId, id_validate, account, s.userRepo, ctx); err != nil {
 			mu1.Lock()
 
 			if capturedErr == nil {
@@ -235,7 +235,7 @@ func (s *socialRequestService) ProcessRequest(req dto.SocialRequest, ctx context
 	go func() {
 		defer wg.Done()
 
-		if err := verifyAccount(req.AccountId, id_validate, &account, s.userRepo, ctx); err != nil {
+		if err := verifyAccount(req.AccountId, id_validate, account, s.userRepo, ctx); err != nil {
 			mu.Lock()
 
 			if capturedErr != nil {
@@ -251,7 +251,7 @@ func (s *socialRequestService) ProcessRequest(req dto.SocialRequest, ctx context
 	go func() {
 		defer wg.Done()
 
-		if err := verifyAccount(req.AuthorId, id_validate, &actor, s.userRepo, ctx); err != nil {
+		if err := verifyAccount(req.AuthorId, id_validate, actor, s.userRepo, ctx); err != nil {
 			mu.Lock()
 
 			if capturedErr != nil {
