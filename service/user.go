@@ -18,8 +18,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-
-	"github.com/gin-gonic/gin"
 )
 
 type userService struct {
@@ -288,17 +286,21 @@ func (u *userService) LogOut(id string, ctx context.Context) error {
 }
 
 // Login implements service.IUserService.
-func (u *userService) Login(req dto.LoginRequest, ctx *gin.Context) (string, string, error) {
-	var user *dto.UserDBResModel
-	if err := verifyAccount(req.Email, email_validate, user, u.userRepo, ctx); err != nil {
+func (u *userService) Login(req dto.LoginRequest, ctx context.Context) (string, string, error) {
+	var user dto.UserDBResModel
+	if err := verifyAccount(req.Email, email_validate, &user, u.userRepo, ctx); err != nil {
 		return "", "", err
+	}
+
+	if user.UserId == "" {
+		u.logger.Println("User null")
 	}
 
 	if !util.IsHashStringMatched(req.Password, user.Password) {
 		return processFailLogin(user.UserId, u.userSecurityRepo, ctx)
 	}
 
-	return processSuccessLogin(user, u.userSecurityRepo, ctx)
+	return processSuccessLogin(&user, u.userSecurityRepo, ctx)
 }
 
 // CreateUser implements service.IUserService.
@@ -837,10 +839,16 @@ func verifyAccount(field, validateField string, user *dto.UserDBResModel, repo r
 	switch validateField {
 	case id_validate:
 		tmpUser, res = repo.GetUser(field, ctx)
+
 	case email_validate:
 		tmpUser, res = repo.GetUserByEmail(field, ctx)
 	}
 
+	if tmpUser != nil {
+		log.Println(tmpUser)
+	} else {
+		log.Println("Null fetch")
+	}
 	// User ko tồn tại
 	if tmpUser == nil && res == nil {
 		// Phân chia lỗi trả về
@@ -853,7 +861,7 @@ func verifyAccount(field, validateField string, user *dto.UserDBResModel, repo r
 	}
 
 	// Only set user if the pointer is not nil
-	if user != nil {
+	if tmpUser != nil {
 		*user = *tmpUser
 	}
 
@@ -960,7 +968,7 @@ func setUpVerifyAccount(security *business_object.UserSecurity, email string, se
 	return res1, res2, nil
 }
 
-func processSuccessLogin(user *dto.UserDBResModel, securityRepo repo.IUserSecurityRepo, ctx *gin.Context) (string, string, error) {
+func processSuccessLogin(user *dto.UserDBResModel, securityRepo repo.IUserSecurityRepo, ctx context.Context) (string, string, error) {
 	security, err := securityRepo.GetUserSecurity(user.UserId, ctx)
 
 	if err != nil {
@@ -1005,12 +1013,17 @@ func processSuccessLogin(user *dto.UserDBResModel, securityRepo repo.IUserSecuri
 }
 
 func processFailLogin(id string, securityRepo repo.IUserSecurityRepo, ctx context.Context) (string, string, error) {
-	security, _ := securityRepo.GetUserSecurity(id, ctx)
+	security, err := securityRepo.GetUserSecurity(id, ctx)
+	if err != nil {
+		return "", "", err
+	}
 
 	if security != nil {
 		security.FailAccess += 1
 		*security.LastFail = time.Now()
-		securityRepo.EditUserSecurity(*security, ctx)
+		if err := securityRepo.EditUserSecurity(*security, ctx); err != nil {
+			return "", "", err
+		}
 	}
 
 	return "", "", errors.New(noti.WrongCredentialsWarnMsg)

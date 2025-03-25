@@ -151,7 +151,7 @@ func (u *userRepo) GetUsersByStatus(status bool, ctx context.Context) (*[]dto.Us
 // GetUserByEmail implements repo.IUserRepo.
 func (u *userRepo) GetUserByEmail(email string, ctx context.Context) (*dto.UserDBResModel, error) {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetUserTable()) + "GetUserByEmail - "
-	var query string = "SELECT top 1 * from " + business_object.GetUserTable() + "WHERE LOWER(email) = LOWER($1)"
+	var query string = "SELECT * FROM " + business_object.GetUserTable() + " WHERE LOWER(email) = LOWER($1) LIMIT 1"
 	//defer u.db.Close()
 
 	var res dto.UserDBResModel
@@ -246,7 +246,7 @@ func (u *userRepo) UpdateUser(user dto.UserDBResModel, ctx context.Context) erro
 
 // CreateUser implements repo.IUserRepo.
 func (u *userRepo) CreateUser(user dto.UserDBResModel, ctx context.Context) error {
-	var query string = "INSERT INTO " + business_object.GetUserTable() + "(user_id, role_id, full_name, username, email, password, date_of_birth, profile_avatar, bio, friends, followers, followings, block_users, conversations, is_private, is_active, created_at, updated_at) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)"
+	var query string = "INSERT INTO " + business_object.GetUserTable() + "(id, role_id, full_name, username, email, password, date_of_birth, profile_avatar, bio, friends, followers, followings, block_users, conversations, is_private, is_active, created_at, updated_at) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)"
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetUserTable()) + "CreateUser - "
 
 	//defer u.db.Close()
