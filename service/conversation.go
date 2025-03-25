@@ -212,7 +212,7 @@ func (c *conersationService) CreateConversation(req dto.CreateConversationReques
 	go func() {
 		defer wg.Done()
 
-		if err := verifyAccount(req.ActorId, id_validate, actor, c.userRepo, ctx); err != nil {
+		if err := verifyAccount(req.ActorId, id_validate, &actor, c.userRepo, ctx); err != nil {
 			mu.Lock()
 
 			if capturedErr == nil {
@@ -231,7 +231,7 @@ func (c *conersationService) CreateConversation(req dto.CreateConversationReques
 		for _, id := range req.Members {
 			var member *dto.UserDBResModel
 
-			if err := verifyAccount(id, id_validate, member, c.userRepo, ctx); err != nil {
+			if err := verifyAccount(id, id_validate, &member, c.userRepo, ctx); err != nil {
 				mu.Lock()
 
 				if capturedErr == nil {
@@ -305,13 +305,13 @@ func (c *conersationService) CreateConversation(req dto.CreateConversationReques
 	}, nil
 }
 
-// DissovelGroupConversation implements service.IConversationService.
-func (c *conersationService) DissovelGroupConversation(actorId string, conversationId string, ctx context.Context) error {
+// DissolveGroupConversation implements service.IConversationService.
+func (c *conersationService) DissolveGroupConversation(actorId string, conversationId string, ctx context.Context) error {
 	if err := verifyActorToConversationAction(actorId, conversationId, true, nil, c.conversationRepo, ctx); err != nil {
 		return err
 	}
 
-	return c.conversationRepo.DissovelGroupConversation(conversationId, ctx)
+	return c.conversationRepo.DissolveGroupConversation(conversationId, ctx)
 }
 
 // GetAllConversations implements service.IConversationService.

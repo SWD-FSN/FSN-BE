@@ -245,6 +245,7 @@ func Login(ctx *gin.Context) {
 	}
 
 	res1, res2, err := service.Login(request, ctx)
+	
 	util.ProcessLoginResponse(dto.APIReponse{
 		Data1:   res1,
 		Data2:   res2,
@@ -253,7 +254,7 @@ func Login(ctx *gin.Context) {
 	})
 }
 
-func LogOut(ctx *gin.Context) {
+func Logout(ctx *gin.Context) {
 	service, err := service.GenerateUserService()
 	if err != nil {
 		util.ProcessResponse(util.GenerateInvalidRequestAndSystemProblemModel(ctx, err))
@@ -262,7 +263,7 @@ func LogOut(ctx *gin.Context) {
 
 	util.ProcessResponse(dto.APIReponse{
 		Data2:    "",
-		ErrMsg:   service.LogOut(ctx.GetString("user_id"), ctx),
+		ErrMsg:   service.Logout(ctx.GetString("user_id"), ctx),
 		PostType: action_type.Redirect_post,
 		Context:  ctx,
 	})

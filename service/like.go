@@ -67,7 +67,7 @@ func (l *likeService) DoLike(req dto.DoLikeReq, ctx context.Context) error {
 	// Verify author
 	go func() {
 		defer wg.Done()
-		if err := verifyAccount(req.ActorId, id_validate, actor, l.userRepo, ctx); err != nil {
+		if err := verifyAccount(req.ActorId, id_validate, &actor, l.userRepo, ctx); err != nil {
 			mu.Lock()
 
 			if capturedErr == nil {

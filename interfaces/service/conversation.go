@@ -14,6 +14,6 @@ type IConversationService interface {
 	CreateConversation(req dto.CreateConversationRequest, ctx context.Context) (*dto.ConversationUIResponse, error)
 	CreateMessage(req dto.CreateMessageRequest, ctx context.Context) error
 	EditGroupChatProperty(req dto.EditGroupChatPropRequest, ctx context.Context) error
-	DissovelGroupConversation(actorId, conversationId string, ctx context.Context) error
+	DissolveGroupConversation(actorId, conversationId string, ctx context.Context) error
 	LeaveGroupConversation(memberId, conversationId string, ctx context.Context) error
 }

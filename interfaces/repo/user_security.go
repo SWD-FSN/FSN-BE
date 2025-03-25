@@ -11,5 +11,5 @@ type IUserSecurityRepo interface {
 	CreateUserSecurity(usc business_object.UserSecurity, ctx context.Context) error
 	EditUserSecurity(usc business_object.UserSecurity, ctx context.Context) error
 	Login(req dto.LoginSecurityRequest, ctx context.Context) error
-	LogOut(id string, ctx context.Context) error
+	Logout(id string, ctx context.Context) error
 }

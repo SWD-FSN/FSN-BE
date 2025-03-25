@@ -48,7 +48,7 @@ func GeneratePersonalProfileService() (service.IPersonalProfileService, error) {
 // GetPersonalProfile implements service.IPersonalProfileService.
 func (p *personalProfileService) GetPersonalProfile(actorId string, userId string, ctx context.Context) *dto.PersonalProfileUIResponse {
 	var user *dto.UserDBResModel
-	if verifyAccount(userId, id_validate, user, p.userRepo, ctx) != nil {
+	if verifyAccount(userId, id_validate, &user, p.userRepo, ctx) != nil {
 		return nil
 	}
 
@@ -57,7 +57,7 @@ func (p *personalProfileService) GetPersonalProfile(actorId string, userId strin
 		return nil
 	}
 
-	// View themseleves
+	// View themselves
 	if actorId == userId {
 		var posts *[]dto.PostResponse
 
