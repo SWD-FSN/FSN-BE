@@ -133,11 +133,19 @@ func (u *userRepo) GetUsersByStatus(status bool, ctx context.Context) (*[]dto.Us
 // GetUserByEmail implements repo.IUserRepo.
 func (u *userRepo) GetUserByEmail(email string, ctx context.Context) (*dto.UserDBResModel, error) {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetUserTable()) + "GetUserByEmail - "
-	var query string = "SELECT top 1 * from " + business_object.GetUserTable() + "WHERE LOWER(email) = LOWER($1)"
-	defer u.db.Close()
+	var query string = "SELECT * FROM " + business_object.GetUserTable() + " WHERE LOWER(email) = LOWER($1)"
+	//defer u.db.Close()
 
-	var res *dto.UserDBResModel
-	if err := u.db.QueryRow(query, email).Scan(&res.UserId, &res.RoleId, &res.FullName, &res.Username, &res.Email, &res.DateOfBirth, &res.ProfileAvatar, &res.Bio, &res.Followers, &res.Followings, &res.BlockUsers, &res.Conversations, &res.IsActive, &res.IsActive, &res.CreatedAt, &res.UpdatedAt); err != nil {
+	var res dto.UserDBResModel
+	var isActivated sql.NullBool
+	var isHaveToResetPw sql.NullBool
+
+	if err := u.db.QueryRow(query, email).Scan(
+		&res.UserId, &res.RoleId, &res.FullName, &res.Username, &res.Email, &res.Password,
+		&res.DateOfBirth, &res.ProfileAvatar, &res.Bio, &res.Friends, &res.Followers,
+		&res.Followings, &res.BlockUsers, &res.Conversations, &res.IsPrivate,
+		&res.IsActive, &isActivated, &isHaveToResetPw, &res.CreatedAt, &res.UpdatedAt); err != nil {
+
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
@@ -146,7 +154,14 @@ func (u *userRepo) GetUserByEmail(email string, ctx context.Context) (*dto.UserD
 		return nil, errors.New(noti.InternalErr)
 	}
 
-	return res, nil
+	// Transfer nullable values to the result struct
+	res.IsActivated = isActivated.Valid && isActivated.Bool
+	if isHaveToResetPw.Valid {
+		boolVal := isHaveToResetPw.Bool
+		res.IsHaveToResetPw = &boolVal
+	}
+
+	return &res, nil
 }
 
 // GetUsersByRole implements repo.IUserRepo.
@@ -204,10 +219,10 @@ func (u *userRepo) UpdateUser(user dto.UserDBResModel, ctx context.Context) erro
 
 // CreateUser implements repo.IUserRepo.
 func (u *userRepo) CreateUser(user dto.UserDBResModel, ctx context.Context) error {
-	var query string = "INSERT INTO " + business_object.GetUserTable() + "(user_id, role_id, full_name, username, email, password, date_of_birth, profile_avatar, bio, friends, followers, followings, block_users, conversations, is_private, is_active, created_at, updated_at) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)"
+	var query string = "INSERT INTO " + business_object.GetUserTable() + "(id, role_id, full_name, username, email, password, date_of_birth, profile_avatar, bio, friends, followers, followings, block_users, conversations, is_private, is_active, created_at, updated_at) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)"
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetUserTable()) + "CreateUser - "
 
-	defer u.db.Close()
+	//defer u.db.Close()
 
 	if _, err := u.db.Exec(query, user.UserId, user.RoleId, user.FullName, user.Username, user.Email, user.Password, user.DateOfBirth, user.ProfileAvatar, user.Bio, user.Friends, user.Followers, user.Followings, user.BlockUsers, user.Conversations, user.IsPrivate, user.IsActive, user.CreatedAt, user.UpdatedAt); err != nil {
 		u.logger.Println(errLogMsg + err.Error())

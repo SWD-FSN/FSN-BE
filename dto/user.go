@@ -6,16 +6,16 @@ import (
 )
 
 type CreateUserReq struct {
-	Username      string    `json:"username"`
+	Username      string    `json:"username" validate:"required"`
 	RoleId        string    `json:"role_id"`
-	FullName      string    `json:"full_name"`
-	Email         string    `json:"email"`
-	Password      string    `json:"password" validate:"min=10"`
-	DateOfBirth   time.Time `json:"date_of_birth"`
+	FullName      string    `json:"full_name" validate:"required"`
+	Email         string    `json:"email" validate:"required"`
+	Password      string    `json:"password" validate:"required,min=10""`
+	DateOfBirth   time.Time `json:"date_of_birth" validate:"required"`
 	ProfileAvatar string    `json:"profile_avatar"`
 	Bio           string    `json:"bio"`
 	Friends       *[]string `json:"friends"`
-	Followers     *[]string `jsonz:"followers"`
+	Followers     *[]string `json:"followers"`
 	Followings    *[]string `json:"followings"`
 	BlockUsers    *[]string `json:"block_users"`
 	IsPrivate     *bool     `json:"is_private"`
@@ -46,13 +46,13 @@ type UserDBResModel struct {
 	ProfileAvatar   string    `json:"profile_avatar"`
 	Bio             string    `json:"bio"`
 	Friends         string    `json:"friends"`
-	Followers       string    `jsonz:"followers"`
+	Followers       string    `json:"followers"`
 	Followings      string    `json:"followings"`
 	BlockUsers      string    `json:"block_users"`
 	Conversations   string    `json:"conversations"`
 	IsPrivate       bool      `json:"is_private"`
 	IsActive        bool      `json:"is_active"`
-	IsActivated     bool      `json:"json:is_activated"`
+	IsActivated     bool      `json:"is_activated"`
 	IsHaveToResetPw *bool     `json:"is_have_to_reset_password"`
 	CreatedAt       time.Time `json:"created_at"`
 	UpdatedAt       time.Time `json:"updated_at"`

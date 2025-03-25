@@ -313,7 +313,13 @@ func (u *userService) CreateUser(req dto.CreateUserReq, actorId string, ctx cont
 	}
 
 	// New email exists?
-	if verifyAccount(req.Email, email_validate, nil, u.userRepo, ctx) == nil {
+	//if verifyAccount(req.Email, email_validate, tmpUser, u.userRepo, ctx) == nil {
+	//	return "", errors.New(noti.EmailRegisteredWarnMsg)
+	//}
+
+	if tmpUser, err := u.userRepo.GetUserByEmail(req.Email, ctx); err != nil {
+		return "", err
+	} else if tmpUser != nil {
 		return "", errors.New(noti.EmailRegisteredWarnMsg)
 	}
 
@@ -341,8 +347,6 @@ func (u *userService) CreateUser(req dto.CreateUserReq, actorId string, ctx cont
 			return "", err
 		}
 	}
-
-	var id string = util.GenerateId()
 
 	// Generate token
 	token, err := util.GenerateActionToken(req.Email, "", req.RoleId, u.logger)
@@ -380,7 +384,8 @@ func (u *userService) CreateUser(req dto.CreateUserReq, actorId string, ctx cont
 		fullName = req.Username
 	}
 
-	var curTiem time.Time = time.Now()
+	var id string = util.GenerateId()
+	var curTime time.Time = time.Now()
 
 	// Save new account to database
 	if err := u.userRepo.CreateUser(dto.UserDBResModel{
@@ -392,17 +397,12 @@ func (u *userService) CreateUser(req dto.CreateUserReq, actorId string, ctx cont
 		Password:        hashPw,
 		DateOfBirth:     req.DateOfBirth,
 		ProfileAvatar:   req.ProfileAvatar,
-		Bio:             req.Bio,
-		Friends:         util.ToCombinedString(*req.Friends, sepChar),
-		Followers:       util.ToCombinedString(*req.Followers, sepChar),
-		Followings:      util.ToCombinedString(*req.Followings, sepChar),
-		BlockUsers:      util.ToCombinedString(*req.BlockUsers, sepChar),
 		IsPrivate:       isPrivate,
 		IsActive:        isActive,
 		IsActivated:     false,
 		IsHaveToResetPw: isHaveToResetPw,
-		CreatedAt:       curTiem,
-		UpdatedAt:       curTiem,
+		CreatedAt:       curTime,
+		UpdatedAt:       curTime,
 	}, ctx); err != nil {
 		return "", err
 	}
@@ -838,16 +838,17 @@ func verifyAccount(field, validateField string, user *dto.UserDBResModel, repo r
 	}
 
 	var res error
+	var tmpUser *dto.UserDBResModel
 
 	switch validateField {
 	case id_validate:
-		user, res = repo.GetUser(field, ctx)
+		tmpUser, res = repo.GetUser(field, ctx)
 	case email_validate:
-		user, res = repo.GetUserByEmail(field, ctx)
+		tmpUser, res = repo.GetUserByEmail(field, ctx)
 	}
 
 	// User ko tồn tại
-	if user == nil && res == nil {
+	if tmpUser == nil && res == nil {
 		// Phân chia lỗi trả về
 		switch validateField {
 		case id_validate:
@@ -855,6 +856,11 @@ func verifyAccount(field, validateField string, user *dto.UserDBResModel, repo r
 		case email_validate:
 			res = errors.New("")
 		}
+	}
+
+	// Only set user if the pointer is not nil
+	if user != nil {
+		*user = *tmpUser
 	}
 
 	return res

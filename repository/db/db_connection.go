@@ -3,6 +3,7 @@ package db
 import (
 	"database/sql"
 	"errors"
+	_ "github.com/lib/pq" // PostgreSQL driver
 	"log"
 	"os"
 	"social_network/constant/env"
@@ -10,7 +11,7 @@ import (
 )
 
 const (
-	db_server      string = "Postgre"
+	db_server      string = "postgres"
 	backUpDbCnnStr string = "Your back up database connection string"
 )
 
