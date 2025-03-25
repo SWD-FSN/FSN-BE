@@ -1,7 +1,7 @@
 package mailconst
 
 const (
-	AccountRegistrationTemplate string = "path"
+	AccountRegistrationTemplate string = "html_template/template1.html"
 
 	AccountRecoveryTemplate string = "path"
 

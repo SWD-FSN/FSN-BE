@@ -3,6 +3,7 @@ package db
 import (
 	"database/sql"
 	"errors"
+	_ "github.com/lib/pq" // PostgreSQL driver
 	"log"
 	"os"
 	"social_network/constant/env"

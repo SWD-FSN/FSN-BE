@@ -57,7 +57,8 @@ func (r *roleRepo) GetAllRoles(ctx context.Context) (*[]business_object.Role, er
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetRoleTable()) + "GetAllRoles - "
 	var query string = "SELECT * FROM " + business_object.GetRoleTable()
 	var internalErr error = errors.New(noti.InternalErr)
-	defer r.db.Close()
+
+	//defer r.db.Close()
 
 	rows, err := r.db.Query(query)
 	if err != nil {
@@ -65,7 +66,7 @@ func (r *roleRepo) GetAllRoles(ctx context.Context) (*[]business_object.Role, er
 		return nil, internalErr
 	}
 
-	var res *[]business_object.Role
+	var res []business_object.Role
 	for rows.Next() {
 		var x business_object.Role
 		if err := rows.Scan(&x.RoleId, &x.RoleName, &x.ActiveStatus, &x.CreatedAt, &x.UpdatedAt); err != nil {
@@ -73,10 +74,10 @@ func (r *roleRepo) GetAllRoles(ctx context.Context) (*[]business_object.Role, er
 			return nil, internalErr
 		}
 
-		*res = append(*res, x)
+		res = append(res, x)
 	}
 
-	return res, nil
+	return &res, nil
 }
 
 // GetRoleById implements repo.IRoleRepo.

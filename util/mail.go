@@ -19,7 +19,7 @@ func SendMail(req dto.SendMailRequest) error {
 	var body bytes.Buffer
 
 	template, err := template.ParseFiles(req.TemplatePath)
-	var errLogMsg string = fmt.Sprintf(noti.MailErrMsg, "SendMail")
+	var errLogMsg string = fmt.Sprintf(noti.MailErrMsg, "Util.Mail - SendMail")
 
 	if err != nil {
 		log.Println(errLogMsg + err.Error())
