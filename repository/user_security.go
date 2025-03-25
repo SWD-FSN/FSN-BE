@@ -22,7 +22,7 @@ func (u *userSecurityRepo) CreateUserSecurity(usc business_object.UserSecurity, 
 	var query string = "INSERT INTO " + business_object.GetUserSecurityTable() + "(user_id, access_token, refresh_token, action_token, fail_access, last_fail) VALUES ($1, $2, $3, $4, $5, $6)"
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetUserSecurityTable()) + "CreateUserSecurity - "
 
-	defer u.db.Close()
+	//defer u.db.Close()
 
 	if _, err := u.db.Exec(query, usc.UserId, usc.AccessToken, usc.RefreshToken, usc.ActionToken, usc.FailAccess, usc.LastFail); err != nil {
 		u.logger.Println(errLogMsg + err.Error())
@@ -44,7 +44,7 @@ func (u *userSecurityRepo) Login(req dto.LoginSecurityRequest, ctx context.Conte
 	var query string = "UPDATE " + business_object.GetUserSecurityTable() + " SET access_token = $1 AND refresh_token = $2 WHERE id = $3"
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetUserSecurityTable()) + "Login - "
 	var internalErr error = errors.New(noti.InternalErr)
-	defer u.db.Close()
+	//defer u.db.Close()
 
 	res, err := u.db.Exec(query, req.AccessToken, req.RefreshToken, req.UserId)
 	if err != nil {
@@ -70,7 +70,7 @@ func (u *userSecurityRepo) LogOut(id string, ctx context.Context) error {
 	var query string = "UPDATE " + business_object.GetUserSecurityTable() + " SET access_token = NULL, refresh_token = NULL WHERE id = $1"
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetUserSecurityTable()) + "LogOut - "
 	var internalErr error = errors.New(noti.InternalErr)
-	defer u.db.Close()
+	//defer u.db.Close()
 
 	res, err := u.db.Exec(query, id)
 	if err != nil {
@@ -96,7 +96,7 @@ func (u *userSecurityRepo) EditUserSecurity(usc business_object.UserSecurity, ct
 	var query string = "UPDATE " + business_object.GetUserSecurityTable() + " SET access_token = $1, refresh_token = $2, action_token = $3, fail_access = $4 AND last_fail = $5 WHERE id = $6"
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetUserSecurityTable()) + "EditUserSecurity - "
 	var internalErr error = errors.New(noti.InternalErr)
-	defer u.db.Close()
+	//defer u.db.Close()
 
 	res, err := u.db.Exec(query, usc.AccessToken, usc.RefreshToken, usc.RefreshToken, usc.ActionToken, usc.FailAccess, &usc.LastFail, usc.UserId)
 	if err != nil {
@@ -121,10 +121,13 @@ func (u *userSecurityRepo) EditUserSecurity(usc business_object.UserSecurity, ct
 func (u *userSecurityRepo) GetUserSecurity(id string, ctx context.Context) (*business_object.UserSecurity, error) {
 	var query string = "SELECT TOP 1 * FROM  " + business_object.GetUserSecurityTable() + "WHERE id = $1"
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetUserSecurityTable()) + "GetUserSecurity - "
-	defer u.db.Close()
+	//defer u.db.Close()
 
-	var res *business_object.UserSecurity
-	if err := u.db.QueryRow(query, id).Scan(&res.UserId, &res.AccessToken, &res.RefreshToken, &res.ActionToken, &res.FailAccess, &res.LastFail); err != nil {
+	var lastFail sql.NullTime
+	var accessToken, refreshToken, actionToken sql.NullString
+	var res business_object.UserSecurity
+
+	if err := u.db.QueryRow(query, id).Scan(&res.UserId, accessToken, refreshToken, actionToken, &res.FailAccess, lastFail); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
@@ -133,5 +136,10 @@ func (u *userSecurityRepo) GetUserSecurity(id string, ctx context.Context) (*bus
 		return nil, errors.New(noti.InternalErr)
 	}
 
-	return res, nil
+	res.AccessToken = &accessToken.String
+	res.RefreshToken = &refreshToken.String
+	res.ActionToken = &accessToken.String
+	res.LastFail = &lastFail.Time
+
+	return &res, nil
 }

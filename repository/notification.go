@@ -30,7 +30,7 @@ func (n *notificationRepo) CreateNotification(notification businessobject.Notifi
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetNotificationTable()) + "CreateNotification - "
 	var query string = "INSERT INTO " + business_object.GetNotificationTable() + "(id, actor_id, object_id, object_type, action, is_read, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7)"
 
-	defer n.db.Close()
+	//defer n.db.Close()
 
 	if _, err := n.db.Exec(query, notification.NotificationId, notification.ActorId, notification.ObjectId, notification.ObjectType, notification.Action, notification.IsRead, notification.CreatedAt); err != nil {
 		n.logger.Println(errLogMsg + err.Error())
@@ -46,7 +46,7 @@ func (n *notificationRepo) GetAllNotifications(ctx context.Context) (*[]business
 	var query string = "SELECT * FROM " + business_object.GetNotificationTable()
 	var internalErr error = errors.New(noti.InternalErr)
 
-	defer n.db.Close()
+	//defer n.db.Close()
 
 	rows, err := n.db.Query(query)
 	if err != nil {
@@ -54,7 +54,7 @@ func (n *notificationRepo) GetAllNotifications(ctx context.Context) (*[]business
 		return nil, internalErr
 	}
 
-	var res *[]business_object.Notification
+	var res []business_object.Notification
 	for rows.Next() {
 		var x business_object.Notification
 
@@ -63,10 +63,10 @@ func (n *notificationRepo) GetAllNotifications(ctx context.Context) (*[]business
 			return nil, internalErr
 		}
 
-		*res = append(*res, x)
+		res = append(res, x)
 	}
 
-	return res, nil
+	return &res, nil
 }
 
 // GetNotificationOnAction implements repo.INotificationRepo.
@@ -74,7 +74,7 @@ func (n *notificationRepo) GetNotificationOnAction(req dto.GetNotiOnActionReques
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetNotificationTable()) + "GetNotificationOnAction - "
 	var query string = "SELECT * FROM " + business_object.GetNotificationTable() + " WHERE actor_id = $1, object_id = $2, object_type = $3, action = $4 and created_at = $5"
 
-	defer n.db.Close()
+	//defer n.db.Close()
 
 	var res *business_object.Notification
 	if err := n.db.QueryRow(query, req.ActorId, req.ObjectId, req.ObjectType, req.Action, req.CreatedAt).Scan(&res.NotificationId, &res.ActorId, &res.ObjectId, &res.ObjectType, &res.Action, &res.CreatedAt); err != nil {
@@ -94,9 +94,9 @@ func (n *notificationRepo) GetNotification(id string, ctx context.Context) (*bus
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetNotificationTable()) + "GetNotification - "
 	var query string = "SELECT * FROM " + business_object.GetNotificationTable() + " WHERE id = $1"
 
-	defer n.db.Close()
+	//defer n.db.Close()
 
-	var res *business_object.Notification
+	var res business_object.Notification
 	if err := n.db.QueryRow(query, id).Scan(&res.NotificationId, &res.ActorId, &res.ObjectId, &res.ObjectType, &res.Action, &res.CreatedAt); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
@@ -106,7 +106,7 @@ func (n *notificationRepo) GetNotification(id string, ctx context.Context) (*bus
 		return nil, errors.New(noti.InternalErr)
 	}
 
-	return res, nil
+	return &res, nil
 }
 
 // GetUserNotifications implements repo.INotificationRepo.
@@ -129,7 +129,7 @@ func (n *notificationRepo) GetUserNotifications(id string, ctx context.Context) 
 	`
 
 	var internalErr error = errors.New(noti.InternalErr)
-	defer n.db.Close()
+	//defer n.db.Close()
 
 	rows, err := n.db.Query(query, id, id)
 	if err != nil {
@@ -137,7 +137,7 @@ func (n *notificationRepo) GetUserNotifications(id string, ctx context.Context) 
 		return nil, internalErr
 	}
 
-	var res *[]business_object.Notification
+	var res []business_object.Notification
 	for rows.Next() {
 		var x business_object.Notification
 
@@ -146,10 +146,10 @@ func (n *notificationRepo) GetUserNotifications(id string, ctx context.Context) 
 			return nil, internalErr
 		}
 
-		*res = append(*res, x)
+		res = append(res, x)
 	}
 
-	return res, nil
+	return &res, nil
 }
 
 // GetUserUnreadNotifications implements repo.INotificationRepo.
@@ -172,7 +172,7 @@ func (n *notificationRepo) GetUserUnreadNotifications(id string, ctx context.Con
 	`
 	var internalErr error = errors.New(noti.InternalErr)
 
-	defer n.db.Close()
+	//defer n.db.Close()
 
 	rows, err := n.db.Query(query, id, id)
 	if err != nil {
@@ -180,7 +180,7 @@ func (n *notificationRepo) GetUserUnreadNotifications(id string, ctx context.Con
 		return nil, internalErr
 	}
 
-	var res *[]business_object.Notification
+	var res []business_object.Notification
 	for rows.Next() {
 		var x business_object.Notification
 
@@ -189,10 +189,10 @@ func (n *notificationRepo) GetUserUnreadNotifications(id string, ctx context.Con
 			return nil, internalErr
 		}
 
-		*res = append(*res, x)
+		res = append(res, x)
 	}
 
-	return res, nil
+	return &res, nil
 }
 
 // RemoveNotification implements repo.INotificationRepo.
@@ -201,7 +201,7 @@ func (n *notificationRepo) RemoveNotification(id string, ctx context.Context) er
 	var query string = "DELETE FROM " + business_object.GetNotificationTable() + " WHERE id = $1"
 	var internalErrMsg error = errors.New(noti.InternalErr)
 
-	defer n.db.Close()
+	//defer n.db.Close()
 
 	res, err := n.db.Exec(query, id)
 
@@ -229,7 +229,7 @@ func (n *notificationRepo) NoteReadNotification(id string, ctx context.Context) 
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetNotificationTable()) + "NoteReadNotification - "
 	var internalErrMsg error = errors.New(noti.InternalErr)
 
-	defer n.db.Close()
+	//defer n.db.Close()
 
 	res, err := n.db.Exec(query, id)
 

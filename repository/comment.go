@@ -79,7 +79,7 @@ func (c *commentRepo) GetCommentsFromPost(id string, ctx context.Context) (*[]bu
 		return nil, internalErr
 	}
 
-	var res *[]business_object.Comment
+	var res []business_object.Comment
 	for rows.Next() {
 		var x business_object.Comment
 
@@ -88,10 +88,10 @@ func (c *commentRepo) GetCommentsFromPost(id string, ctx context.Context) (*[]bu
 			return nil, internalErr
 		}
 
-		*res = append(*res, x)
+		res = append(res, x)
 	}
 
-	return res, nil
+	return &res, nil
 }
 
 // GetComment implements repo.ICommentRepo.
@@ -101,7 +101,7 @@ func (c *commentRepo) GetComment(id string, ctx context.Context) (*business_obje
 
 	////defer c.db.Close()
 
-	var res *business_object.Comment
+	var res business_object.Comment
 	if err := c.db.QueryRow(query, id).Scan(&res.CommentId, &res.PostId, &res.AuthorId, &res.CreatedAt, &res.UpdatedAt); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
@@ -111,7 +111,7 @@ func (c *commentRepo) GetComment(id string, ctx context.Context) (*business_obje
 		return nil, errors.New(noti.InternalErr)
 	}
 
-	return res, nil
+	return &res, nil
 }
 
 // RemoveComment implements repo.ICommentRepo.
