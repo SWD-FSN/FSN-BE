@@ -126,9 +126,3 @@ CREATE TABLE comment (
     CONSTRAINT Fk_Comment_Post FOREIGN KEY (post_id) REFERENCES post(id) ON DELETE CASCADE,
     CONSTRAINT Fk_Comment_User FOREIGN KEY (author_id) REFERENCES user(id) ON DELETE CASCADE,
 );
-
--- Select *
--- From notification n
--- Join post p on n.object_id = p.id
--- Join comment c on n.object_id = c.id
--- where p.author_id = '1' or c.id = '1'

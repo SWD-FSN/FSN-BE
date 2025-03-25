@@ -28,7 +28,7 @@ func (c *commentRepo) CreateComment(cmt business_object.Comment, ctx context.Con
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetCommentTable()) + "CreateComment - "
 	var query string = "INSERT INTO " + business_object.GetCommentTable() + "(id, author_id, post_id, content, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6)"
 
-	defer c.db.Close()
+	//defer c.db.Close()
 
 	if _, err := c.db.Exec(query, cmt.CommentId, cmt.AuthorId, cmt.PostId, cmt.Content, cmt.CreatedAt, cmt.UpdatedAt); err != nil {
 		c.logger.Println(errLogMsg + err.Error())
@@ -44,7 +44,7 @@ func (c *commentRepo) EditComment(cmt business_object.Comment, ctx context.Conte
 	var query string = "UPDATE " + business_object.GetPostTable() + " SET content = $1 AND updated_at = $2 WHERE id = $3"
 	var internalErr error = errors.New(noti.InternalErr)
 
-	defer c.db.Close()
+	//defer c.db.Close()
 
 	res, err := c.db.Exec(query, cmt.Content, cmt.UpdatedAt, cmt.CommentId)
 	if err != nil {
@@ -71,7 +71,7 @@ func (c *commentRepo) GetCommentsFromPost(id string, ctx context.Context) (*[]bu
 	var query string = "SELECT * FROM " + business_object.GetCommentTable() + " WHERE post_id = $1"
 	var internalErr error = errors.New(noti.InternalErr)
 
-	defer c.db.Close()
+	//defer c.db.Close()
 
 	rows, err := c.db.Query(query, id)
 	if err != nil {
@@ -79,7 +79,7 @@ func (c *commentRepo) GetCommentsFromPost(id string, ctx context.Context) (*[]bu
 		return nil, internalErr
 	}
 
-	var res *[]business_object.Comment
+	var res []business_object.Comment
 	for rows.Next() {
 		var x business_object.Comment
 
@@ -88,10 +88,10 @@ func (c *commentRepo) GetCommentsFromPost(id string, ctx context.Context) (*[]bu
 			return nil, internalErr
 		}
 
-		*res = append(*res, x)
+		res = append(res, x)
 	}
 
-	return res, nil
+	return &res, nil
 }
 
 // GetComment implements repo.ICommentRepo.
@@ -99,9 +99,9 @@ func (c *commentRepo) GetComment(id string, ctx context.Context) (*business_obje
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetCommentTable()) + "GetComment - "
 	var query string = "SELECT * FROM  " + business_object.GetCommentTable() + " WHERE id = $1"
 
-	defer c.db.Close()
+	////defer c.db.Close()
 
-	var res *business_object.Comment
+	var res business_object.Comment
 	if err := c.db.QueryRow(query, id).Scan(&res.CommentId, &res.PostId, &res.AuthorId, &res.CreatedAt, &res.UpdatedAt); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
@@ -111,7 +111,7 @@ func (c *commentRepo) GetComment(id string, ctx context.Context) (*business_obje
 		return nil, errors.New(noti.InternalErr)
 	}
 
-	return res, nil
+	return &res, nil
 }
 
 // RemoveComment implements repo.ICommentRepo.
@@ -119,7 +119,7 @@ func (c *commentRepo) RemoveComment(id string, ctx context.Context) error {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetCommentTable()) + "RemoveComment - "
 	var query string = "DELETE FROM " + business_object.GetCommentTable() + " WHERE id = $1"
 
-	defer c.db.Close()
+	////defer c.db.Close()
 
 	res, err := c.db.Exec(query, id)
 	var internalErrMsg error = errors.New(noti.InternalErr)

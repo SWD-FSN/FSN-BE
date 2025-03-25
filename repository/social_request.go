@@ -28,7 +28,7 @@ func (a *socialRequestRepo) CreateRequest(req business_object.SocialRequest, ctx
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetSocialRequestTable()) + "CreateAddFrRq - "
 	var query string = "INSERT INTO " + business_object.GetSocialRequestTable() + "(id, author_id, account_id, request_type, created_at) VALUES ($1, $2, $3, $4, $5)"
 
-	defer a.db.Close()
+	//defer a.db.Close()
 
 	if _, err := a.db.Exec(query, req.RequestId, req.AuthorId, req.AccountId, req.RequestType, req.CreatedAt); err != nil {
 		a.logger.Println(errLogMsg + err.Error())
@@ -43,9 +43,9 @@ func (a *socialRequestRepo) GetRequest(id string, ctx context.Context) (*busines
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetSocialRequestTable()) + "GetRequest - "
 	var query string = "SELECT * FROM " + business_object.GetSocialRequestTable() + " WHERE id = $1"
 
-	defer a.db.Close()
+	//defer a.db.Close()
 
-	var res *business_object.SocialRequest
+	var res business_object.SocialRequest
 	if err := a.db.QueryRow(query, id).Scan(&res.RequestId, &res.AuthorId, &res.AccountId, &res.CreatedAt); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
@@ -55,7 +55,7 @@ func (a *socialRequestRepo) GetRequest(id string, ctx context.Context) (*busines
 		return nil, errors.New(noti.InternalErr)
 	}
 
-	return res, nil
+	return &res, nil
 }
 
 // GetRequestsToUser implements repo.ISocialRequestRepo.
@@ -64,7 +64,7 @@ func (a *socialRequestRepo) GetRequestsToUser(id string, requestType string, ctx
 	var query string = "SELECT * FROM " + business_object.GetSocialRequestTable() + " WHERE request_type = $1 AND account_id = $2"
 	var internalErr error = errors.New(noti.InternalErr)
 
-	defer a.db.Close()
+	//defer a.db.Close()
 
 	rows, err := a.db.Query(query, requestType, id)
 	if err != nil {
@@ -72,7 +72,7 @@ func (a *socialRequestRepo) GetRequestsToUser(id string, requestType string, ctx
 		return nil, internalErr
 	}
 
-	var res *[]business_object.SocialRequest
+	var res []business_object.SocialRequest
 	for rows.Next() {
 		var x business_object.SocialRequest
 
@@ -81,10 +81,10 @@ func (a *socialRequestRepo) GetRequestsToUser(id string, requestType string, ctx
 			return nil, internalErr
 		}
 
-		*res = append(*res, x)
+		res = append(res, x)
 	}
 
-	return res, nil
+	return &res, nil
 }
 
 // GetAllRequests implements repo.ISocialRequestRepo.
@@ -93,7 +93,7 @@ func (a *socialRequestRepo) GetAllRequests(ctx context.Context) (*[]business_obj
 	var query string = "SELECT * FROM " + business_object.GetSocialRequestTable()
 	var internalErr error = errors.New(noti.InternalErr)
 
-	defer a.db.Close()
+	//defer a.db.Close()
 
 	rows, err := a.db.Query(query)
 	if err != nil {
@@ -101,7 +101,7 @@ func (a *socialRequestRepo) GetAllRequests(ctx context.Context) (*[]business_obj
 		return nil, internalErr
 	}
 
-	var res *[]business_object.SocialRequest
+	var res []business_object.SocialRequest
 	for rows.Next() {
 		var x business_object.SocialRequest
 
@@ -110,10 +110,10 @@ func (a *socialRequestRepo) GetAllRequests(ctx context.Context) (*[]business_obj
 			return nil, internalErr
 		}
 
-		*res = append(*res, x)
+		res = append(res, x)
 	}
 
-	return res, nil
+	return &res, nil
 }
 
 // GetUserRequests implements repo.ISocialRequestRepo.
@@ -122,7 +122,7 @@ func (a *socialRequestRepo) GetUserRequests(id string, requestType string, ctx c
 	var query string = "SELECT * FROM " + business_object.GetSocialRequestTable() + " WHERE request_type = $1 AND author_id = $2"
 	var internalErr error = errors.New(noti.InternalErr)
 
-	defer a.db.Close()
+	//defer a.db.Close()
 
 	rows, err := a.db.Query(query, requestType, id)
 	if err != nil {
@@ -130,7 +130,7 @@ func (a *socialRequestRepo) GetUserRequests(id string, requestType string, ctx c
 		return nil, internalErr
 	}
 
-	var res *[]business_object.SocialRequest
+	var res []business_object.SocialRequest
 	for rows.Next() {
 		var x business_object.SocialRequest
 
@@ -139,10 +139,10 @@ func (a *socialRequestRepo) GetUserRequests(id string, requestType string, ctx c
 			return nil, internalErr
 		}
 
-		*res = append(*res, x)
+		res = append(res, x)
 	}
 
-	return res, nil
+	return &res, nil
 }
 
 // RemoveRequest implements repo.ISocialRequestRepo.
@@ -151,7 +151,7 @@ func (a *socialRequestRepo) RemoveRequest(id string, ctx context.Context) error 
 	var query string = "DELETE FROM " + business_object.GetSocialRequestTable() + " WHERE id = $1"
 	var internalErrMsg error = errors.New(noti.InternalErr)
 
-	defer a.db.Close()
+	//defer a.db.Close()
 
 	res, err := a.db.Exec(query, id)
 	if err != nil {
