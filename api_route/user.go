@@ -43,7 +43,7 @@ func InitializeUserAPIRoute(server *gin.Engine, logger *log.Logger, port string)
 
 	var norGroup = server.Group(contextPath)
 	norGroup.PUT("/login", controller.Login)
-	norGroup.POST("", controller.CreateUser)
+	norGroup.POST("/create", controller.CreateUser)
 	//norGroup.PUT("/:email", controller.Re)
 	norGroup.PUT("/password/:password/confirm-password/:confirmPassword")
 	norGroup.PUT("/verify-action", controller.VerifyAction)

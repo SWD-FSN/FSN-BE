@@ -7,10 +7,11 @@ import (
 	"os"
 	"social_network/constant/env"
 	"social_network/constant/noti"
+	
 )
 
 const (
-	db_server      string = "Postgre"
+	db_server      string = "postgres"
 	backUpDbCnnStr string = "Your back up database connection string"
 )
 

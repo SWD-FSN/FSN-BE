@@ -221,7 +221,7 @@ func CreateUser(ctx *gin.Context) {
 		return
 	}
 
-	res, err := service.CreateUser(request, ctx.GetString("user_id"), ctx)
+	res, err := service.CreateUser(request, "", ctx)
 
 	util.ProcessResponse(dto.APIReponse{
 		Data2:    res,

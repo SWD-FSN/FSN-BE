@@ -313,7 +313,12 @@ func (u *userService) CreateUser(req dto.CreateUserReq, actorId string, ctx cont
 	}
 
 	// New email exists?
-	if verifyAccount(req.Email, email_validate, nil, u.userRepo, ctx) == nil {
+	// if verifyAccount(req.Email, email_validate, nil, u.userRepo, ctx) == nil {
+	// 	return "", errors.New(noti.EmailRegisteredWarnMsg)
+	// }
+	if user, err := u.userRepo.GetUserByEmail(req.Email, ctx); err != nil {
+		return "", err
+	} else if user != nil {
 		return "", errors.New(noti.EmailRegisteredWarnMsg)
 	}
 
