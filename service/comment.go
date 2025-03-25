@@ -134,9 +134,9 @@ func (c *commentService) PostComment(req dto.CreateCommentRequest, ctx context.C
 
 	if post.IsPrivate {
 		// Get friend list
-		users, err := c.userRepo.GetInvoledAccountsAmountFromUser(dto.GetInvoledAccouuntsRequest{
+		users, err := c.userRepo.GetInvolvedAccountsAmountFromUser(dto.GetInvoledAccouuntsRequest{
 			UserId:       post.AuthorId,
-			InvolvedType: "friends",
+			InvolvedType: friends_involed,
 		}, ctx)
 
 		if err != nil {

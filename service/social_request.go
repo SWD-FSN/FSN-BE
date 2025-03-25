@@ -52,10 +52,10 @@ const (
 
 // AcceptRequest implements service.ISocialRequestService.
 func (s *socialRequestService) AcceptRequest(requestId, actorId string, ctx context.Context) error {
-	var req *business_object.SocialRequest
+	var req business_object.SocialRequest
 
 	// Verify request
-	if err := verifyRequest(requestId, s.requestRepo, req, ctx); err != nil {
+	if err := verifyRequest(requestId, s.requestRepo, &req, ctx); err != nil {
 		return err
 	}
 
@@ -65,8 +65,7 @@ func (s *socialRequestService) AcceptRequest(requestId, actorId string, ctx cont
 	}
 
 	// Verify accounts
-	var account *dto.UserDBResModel
-	var author *dto.UserDBResModel
+	var account, author dto.UserDBResModel
 
 	var capturedErr error
 	_, cancel1 := context.WithCancel(ctx)
@@ -79,7 +78,7 @@ func (s *socialRequestService) AcceptRequest(requestId, actorId string, ctx cont
 	go func() {
 		defer wg1.Done()
 
-		if err := verifyAccount(req.AuthorId, id_validate, author, s.userRepo, ctx); err != nil {
+		if err := verifyAccount(req.AuthorId, id_validate, &author, s.userRepo, ctx); err != nil {
 			mu1.Lock()
 
 			if capturedErr == nil {
@@ -95,7 +94,7 @@ func (s *socialRequestService) AcceptRequest(requestId, actorId string, ctx cont
 	go func() {
 		defer wg1.Done()
 
-		if err := verifyAccount(req.AccountId, id_validate, account, s.userRepo, ctx); err != nil {
+		if err := verifyAccount(req.AccountId, id_validate, &account, s.userRepo, ctx); err != nil {
 			mu1.Lock()
 
 			if capturedErr == nil {
@@ -129,7 +128,7 @@ func (s *socialRequestService) AcceptRequest(requestId, actorId string, ctx cont
 	go func() {
 		defer wg2.Done()
 
-		if err := s.userRepo.UpdateUser(*author, ctx); err != nil {
+		if err := s.userRepo.UpdateUser(author, ctx); err != nil {
 			mu2.Lock()
 
 			if capturedErr == nil {
@@ -144,7 +143,7 @@ func (s *socialRequestService) AcceptRequest(requestId, actorId string, ctx cont
 	go func() {
 		defer wg2.Done()
 
-		if err := s.userRepo.UpdateUser(*account, ctx); err != nil {
+		if err := s.userRepo.UpdateUser(account, ctx); err != nil {
 			mu2.Lock()
 
 			if capturedErr == nil {
@@ -168,10 +167,10 @@ func (s *socialRequestService) AcceptRequest(requestId, actorId string, ctx cont
 
 // CancelRequest implements service.ISocialRequestService.
 func (s *socialRequestService) CancelRequest(requestId string, actorId string, ctx context.Context) error {
-	var req *business_object.SocialRequest
+	var req business_object.SocialRequest
 
 	// Verify request
-	if err := verifyRequest(requestId, s.requestRepo, req, ctx); err != nil {
+	if err := verifyRequest(requestId, s.requestRepo, &req, ctx); err != nil {
 		return err
 	}
 

@@ -53,8 +53,8 @@ const (
 
 // CreateMessage implements service.IConversationService.
 func (c *conersationService) CreateMessage(req dto.CreateMessageRequest, ctx context.Context) error {
-	var conversation *business_object.Conversation
-	if err := verifyActorToConversationAction(req.AuthorId, req.ConversationId, false, conversation, c.conversationRepo, ctx); err != nil {
+	var conversation business_object.Conversation
+	if err := verifyActorToConversationAction(req.AuthorId, req.ConversationId, false, &conversation, c.conversationRepo, ctx); err != nil {
 		return err
 	}
 
@@ -81,57 +81,46 @@ func (c *conersationService) CreateMessage(req dto.CreateMessageRequest, ctx con
 }
 
 // GetConversationFromUser implements service.IConversationService.
-func (c *conersationService) GetConversationFromUser(actorId string, conversationId string, ctx context.Context) (*dto.InternalConversationUIResponse, error) {
+func (c *conersationService) GetConversationFromUser(actorId string, conversationId string, ctx context.Context) (*dto.InternalConversationUIResponseV2, error) {
 	var conversation *business_object.Conversation
 	if err := verifyActorToConversationAction(actorId, conversationId, false, conversation, c.conversationRepo, ctx); err != nil {
 		return nil, err
 	}
 
-	msgs, _ := c.msgRepo.GetMessagesFromConversation(conversationId, ctx)
+	tmpStorage, _ := c.msgRepo.GetMessagesFromConversation(conversationId, ctx)
 
-	// Sort messages
-	util.SortByTime(*msgs, func(entity business_object.Message) time.Time {
-		return entity.CreatedAt
-	}, false)
-
-	var actorMsgs, memberMsgs *[]dto.MessageUIResponse
-	for _, msg := range *msgs {
+	var msgs []dto.MessageUIResponse
+	for _, msg := range *tmpStorage {
 		msgAuthor, _ := c.userRepo.GetUser(msg.AuthorId, ctx)
 
-		var msgRes = dto.MessageUIResponse{
+		msgs = append(msgs, dto.MessageUIResponse{
 			ConvesationId: conversationId,
 			MessageId:     msg.MessageId,
 			AuthorId:      msg.AuthorId,
 			AuthorAvatar:  msgAuthor.ProfileAvatar,
 			Content:       msg.Content,
 			CreatedAt:     msg.CreatedAt,
-		}
-
-		if msgAuthor.UserId == actorId {
-			*actorMsgs = append(*actorMsgs, msgRes)
-		} else {
-			*memberMsgs = append(*memberMsgs, msgRes)
-		}
+		})
 	}
 
-	avatar, name, err := processConversationAvatarAndName(conversation, actorId, c.userRepo, ctx)
+	avatar, name, err := processConversationAvatarAndName(*conversation, actorId, c.userRepo, ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	return &dto.InternalConversationUIResponse{
+	return &dto.InternalConversationUIResponseV2{
 		ConversationId:     conversationId,
 		ConversationAvatar: avatar,
 		ConversationName:   name,
-		ActorMessages:      actorMsgs,
-		MemberMessages:     memberMsgs,
+		RequestUserid:      actorId,
+		Messages:           &msgs,
 	}, nil
 }
 
 // EditGroupChatProperty implements service.IConversationService.
 func (c *conersationService) EditGroupChatProperty(req dto.EditGroupChatPropRequest, ctx context.Context) error {
-	var conversation *business_object.Conversation
-	if err := verifyActorToConversationAction(req.ActorId, req.ConversationId, false, conversation, c.conversationRepo, ctx); err != nil {
+	var conversation business_object.Conversation
+	if err := verifyActorToConversationAction(req.ActorId, req.ConversationId, false, &conversation, c.conversationRepo, ctx); err != nil {
 		return err
 	}
 
@@ -151,28 +140,23 @@ func (c *conersationService) EditGroupChatProperty(req dto.EditGroupChatPropRequ
 
 	conversation.UpdatedAt = time.Now()
 
-	return c.conversationRepo.UpdateConversation(*conversation, ctx)
+	return c.conversationRepo.UpdateConversation(conversation, ctx)
 }
 
 // GetMessagesInChatByKeyword implements service.IConversationService.
 func (c *conersationService) GetMessagesInChatByKeyword(req dto.SearchMessagesInChatRequest, ctx context.Context) (*dto.SearchMessagesInChatResponse, error) {
-	var conversation *business_object.Conversation
-	if err := verifyActorToConversationAction(req.ActorId, req.ConversationId, false, conversation, c.conversationRepo, ctx); err != nil {
+	var conversation business_object.Conversation
+	if err := verifyActorToConversationAction(req.ActorId, req.ConversationId, false, &conversation, c.conversationRepo, ctx); err != nil {
 		return nil, err
 	}
 
 	msgs, _ := c.msgRepo.GetMessagesFromConversationByKeyword(req.ConversationId, req.Keyword, ctx)
 
-	// Sort messages
-	util.SortByTime(*msgs, func(entity business_object.Message) time.Time {
-		return entity.CreatedAt
-	}, false)
-
-	var msgsRes *[]dto.MessageUIResponse
+	var msgsRes []dto.MessageUIResponse
 	for _, msg := range *msgs {
 		msgAuthor, _ := c.userRepo.GetUser(msg.AuthorId, ctx)
 
-		*msgsRes = append(*msgsRes, dto.MessageUIResponse{
+		msgsRes = append(msgsRes, dto.MessageUIResponse{
 			ConvesationId: req.ConversationId,
 			MessageId:     msg.MessageId,
 			AuthorId:      msg.AuthorId,
@@ -191,15 +175,15 @@ func (c *conersationService) GetMessagesInChatByKeyword(req dto.SearchMessagesIn
 		ConversationId:     req.ConversationId,
 		ConversationName:   name,
 		ConversationAvatar: avatar,
-		Messages:           msgsRes,
+		Messages:           &msgsRes,
 	}, nil
 }
 
 // CreateConversation implements service.IConversationService.
 func (c *conersationService) CreateConversation(req dto.CreateConversationRequest, ctx context.Context) (*dto.ConversationUIResponse, error) {
 	var capturedErr error
-	var actor *dto.UserDBResModel
-	var members *[]dto.UserDBResModel
+	var actor dto.UserDBResModel
+	var members []dto.UserDBResModel
 	var memberUsernames []string
 
 	_, cancel := context.WithCancel(ctx)
@@ -212,7 +196,7 @@ func (c *conersationService) CreateConversation(req dto.CreateConversationReques
 	go func() {
 		defer wg.Done()
 
-		if err := verifyAccount(req.ActorId, id_validate, actor, c.userRepo, ctx); err != nil {
+		if err := verifyAccount(req.ActorId, id_validate, &actor, c.userRepo, ctx); err != nil {
 			mu.Lock()
 
 			if capturedErr == nil {
@@ -229,9 +213,9 @@ func (c *conersationService) CreateConversation(req dto.CreateConversationReques
 		defer wg.Done()
 
 		for _, id := range req.Members {
-			var member *dto.UserDBResModel
+			var member dto.UserDBResModel
 
-			if err := verifyAccount(id, id_validate, member, c.userRepo, ctx); err != nil {
+			if err := verifyAccount(id, id_validate, &member, c.userRepo, ctx); err != nil {
 				mu.Lock()
 
 				if capturedErr == nil {
@@ -243,8 +227,8 @@ func (c *conersationService) CreateConversation(req dto.CreateConversationReques
 				break
 			}
 
-			*members = append(*members, *member)
-			memberUsernames = append(memberUsernames, *&member.Username)
+			members = append(members, member)
+			memberUsernames = append(memberUsernames, member.Username)
 		}
 	}()
 
@@ -264,14 +248,14 @@ func (c *conersationService) CreateConversation(req dto.CreateConversationReques
 
 	var conversationName string
 	if !isGroup {
-		conversationName = actor.Username + sepChar + (*members)[0].Username
+		conversationName = actor.Username + sepChar + (members)[0].Username
 	} else {
 		conversationName = util.ToCombinedString(append(memberUsernames, req.ActorId), sepChar)
 	}
 
 	var avatar string
 	if !isGroup {
-		avatar = actor.ProfileAvatar + sepChar + (*members)[0].ProfileAvatar
+		avatar = actor.ProfileAvatar + sepChar + (members)[0].ProfileAvatar
 	}
 
 	var curTime time.Time = time.Now()
@@ -293,8 +277,8 @@ func (c *conersationService) CreateConversation(req dto.CreateConversationReques
 
 	// Re-set conversation UI to actor if this is not a group chat
 	if !isGroup {
-		conversationName = (*members)[0].Username
-		avatar = (*members)[0].ProfileAvatar
+		conversationName = (members)[0].Username
+		avatar = (members)[0].ProfileAvatar
 	}
 
 	// Send back conversation UI
@@ -324,12 +308,12 @@ func (c *conersationService) GetConversationsByKeywordFromUser(id string, keywor
 	tmpStorage, _ := c.conversationRepo.GetConversationsByKeyword(id, keyword, ctx)
 
 	// Extract conversation(s)
-	var res *[]dto.ConversationSearchBarResponse
+	var res []dto.ConversationSearchBarResponse
 	for _, chat := range *tmpStorage {
-		avatar, name, err := processConversationAvatarAndName(&chat, id, c.userRepo, ctx)
+		avatar, name, err := processConversationAvatarAndName(chat, id, c.userRepo, ctx)
 
 		if err != nil {
-			*res = append(*res, dto.ConversationSearchBarResponse{
+			res = append(res, dto.ConversationSearchBarResponse{
 				ConversationId:     chat.ConversationId,
 				ConversationAvatar: avatar,
 				ConversationName:   name,
@@ -337,7 +321,7 @@ func (c *conersationService) GetConversationsByKeywordFromUser(id string, keywor
 		}
 	}
 
-	return res
+	return &res
 }
 
 // GetConversationsFromUser implements service.IConversationService.
@@ -347,8 +331,8 @@ func (c *conersationService) GetConversationsFromUser(id string, ctx context.Con
 
 // LeaveGroupConversation implements service.IConversationService.
 func (c *conersationService) LeaveGroupConversation(memberId string, conversationId string, ctx context.Context) error {
-	var conversation *business_object.Conversation
-	if err := verifyActorToConversationAction(memberId, conversationId, false, conversation, c.conversationRepo, ctx); err != nil {
+	var conversation business_object.Conversation
+	if err := verifyActorToConversationAction(memberId, conversationId, false, &conversation, c.conversationRepo, ctx); err != nil {
 		return err
 	}
 
@@ -372,7 +356,7 @@ func (c *conersationService) LeaveGroupConversation(memberId string, conversatio
 
 	conversation.UpdatedAt = time.Now()
 
-	return c.conversationRepo.UpdateConversation(*conversation, ctx)
+	return c.conversationRepo.UpdateConversation(conversation, ctx)
 }
 
 func verifyActorToConversationAction(actorId, conversationId string, isCheckHost bool, chat *business_object.Conversation, repo repo.IConversationRepo, ctx context.Context) error {
@@ -406,7 +390,7 @@ func isActorBelongToChat(actorId, conversationId string, isCheckHost bool, chat 
 	return strings.Contains(chat.Members, actorId), nil
 }
 
-func processConversationAvatarAndName(conversation *business_object.Conversation, actorId string, userRepo repo.IUserRepo, ctx context.Context) (string, string, error) {
+func processConversationAvatarAndName(conversation business_object.Conversation, actorId string, userRepo repo.IUserRepo, ctx context.Context) (string, string, error) {
 	if conversation.HostId == nil {
 		var memberId string
 

@@ -13,7 +13,6 @@ import (
 	"social_network/util"
 	"strings"
 	"sync"
-	"time"
 )
 
 type searchObjectService struct {
@@ -46,8 +45,8 @@ func GenerateSearchObjectsService() (service.ISearchObjectService, error) {
 
 // GetObjectsByKeyword implements service.ISearchObjectService.
 func (s *searchObjectService) GetObjectsByKeyword(id string, keyword string, ctx context.Context) *dto.GetObjectsFromEnterSearchBarResponse {
-	var usersRes *[]dto.UserSearchDoneResponse
-	var postsRes *[]dto.PostResponse
+	var usersRes []dto.UserSearchDoneResponse
+	var postsRes []dto.PostResponse
 
 	var wg sync.WaitGroup
 	wg.Add(2)
@@ -66,7 +65,7 @@ func (s *searchObjectService) GetObjectsByKeyword(id string, keyword string, ctx
 				account, _ := s.userRepo.GetUser(id, ctx)
 
 				if account != nil && !account.IsPrivate && strings.Contains(strings.ToLower(account.Username), strings.ToLower(keyword)) {
-					*usersRes = append(*usersRes, dto.UserSearchDoneResponse{
+					usersRes = append(usersRes, dto.UserSearchDoneResponse{
 						UserId:            id,
 						Username:          account.Username,
 						ProfileAvatar:     account.ProfileAvatar,
@@ -82,8 +81,8 @@ func (s *searchObjectService) GetObjectsByKeyword(id string, keyword string, ctx
 		users, _ := s.userRepo.GetUsersByKeyword(keyword, ctx)
 		for _, user := range *users {
 			if _, isExist := idMap[user.UserId]; !isExist {
-				if &user != nil && !user.IsPrivate {
-					*usersRes = append(*usersRes, dto.UserSearchDoneResponse{
+				if user.UserId != "" && !user.IsPrivate {
+					usersRes = append(usersRes, dto.UserSearchDoneResponse{
 						UserId:            user.UserId,
 						Username:          user.Username,
 						ProfileAvatar:     user.ProfileAvatar,
@@ -108,8 +107,8 @@ func (s *searchObjectService) GetObjectsByKeyword(id string, keyword string, ctx
 			likes, _ := s.likeRepo.GetLikesFromObject(post.PostId, business_object.GetPostTable(), ctx)
 			author, _ := s.userRepo.GetUser(post.AuthorId, ctx)
 
-			if likes != nil && author != nil {
-				*postsRes = append(*postsRes, dto.PostResponse{
+			if author != nil {
+				postsRes = append(postsRes, dto.PostResponse{
 					PostId:        post.PostId,
 					Content:       post.Content,
 					IsPrivate:     post.IsPrivate,
@@ -122,16 +121,12 @@ func (s *searchObjectService) GetObjectsByKeyword(id string, keyword string, ctx
 				})
 			}
 		}
-
-		util.SortByTime(*postsRes, func(item dto.PostResponse) time.Time {
-			return item.CreatedAt
-		}, false)
 	}()
 
 	wg.Wait()
 
 	return &dto.GetObjectsFromEnterSearchBarResponse{
-		Users: usersRes,
-		Posts: postsRes,
+		Users: &usersRes,
+		Posts: &postsRes,
 	}
 }

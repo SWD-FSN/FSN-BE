@@ -61,21 +61,16 @@ func (p *postService) GetPostsByUser(id string, ctx context.Context) (*[]busines
 		return nil, err
 	}
 
-	res, err := p.postRepo.GetPostsByUser(id, ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	// Sort
-	util.SortByTime(*res, func(item business_object.Post) time.Time {
-		return item.CreatedAt
-	}, false)
-
-	return res, nil
+	return p.postRepo.GetPostsByUser(id, ctx)
 }
 
 // RemovePost implements service.IPostService.
-func (p *postService) RemovePost(id string, ctx context.Context) error {
+func (p *postService) RemovePost(id string, actorId string, ctx context.Context) error {
+	var cmtRepo repo.ICommentRepo = nil
+	if !isObjectBelongActor(id, post_object, actorId, p.likeRepo, cmtRepo, p.postRepo, ctx) {
+		return errors.New(noti.GenericsRightAccessWarnMsg)
+	}
+
 	return p.postRepo.RemovePost(id, ctx)
 }
 
@@ -94,29 +89,30 @@ func (p *postService) UpPost(req dto.UpPostReq, ctx context.Context) error {
 		*req.IsHidden = false
 	}
 
+	var curTime time.Time = time.Now()
 	return p.postRepo.CreatePost(business_object.Post{
 		PostId:    util.GenerateId(),
 		AuthorId:  req.AuthorId,
 		Content:   req.Content,
 		IsPrivate: *req.IsPrivate,
 		IsHidden:  *req.IsHidden,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+		CreatedAt: curTime,
+		UpdatedAt: curTime,
 		Status:    true,
 	}, ctx)
 }
 
 // GetPosts implements service.IPostService.
 func (p *postService) GetPosts(ctx context.Context) *[]dto.PostResponse {
-	var res *[]dto.PostResponse
+	var res []dto.PostResponse
 	posts, _ := p.postRepo.GetPosts(ctx)
 
 	for _, post := range *posts {
 		likes, _ := p.likeRepo.GetLikesFromObject(post.PostId, business_object.GetPostTable(), ctx)
 		author, _ := p.userRepo.GetUser(post.AuthorId, ctx)
 
-		if likes != nil && author != nil {
-			*res = append(*res, dto.PostResponse{
+		if author != nil {
+			res = append(res, dto.PostResponse{
 				PostId:        post.PostId,
 				Content:       post.Content,
 				IsPrivate:     post.IsPrivate,
@@ -130,7 +126,7 @@ func (p *postService) GetPosts(ctx context.Context) *[]dto.PostResponse {
 		}
 	}
 
-	return res
+	return &res
 }
 
 // UpdatePost implements service.IPostService.

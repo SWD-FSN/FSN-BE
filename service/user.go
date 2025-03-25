@@ -100,7 +100,7 @@ func getLoginUrl() string {
 
 // GetUsersFromSearchBar implements service.IUserService.
 func (u *userService) GetUsersFromSearchBar(id string, keyword string, ctx context.Context) *[]dto.GetInvolvedAccountsSearchResponse {
-	var res *[]dto.GetInvolvedAccountsSearchResponse
+	var res []dto.GetInvolvedAccountsSearchResponse
 	var maxResLength int = 8
 
 	tmpStorage1, _ := u.userRepo.GetInvolvedAccountsFromTag(id, ctx)
@@ -113,15 +113,15 @@ func (u *userService) GetUsersFromSearchBar(id string, keyword string, ctx conte
 			account, _ := u.userRepo.GetUser(id, ctx)
 
 			if account != nil && strings.Contains(strings.ToLower(account.Username), strings.ToLower(keyword)) {
-				*res = append(*res, dto.GetInvolvedAccountsSearchResponse{
+				res = append(res, dto.GetInvolvedAccountsSearchResponse{
 					UserId:        id,
 					Username:      account.Username,
 					ProfileAvatar: account.ProfileAvatar,
 				})
 			}
 
-			if len(*res) == maxResLength {
-				return res
+			if len(res) == maxResLength {
+				return &res
 			}
 
 			idMap[id] = id
@@ -131,21 +131,21 @@ func (u *userService) GetUsersFromSearchBar(id string, keyword string, ctx conte
 	users, _ := u.userRepo.GetUsersByKeyword(keyword, ctx)
 	for _, user := range *users {
 		if _, isExist := idMap[user.UserId]; !isExist {
-			*res = append(*res, dto.GetInvolvedAccountsSearchResponse{
+			res = append(res, dto.GetInvolvedAccountsSearchResponse{
 				UserId:        user.UserId,
 				Username:      user.Username,
 				ProfileAvatar: user.ProfileAvatar,
 			})
 
-			if len(*res) == maxResLength {
-				return res
+			if len(res) == maxResLength {
+				return &res
 			}
 
 			idMap[user.UserId] = user.UserId
 		}
 	}
 
-	return res
+	return &res
 }
 
 // GetInvolvedAccountsFromTag implements service.IUserService.
@@ -156,7 +156,7 @@ func (u *userService) GetInvolvedAccountsFromTag(id string, keyword string, ctx 
 		return nil
 	}
 
-	var res *[]dto.GetInvolvedAccountsSearchResponse
+	var res []dto.GetInvolvedAccountsSearchResponse
 	var idMap map[string]string = make(map[string]string)
 
 	for _, id := range tmpStorage {
@@ -166,7 +166,7 @@ func (u *userService) GetInvolvedAccountsFromTag(id string, keyword string, ctx 
 			account, _ := u.userRepo.GetUser(id, ctx)
 
 			if account != nil && strings.Contains(strings.ToLower(account.Username), strings.ToLower(keyword)) {
-				*res = append(*res, dto.GetInvolvedAccountsSearchResponse{
+				res = append(res, dto.GetInvolvedAccountsSearchResponse{
 					UserId:        id,
 					Username:      account.Username,
 					ProfileAvatar: account.ProfileAvatar,
@@ -177,7 +177,7 @@ func (u *userService) GetInvolvedAccountsFromTag(id string, keyword string, ctx 
 		}
 	}
 
-	return res
+	return &res
 }
 
 // GetInvoledAccountsFromUser implements service.IUserService.
@@ -206,14 +206,14 @@ func (u *userService) GetInvoledAccountsFromUser(req dto.GetInvoledAccouuntsRequ
 		return nil, nil
 	}
 
-	var res *[]business_object.User
+	var res []business_object.User
 
 	for _, id := range ids {
 		account, _ := u.userRepo.GetUser(id, ctx)
-		*res = append(*res, toUserModel(*account))
+		res = append(res, toUserModel(*account))
 	}
 
-	return res, nil
+	return &res, nil
 }
 
 // GetAllUsers implements service.IUserService.
@@ -564,13 +564,13 @@ func (u *userService) UpdateUser(req dto.UpdateUserReq, actorId string, ctx cont
 
 	wg.Add(2)
 
-	var account, actor *dto.UserDBResModel
+	var account, actor dto.UserDBResModel
 
 	// Verify account
 	go func() {
 		defer wg.Done()
 
-		if err := verifyAccount(req.UserId, id_validate, account, u.userRepo, ctx); err != nil {
+		if err := verifyAccount(req.UserId, id_validate, &account, u.userRepo, ctx); err != nil {
 			mu.Lock()
 
 			if capturedErr == nil {
@@ -586,7 +586,7 @@ func (u *userService) UpdateUser(req dto.UpdateUserReq, actorId string, ctx cont
 	go func() {
 		defer wg.Done()
 
-		if err := verifyAccount(actorId, id_validate, actor, u.userRepo, ctx); err != nil {
+		if err := verifyAccount(actorId, id_validate, &actor, u.userRepo, ctx); err != nil {
 			mu.Lock()
 
 			if capturedErr == nil {
@@ -611,7 +611,7 @@ func (u *userService) UpdateUser(req dto.UpdateUserReq, actorId string, ctx cont
 		return res, err
 	}
 
-	if err := verifyEditUserAuthorization(req, account, actor, roles); err != nil {
+	if err := verifyEditUserAuthorization(req, &account, &actor, roles); err != nil {
 		return res, err
 	}
 
@@ -634,7 +634,7 @@ func (u *userService) UpdateUser(req dto.UpdateUserReq, actorId string, ctx cont
 
 	// Check if need to verify new email
 	if email != account.Email {
-		if err := verifyAccount(email, email_validate, account, u.userRepo, ctx); err != errors.New("Lỗi email ko tồn tại") { // ~~ Tức mail tồn tại -> invalid
+		if err := verifyAccount(email, email_validate, &account, u.userRepo, ctx); err != errors.New("Lỗi email ko tồn tại") { // ~~ Tức mail tồn tại -> invalid
 			return res, errors.New(noti.EmailRegisteredWarnMsg)
 		}
 
@@ -661,7 +661,7 @@ func (u *userService) UpdateUser(req dto.UpdateUserReq, actorId string, ctx cont
 		account.IsPrivate = *req.IsPrivate
 	}
 
-	if err := u.userRepo.UpdateUser(*account, ctx); err != nil {
+	if err := u.userRepo.UpdateUser(account, ctx); err != nil {
 		return res, err
 	}
 

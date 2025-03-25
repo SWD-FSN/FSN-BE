@@ -71,7 +71,7 @@ func (p *postRepo) GetAllPosts(ctx context.Context) (*[]business_object.Post, er
 // GetPostsByKeyword implements repo.IPostRepo.
 func (p *postRepo) GetPostsByKeyword(keyword string, ctx context.Context) (*[]business_object.Post, error) {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetPostTable()) + "GetPostsByKeyword - "
-	var query string = "SELECT * FROM " + business_object.GetPostTable() + " WHERE is_private = false, is_hidden = false, status = true AND LOWER(content) LIKE LOWER('%?%')"
+	var query string = "SELECT * FROM " + business_object.GetPostTable() + " WHERE is_private = false, is_hidden = false, status = true, LOWER(content) LIKE LOWER('%$1%') \n ORDER BY created_at DESC"
 	var internalErr error = errors.New(noti.InternalErr)
 
 	//defer p.db.Close()
@@ -149,7 +149,7 @@ func (p *postRepo) GetPost(id string, ctx context.Context) (*business_object.Pos
 // GetPostsByUser implements repo.IPostRepo.
 func (p *postRepo) GetPostsByUser(id string, ctx context.Context) (*[]business_object.Post, error) {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetLikeTable()) + "GetPostsByUser - "
-	var query string = "SELECT * FROM " + business_object.GetPostTable() + " WHERE author_id = $1"
+	var query string = "SELECT * FROM " + business_object.GetPostTable() + " WHERE author_id = $1 \n ORDER BY created_at DESC"
 	var internalErr error = errors.New(noti.InternalErr)
 
 	//defer p.db.Close()
@@ -205,7 +205,7 @@ func (p *postRepo) RemovePost(id string, ctx context.Context) error {
 // UpdatePost implements repo.IPostRepo.
 func (p *postRepo) UpdatePost(post business_object.Post, ctx context.Context) error {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetPostTable()) + "UpdatePost - "
-	var query string = "UPDATE " + business_object.GetPostTable() + " SET content = $1, is_private = $2, is_hidden = $3, updated_at = $4 AND status = $5 WHERE id = $6"
+	var query string = "UPDATE " + business_object.GetPostTable() + " SET content = $1, is_private = $2, is_hidden = $3, updated_at = $4, status = $5 WHERE id = $6"
 	var internalErr error = errors.New(noti.InternalErr)
 
 	//defer p.db.Close()

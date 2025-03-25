@@ -260,7 +260,7 @@ func (u *userRepo) GetUser(id string, ctx context.Context) (*dto.UserDBResModel,
 }
 
 // GetInvoledAccountsAmountFromUser implements repo.IUserRepo.
-func (u *userRepo) GetInvoledAccountsAmountFromUser(req dto.GetInvoledAccouuntsRequest, ctx context.Context) ([]string, error) {
+func (u *userRepo) GetInvolvedAccountsAmountFromUser(req dto.GetInvoledAccouuntsRequest, ctx context.Context) ([]string, error) {
 	var field string = getFieldFromInvoledRequest(req.InvolvedType)
 	if field == "" {
 		return nil, errors.New(noti.GenericsErrorWarnMsg)

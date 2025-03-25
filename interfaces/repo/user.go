@@ -12,7 +12,7 @@ type IUserRepo interface {
 	GetUser(id string, ctx context.Context) (*dto.UserDBResModel, error)
 	GetUserByEmail(email string, ctx context.Context) (*dto.UserDBResModel, error)
 	GetUsersByKeyword(keyword string, ctx context.Context) (*[]dto.UserDBResModel, error)
-	GetInvoledAccountsAmountFromUser(req dto.GetInvoledAccouuntsRequest, ctx context.Context) ([]string, error)
+	GetInvolvedAccountsAmountFromUser(req dto.GetInvoledAccouuntsRequest, ctx context.Context) ([]string, error)
 	GetInvolvedAccountsFromTag(id string, ctx context.Context) ([]string, error)
 	CreateUser(user dto.UserDBResModel, ctx context.Context) error
 	UpdateUser(user dto.UserDBResModel, ctx context.Context) error

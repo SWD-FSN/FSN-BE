@@ -55,14 +55,7 @@ func (n *notiService) CreateNotification(req dto.CreateNotiRequest, ctx context.
 
 // GetAllNotifications implements service.INotificationService.
 func (n *notiService) GetAllNotifications(ctx context.Context) (*[]business_object.Notification, error) {
-	res, err := n.notiRepo.GetAllNotifications(ctx)
-
-	if err != nil {
-		return nil, err
-	}
-
-	util.SortByTime(*res, func(noti business_object.Notification) time.Time { return noti.CreatedAt }, false)
-	return res, nil
+	return n.notiRepo.GetAllNotifications(ctx)
 }
 
 // GetUserNotifications implements service.INotificationService.
@@ -105,6 +98,5 @@ func (n *notiService) GetUserUnreadNotifications(id string, ctx context.Context)
 		return nil, err
 	}
 
-	util.SortByTime(*res, func(noti business_object.Notification) time.Time { return noti.CreatedAt }, false)
 	return res, nil
 }

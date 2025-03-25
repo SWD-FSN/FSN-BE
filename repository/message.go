@@ -23,10 +23,10 @@ func InitializeMessageRepo(db *sql.DB, logger *log.Logger) repo.IMessageRepo {
 	}
 }
 
-// GetMessagesFROMConversationByKeyword implements repo.IMessageRepo.
+// GetMessagesFromConversationByKeyword implements repo.IMessageRepo.
 func (m *messageRepo) GetMessagesFromConversationByKeyword(id string, keyword string, ctx context.Context) (*[]business_object.Message, error) {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetMessageTable()) + "GetMessagesFROMConversationByKeyword - "
-	var query string = "SELECT * FROM " + business_object.GetMessageTable() + " WHERE lower(content) LIKE lower('%$1%') AND conversation_id = $2"
+	var query string = "SELECT * FROM " + business_object.GetMessageTable() + " WHERE lower(content) LIKE lower('%$1%'), conversation_id = $2\n ORDER BY created_at DESC"
 	var internalErr error = errors.New(noti.InternalErr)
 
 	//defer m.db.Close()
@@ -145,7 +145,7 @@ func (m *messageRepo) GetMessagesFromConversation(id string, ctx context.Context
 	return &res, nil
 }
 
-// GetMessagesFROMUser implements repo.IMessageRepo.
+// GetMessagesFromUser implements repo.IMessageRepo.
 func (m *messageRepo) GetMessagesFromUser(id string, ctx context.Context) (*[]business_object.Message, error) {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetMessageTable()) + "GetAllMessages - "
 	var query string = "SELECT * FROM " + business_object.GetMessageTable() + " WHERE author_id = $1"

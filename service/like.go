@@ -61,13 +61,13 @@ func (l *likeService) DoLike(req dto.DoLikeReq, ctx context.Context) error {
 	var wg sync.WaitGroup
 	var mu sync.Mutex
 
-	var actor *dto.UserDBResModel
+	var actor dto.UserDBResModel
 	wg.Add(2)
 
 	// Verify author
 	go func() {
 		defer wg.Done()
-		if err := verifyAccount(req.ActorId, id_validate, actor, l.userRepo, ctx); err != nil {
+		if err := verifyAccount(req.ActorId, id_validate, &actor, l.userRepo, ctx); err != nil {
 			mu.Lock()
 
 			if capturedErr == nil {

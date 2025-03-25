@@ -12,7 +12,6 @@ import (
 	"social_network/util"
 	"strings"
 	"sync"
-	"time"
 )
 
 type personalProfileService struct {
@@ -57,15 +56,16 @@ func (p *personalProfileService) GetPersonalProfile(actorId string, userId strin
 		return nil
 	}
 
+	tmpStorage, _ := p.postRepo.GetPostsByUser(userId, ctx)
+
 	// View themselves
 	if actorId == userId {
-		var posts *[]dto.PostResponse
+		var posts []dto.PostResponse
 
-		tmpStorage, _ := p.postRepo.GetPostsByUser(userId, ctx)
 		for _, post := range *tmpStorage {
 			likes, _ := p.likeRepo.GetLikesFromObject(post.PostId, post_obj, ctx)
 
-			*posts = append(*posts, dto.PostResponse{
+			posts = append(posts, dto.PostResponse{
 				PostId:        post.PostId,
 				Content:       post.Content,
 				IsPrivate:     post.IsPrivate,
@@ -78,22 +78,17 @@ func (p *personalProfileService) GetPersonalProfile(actorId string, userId strin
 			})
 		}
 
-		// Sort post(s)
-		util.SortByTime(*posts, func(entity dto.PostResponse) time.Time {
-			return entity.CreatedAt
-		}, false)
-
 		return &dto.PersonalProfileUIResponse{
 			UserId:        userId,
 			Username:      user.Username,
 			ProfileAvatar: user.ProfileAvatar,
 			IsSelf:        true,
-			Posts:         posts,
+			Posts:         &posts,
 		}
 	}
 
 	var conversationId string
-	var posts *[]dto.PostResponse
+	var posts []dto.PostResponse
 	var isFriend bool = strings.Contains(user.Friends, actorId)
 
 	var wg sync.WaitGroup
@@ -110,7 +105,6 @@ func (p *personalProfileService) GetPersonalProfile(actorId string, userId strin
 	go func() {
 		defer wg.Done()
 
-		tmpStorage, _ := p.postRepo.GetPostsByUser(userId, ctx)
 		for _, post := range *tmpStorage {
 			// Ko ẩn bài viết
 			if !post.IsHidden {
@@ -134,18 +128,13 @@ func (p *personalProfileService) GetPersonalProfile(actorId string, userId strin
 				if post.IsPrivate {
 					// Actor và account đc view là bạn bè
 					if isFriend {
-						*posts = append(*posts, postResponse)
+						posts = append(posts, postResponse)
 					}
 				} else { // Ko giới hạn bài viết
-					*posts = append(*posts, postResponse)
+					posts = append(posts, postResponse)
 				}
 			}
 		}
-
-		// Sort post(s)
-		util.SortByTime(*posts, func(entity dto.PostResponse) time.Time {
-			return entity.CreatedAt
-		}, false)
 	}()
 
 	wg.Wait()
@@ -156,6 +145,6 @@ func (p *personalProfileService) GetPersonalProfile(actorId string, userId strin
 		ProfileAvatar:  user.ProfileAvatar,
 		IsFriend:       isFriend,
 		ConversationId: conversationId,
-		Posts:          posts,
+		Posts:          &posts,
 	}
 }
