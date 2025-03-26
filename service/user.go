@@ -293,6 +293,8 @@ func (u *userService) Login(req dto.LoginRequest, ctx context.Context) (string, 
 		return "", "", err
 	}
 
+	log.Println(user.Password)
+
 	if !util.IsHashStringMatched(req.Password, user.Password) {
 		return processFailLogin(user.UserId, u.userSecurityRepo, ctx)
 	}
