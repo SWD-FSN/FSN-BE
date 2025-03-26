@@ -411,16 +411,15 @@ func VerifyAction(ctx *gin.Context) {
 		return
 	}
 
-	var rawToken = ctx.Param("rawToken")
-
+	var rawToken = ctx.Query("rawToken")
 	res, err := service.VerifyAction(rawToken, ctx)
 
 	util.ProcessResponse(dto.APIResponse{
-		Data1:    res,
-		Data2:    res,
-		ErrMsg:   err,
-		Context:  ctx,
-		PostType: action_type.Redirect_post,
+		Data1:   res,
+		Data2:   res,
+		ErrMsg:  err,
+		Context: ctx,
+		//PostType: action_type.Redirect_post,
 	})
 }
 

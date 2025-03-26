@@ -239,13 +239,13 @@ func (u *userRepo) UpdateUser(user dto.UserDBResModel, ctx context.Context) erro
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetUserTable()) + "UpdateUser - "
 	var query string = "UPDATE " + business_object.GetUserTable() + " SET email = $1, password = $2, role_id = $3, " +
 		"full_name = $4, username = $5, date_of_birth = $6, profile_avatar = $7, bio = $8, followers = $9, " +
-		"followings = $10, block_users = $11, conversations = $12, is_private = $13, is_active = $14, updated_at = $15 " +
-		"WHERE id = $16"
+		"followings = $10, block_users = $11, conversations = $12, is_private = $13, is_active = $14, is_activated = $15, " +
+		"updated_at = $16 WHERE id = $17"
 	defer u.db.Close()
 
 	res, err := u.db.Exec(query, user.Email, user.Password, user.RoleId, user.FullName, user.Username, user.DateOfBirth,
 		user.ProfileAvatar, user.Bio, user.Followers, user.Followings, user.BlockUsers,
-		user.Conversations, user.IsPrivate, user.IsActive,
+		user.Conversations, user.IsPrivate, user.IsActive, user.IsActivated,
 		time.Now(), user.UserId)
 
 	var internalErrMsg error = errors.New(noti.InternalErr)

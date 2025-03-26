@@ -4,6 +4,7 @@ import "log"
 
 type MailBody struct {
 	Email    string
+	Subject  string
 	Password string
 	Username string
 	Url      string

@@ -82,7 +82,7 @@ func getProcessUrl() string {
 		port = "8080"
 	}
 	//------------------------------------
-	return "http://localhost:" + port + "/VerifyAction?rawToken="
+	return "http://localhost:" + port + "/users/verify-action?rawToken="
 }
 
 func getResetPassUrl() string {
@@ -343,12 +343,6 @@ func (u *userService) CreateUser(req dto.CreateUserReq, actorId string, ctx cont
 		}
 	}
 
-	// Generate token
-	token, err := util.GenerateActionToken(req.Email, "", req.RoleId, u.logger)
-	if err != nil {
-		return "", err
-	}
-
 	// Belongs to last fail access of a new account
 	var tmpTime = util.GetPrimitiveTime()
 
@@ -364,12 +358,12 @@ func (u *userService) CreateUser(req dto.CreateUserReq, actorId string, ctx cont
 		fullName = req.Username
 	}
 
-	var id string = util.GenerateId()
+	var userId string = util.GenerateId()
 	var curTime time.Time = time.Now()
 
 	// Save new account to database
 	if err := u.userRepo.CreateUser(dto.UserDBResModel{
-		UserId:          id,
+		UserId:          userId,
 		RoleId:          req.RoleId,
 		FullName:        fullName,
 		Username:        req.Username,
@@ -387,9 +381,15 @@ func (u *userService) CreateUser(req dto.CreateUserReq, actorId string, ctx cont
 		return "", err
 	}
 
+	// Generate token
+	token, err := util.GenerateActionToken(req.Email, userId, req.RoleId, u.logger)
+	if err != nil {
+		return "", err
+	}
+
 	// Save new account security to database
 	if err := u.userSecurityRepo.CreateUserSecurity(business_object.UserSecurity{
-		UserId:      id,
+		UserId:      userId,
 		ActionToken: &token,
 		FailAccess:  0,
 		LastFail:    &tmpTime,
@@ -405,7 +405,7 @@ func (u *userService) CreateUser(req dto.CreateUserReq, actorId string, ctx cont
 			Url: util.ToCombinedString([]string{ // Call back url when guest clicks to the confirmation, it will call back to the api endpoint which generate here to verify and finish the registration process
 				getProcessUrl(),
 				token,
-				id,
+				userId,
 				activateType,
 			},
 				mailSepChar),
@@ -733,7 +733,7 @@ func (u *userService) VerifyAction(rawToken string, ctx context.Context) (string
 	}
 
 	// Extract data from token
-	extractId, _, exp, err := util.ExtractDataFromToken(rawToken, u.logger)
+	extractId, _, exp, err := util.ExtractDataFromToken(token, u.logger)
 	if err != nil {
 		return "", err
 	}
