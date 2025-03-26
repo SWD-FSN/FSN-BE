@@ -2,7 +2,7 @@ package dto
 
 import "github.com/gin-gonic/gin"
 
-type APIReponse struct {
+type APIResponse struct {
 	Data1    interface{}
 	Data2    interface{}
 	ErrMsg   error

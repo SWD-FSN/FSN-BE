@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"log"
 	business_object "social_network/business_object"
 	action_type "social_network/constant/action_type"
 	"social_network/dto"
@@ -195,14 +194,14 @@ func GetAllUsers(ctx *gin.Context) {
 
 	res, err := service.GetAllUsers(ctx)
 
-	util.ProcessResponse(dto.APIReponse{
+	util.ProcessResponse(dto.APIResponse{
 		Data1:    res,
 		ErrMsg:   err,
 		PostType: action_type.Non_post,
 		Context:  ctx,
 	})
 
-	// util.ProcessResponse(dto.APIReponse{
+	// util.ProcessResponse(dto.APIResponse{
 	// 	Data1:    sampleUsers,
 	// 	PostType: action_type.Non_post,
 	// 	Context:  ctx,
@@ -224,7 +223,7 @@ func CreateUser(ctx *gin.Context) {
 
 	res, err := service.CreateUser(request, "", ctx)
 
-	util.ProcessResponse(dto.APIReponse{
+	util.ProcessResponse(dto.APIResponse{
 		Data2:    res,
 		ErrMsg:   err,
 		PostType: action_type.Inform_post,
@@ -247,7 +246,7 @@ func Login(ctx *gin.Context) {
 
 	res1, res2, err := service.Login(request, ctx)
 
-	util.ProcessLoginResponse(dto.APIReponse{
+	util.ProcessLoginResponse(dto.APIResponse{
 		Data1:   res1,
 		Data2:   res2,
 		ErrMsg:  err,
@@ -264,7 +263,7 @@ func Logout(ctx *gin.Context) {
 
 	userIdStr := ctx.Param("userId")
 
-	util.ProcessResponse(dto.APIReponse{
+	util.ProcessResponse(dto.APIResponse{
 		Data2:  "",
 		ErrMsg: service.Logout(userIdStr, ctx),
 		//PostType: action_type.Redirect_post,
@@ -282,7 +281,7 @@ func GetUsersFromSearchBar(ctx *gin.Context) {
 	var userId = ctx.Param(" userId")
 	var keyword = ctx.Param("keyword")
 
-	util.ProcessResponse(dto.APIReponse{
+	util.ProcessResponse(dto.APIResponse{
 		Data1:    service.GetUsersFromSearchBar(userId, keyword, ctx),
 		Context:  ctx,
 		PostType: action_type.Non_post,
@@ -299,7 +298,7 @@ func GetInvolvedAccountsFromTag(ctx *gin.Context) {
 	var userId = ctx.Param(" userId")
 	var keyword = ctx.Param("keyword")
 
-	util.ProcessResponse(dto.APIReponse{
+	util.ProcessResponse(dto.APIResponse{
 		Data1:    service.GetInvolvedAccountsFromTag(userId, keyword, ctx),
 		Context:  ctx,
 		PostType: action_type.Non_post,
@@ -317,7 +316,7 @@ func GetInvolvedAccountsFromUser(ctx *gin.Context) {
 
 	res, err := service.GetInvolvedAccountsFromUser(request, ctx)
 
-	util.ProcessResponse(dto.APIReponse{
+	util.ProcessResponse(dto.APIResponse{
 		Data1:    res,
 		ErrMsg:   err,
 		Context:  ctx,
@@ -334,7 +333,7 @@ func GetUsersByRole(ctx *gin.Context) {
 
 	res, err := service.GetUsersByRole(ctx.Param("role"), ctx)
 
-	util.ProcessResponse(dto.APIReponse{
+	util.ProcessResponse(dto.APIResponse{
 		Data1:    res,
 		ErrMsg:   err,
 		Context:  ctx,
@@ -353,7 +352,7 @@ func GetUser(ctx *gin.Context) {
 
 	res, err := service.GetUser(userId, ctx)
 
-	util.ProcessResponse(dto.APIReponse{
+	util.ProcessResponse(dto.APIResponse{
 		Data1:    res,
 		ErrMsg:   err,
 		Context:  ctx,
@@ -372,7 +371,7 @@ func GetUsersByStatus(ctx *gin.Context) {
 
 	res, err := service.GetUsersByRole(status, ctx)
 
-	util.ProcessResponse(dto.APIReponse{
+	util.ProcessResponse(dto.APIResponse{
 		Data1:    res,
 		ErrMsg:   err,
 		Context:  ctx,
@@ -394,13 +393,11 @@ func UpdateUser(ctx *gin.Context) {
 	}
 
 	var actorId = ctx.Param("actorId")
-
-	log.Println("Service update actorId: ", actorId)
-
 	res, err := service.UpdateUser(request, actorId, ctx)
 
-	util.ProcessResponse(dto.APIReponse{
+	util.ProcessResponse(dto.APIResponse{
 		Data1:    res,
+		Data2:    res,
 		ErrMsg:   err,
 		Context:  ctx,
 		PostType: action_type.Inform_post,
@@ -418,7 +415,7 @@ func VerifyAction(ctx *gin.Context) {
 
 	res, err := service.VerifyAction(rawToken, ctx)
 
-	util.ProcessResponse(dto.APIReponse{
+	util.ProcessResponse(dto.APIResponse{
 		Data1:    res,
 		Data2:    res,
 		ErrMsg:   err,
@@ -440,7 +437,7 @@ func ResetPassword(ctx *gin.Context) {
 
 	res, err := service.ResetPassword(password, confirmPassword, token, ctx)
 
-	util.ProcessResponse(dto.APIReponse{
+	util.ProcessResponse(dto.APIResponse{
 		Data1:    res,
 		Data2:    res,
 		ErrMsg:   err,

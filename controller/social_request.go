@@ -16,8 +16,11 @@ func AcceptRequest(ctx *gin.Context) {
 		return
 	}
 
-	util.ProcessResponse(dto.APIReponse{
-		ErrMsg:  service.AcceptRequest(ctx.Param("requestId"), ctx.Param("actorId"), ctx),
+	var requestId = ctx.Param("requestId")
+	var actorId = ctx.Param("actorId")
+
+	util.ProcessResponse(dto.APIResponse{
+		ErrMsg:  service.AcceptRequest(requestId, actorId, ctx),
 		Context: ctx,
 	})
 }
@@ -29,8 +32,11 @@ func CancelRequest(ctx *gin.Context) {
 		return
 	}
 
-	util.ProcessResponse(dto.APIReponse{
-		ErrMsg:  service.CancelRequest(ctx.Param("requestId"), ctx.Param("actorId"), ctx),
+	var requestId = ctx.Param("requestId")
+	var actorId = ctx.Param("actorId")
+
+	util.ProcessResponse(dto.APIResponse{
+		ErrMsg:  service.CancelRequest(requestId, actorId, ctx),
 		Context: ctx,
 	})
 }
@@ -42,9 +48,10 @@ func GetRequest(ctx *gin.Context) {
 		return
 	}
 
-	res, err := service.GetRequest(ctx.Param("id"), ctx)
+	var id = ctx.Param("id")
+	res, err := service.GetRequest(id, ctx)
 
-	util.ProcessResponse(dto.APIReponse{
+	util.ProcessResponse(dto.APIResponse{
 		Data1:    res,
 		ErrMsg:   err,
 		Context:  ctx,
@@ -59,9 +66,12 @@ func GetRequestsToUser(ctx *gin.Context) {
 		return
 	}
 
-	res, err := service.GetRequestsToUser(ctx.Param("id"), ctx.Param("requestType"), ctx)
+	var id = ctx.Param("id")
+	var requestType = ctx.Param("requestType")
 
-	util.ProcessResponse(dto.APIReponse{
+	res, err := service.GetRequestsToUser(id, requestType, ctx)
+
+	util.ProcessResponse(dto.APIResponse{
 		Data1:    res,
 		ErrMsg:   err,
 		Context:  ctx,
@@ -78,7 +88,7 @@ func GetAllRequests(ctx *gin.Context) {
 
 	res, err := service.GetAllRequests(ctx)
 
-	util.ProcessResponse(dto.APIReponse{
+	util.ProcessResponse(dto.APIResponse{
 		Data1:    res,
 		ErrMsg:   err,
 		Context:  ctx,
@@ -99,7 +109,7 @@ func ProcessRequest(ctx *gin.Context) {
 		return
 	}
 
-	util.ProcessResponse(dto.APIReponse{
+	util.ProcessResponse(dto.APIResponse{
 		ErrMsg:  service.ProcessRequest(request, ctx),
 		Context: ctx,
 	})

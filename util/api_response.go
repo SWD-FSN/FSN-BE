@@ -12,7 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func ProcessResponse(data dto.APIReponse) {
+func ProcessResponse(data dto.APIResponse) {
 	if data.ErrMsg != nil {
 		processFailResponse(data.ErrMsg, data.Context)
 		return
@@ -26,27 +26,27 @@ func ProcessResponse(data dto.APIReponse) {
 	processSuccessResponse(data.Data1, data.Context)
 }
 
-func GenerateInvalidRequestAndSystemProblemModel(c *gin.Context, err error) dto.APIReponse {
+func GenerateInvalidRequestAndSystemProblemModel(c *gin.Context, err error) dto.APIResponse {
 	var errMsg error = err
 	if errMsg == nil {
 		errMsg = errors.New(noti.GenericsErrorWarnMsg)
 	}
 
-	return dto.APIReponse{
+	return dto.APIResponse{
 		ErrMsg:   errMsg,
 		Context:  c,
 		PostType: action_type.Non_post,
 	}
 }
 
-func GetUnAuthBodyResponse(ctx *gin.Context) dto.APIReponse {
-	return dto.APIReponse{
+func GetUnAuthBodyResponse(ctx *gin.Context) dto.APIResponse {
+	return dto.APIResponse{
 		ErrMsg:  errors.New(noti.GenericsRightAccessWarnMsg),
 		Context: ctx,
 	}
 }
 
-func ProcessLoginResponse(data dto.APIReponse) {
+func ProcessLoginResponse(data dto.APIResponse) {
 	if data.ErrMsg != nil {
 		processFailResponse(data.ErrMsg, data.Context)
 		return

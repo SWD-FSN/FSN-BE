@@ -291,7 +291,6 @@ func (u *userRepo) CreateUser(user dto.UserDBResModel, ctx context.Context) erro
 func (u *userRepo) GetUser(id string, ctx context.Context) (*dto.UserDBResModel, error) {
 	var query string = "SELECT * FROM " + business_object.GetUserTable() + " WHERE id = $1"
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetUserTable()) + "GetUser - "
-
 	//defer u.db.Close()
 
 	var res dto.UserDBResModel

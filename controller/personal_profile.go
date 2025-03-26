@@ -15,8 +15,11 @@ func GetPersonalProfile(ctx *gin.Context) {
 		return
 	}
 
-	util.ProcessResponse(dto.APIReponse{
-		Data1:   service.GetPersonalProfile(ctx.Param("actorId"), ctx.Param("userId"), ctx),
+	var actorId = ctx.Param("actorId")
+	var userId = ctx.Param("userId")
+
+	util.ProcessResponse(dto.APIResponse{
+		Data1:   service.GetPersonalProfile(actorId, userId, ctx),
 		Context: ctx,
 	})
 }

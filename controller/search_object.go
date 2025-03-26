@@ -15,8 +15,11 @@ func GetObjectsByKeyword(ctx *gin.Context) {
 		return
 	}
 
-	util.ProcessResponse(dto.APIReponse{
-		Data1:   service.GetObjectsByKeyword("", ctx.Param("keyword"), ctx),
+	var nullId = ""
+	var keyword = ctx.Param("keyword")
+
+	util.ProcessResponse(dto.APIResponse{
+		Data1:   service.GetObjectsByKeyword(nullId, keyword, ctx),
 		Context: ctx,
 	})
 }

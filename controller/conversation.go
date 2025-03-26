@@ -34,7 +34,7 @@ var conversations = &[]dto.ConversationSearchBarResponse{
 }
 
 func GetConversationsByKeyword(ctx *gin.Context) {
-	util.ProcessResponse(dto.APIReponse{
+	util.ProcessResponse(dto.APIResponse{
 		Data1:    conversations,
 		Context:  ctx,
 		PostType: action_type.Non_post,
@@ -56,7 +56,7 @@ func GetInternalConversationUIResponse(ctx *gin.Context) {
 		})
 	}
 
-	util.ProcessResponse(dto.APIReponse{
+	util.ProcessResponse(dto.APIResponse{
 		Data1: dto.InternalConversationUIResponseV2{
 			ConversationId:     "conv_1",
 			ConversationAvatar: "https://example.com/group_avatar.jpg",

@@ -71,7 +71,7 @@ func PostComment(ctx *gin.Context) {
 		return
 	}
 
-	util.ProcessResponse(dto.APIReponse{
+	util.ProcessResponse(dto.APIResponse{
 		ErrMsg:  service.PostComment(request, ctx),
 		Context: ctx,
 	})
@@ -84,8 +84,11 @@ func RemoveComment(ctx *gin.Context) {
 		return
 	}
 
-	util.ProcessResponse(dto.APIReponse{
-		ErrMsg:  service.RemoveComment(ctx.Param("actorId"), ctx.Param("commentId"), ctx),
+	var actorId = ctx.Param("actor_id")
+	var commentId = ctx.Param("commentId")
+
+	util.ProcessResponse(dto.APIResponse{
+		ErrMsg:  service.RemoveComment(actorId, commentId, ctx),
 		Context: ctx,
 	})
 }
@@ -103,7 +106,7 @@ func EditComment(ctx *gin.Context) {
 		return
 	}
 
-	util.ProcessResponse(dto.APIReponse{
+	util.ProcessResponse(dto.APIResponse{
 		ErrMsg:  service.EditComment(request, ctx),
 		Context: ctx,
 	})
@@ -116,12 +119,12 @@ func GetCommentsFromPost(ctx *gin.Context) {
 	// 	return
 	// }
 
-	// util.ProcessResponse(dto.APIReponse{
+	// util.ProcessResponse(dto.APIResponse{
 	// 	Data1:   service.GetCommentsFromPost(ctx.Param("id"), ctx),
 	// 	Context: ctx,
 	// })
 
-	util.ProcessResponse(dto.APIReponse{
+	util.ProcessResponse(dto.APIResponse{
 		Data1:    comments,
 		Context:  ctx,
 		PostType: action_type.Non_post,

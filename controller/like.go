@@ -22,7 +22,7 @@ func DoLike(ctx *gin.Context) {
 		return
 	}
 
-	util.ProcessResponse(dto.APIReponse{
+	util.ProcessResponse(dto.APIResponse{
 		ErrMsg:  service.DoLike(request, ctx),
 		Context: ctx,
 	})
@@ -35,8 +35,10 @@ func UndoLike(ctx *gin.Context) {
 		return
 	}
 
-	util.ProcessResponse((dto.APIReponse{
-		ErrMsg:  service.UndoLike(ctx.Param("id"), ctx),
+	var id = ctx.Param("id")
+
+	util.ProcessResponse((dto.APIResponse{
+		ErrMsg:  service.UndoLike(id, ctx),
 		Context: ctx,
 	}))
 }
@@ -48,9 +50,12 @@ func GetLikesFromObject(ctx *gin.Context) {
 		return
 	}
 
-	res, err := service.GetLikesFromObject(ctx.Param("id"), ctx.Param("kind"), ctx)
+	var id = ctx.Param("id")
+	var kind = ctx.Param("kind")
 
-	util.ProcessResponse(dto.APIReponse{
+	res, err := service.GetLikesFromObject(id, kind, ctx)
+
+	util.ProcessResponse(dto.APIResponse{
 		Data1:    res,
 		ErrMsg:   err,
 		PostType: action_type.Non_post,
@@ -67,7 +72,7 @@ func GetAllLikes(ctx *gin.Context) {
 
 	res, err := service.GetAllLikes(ctx)
 
-	util.ProcessResponse(dto.APIReponse{
+	util.ProcessResponse(dto.APIResponse{
 		Data1:    res,
 		ErrMsg:   err,
 		PostType: action_type.Non_post,
@@ -82,9 +87,10 @@ func GetLike(ctx *gin.Context) {
 		return
 	}
 
-	res, err := service.GetLike(ctx.Param("id"), ctx)
+	var id = ctx.Param("id")
+	res, err := service.GetLike(id, ctx)
 
-	util.ProcessResponse(dto.APIReponse{
+	util.ProcessResponse(dto.APIResponse{
 		Data1:    res,
 		ErrMsg:   err,
 		PostType: action_type.Non_post,

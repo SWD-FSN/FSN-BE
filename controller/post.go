@@ -104,14 +104,14 @@ func GetAllPosts(ctx *gin.Context) {
 
 	res, err := service.GetAllPosts(ctx)
 
-	util.ProcessResponse(dto.APIReponse{
+	util.ProcessResponse(dto.APIResponse{
 		Data1:    res,
 		ErrMsg:   err,
 		PostType: action_type.Non_post,
 		Context:  ctx,
 	})
 
-	// util.ProcessResponse(dto.APIReponse{
+	// util.ProcessResponse(dto.APIResponse{
 	// 	Data1:    samplePosts,
 	// 	PostType: action_type.Non_post,
 	// 	Context:  ctx,
@@ -126,7 +126,7 @@ func GetPostsDisplayUI(ctx *gin.Context) {
 		return
 	}
 
-	util.ProcessResponse(dto.APIReponse{
+	util.ProcessResponse(dto.APIResponse{
 		Data1:    service.GetPosts(ctx),
 		Context:  ctx,
 		PostType: action_type.Non_post,

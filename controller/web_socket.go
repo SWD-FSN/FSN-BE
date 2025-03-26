@@ -8,8 +8,10 @@ import (
 )
 
 func RegisterUserConnection(ctx *gin.Context) {
+	var userId = ctx.Param("userId")
+
 	service.RegisterUserConnection(dto.UserConnectionRequest{
-		UserId:  ctx.Param("userId"),
+		UserId:  userId,
 		Request: ctx.Request,
 		Writer:  ctx.Writer,
 	})

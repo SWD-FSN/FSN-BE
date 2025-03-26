@@ -17,8 +17,10 @@ func ActivateRole(ctx *gin.Context) {
 		return
 	}
 
-	util.ProcessResponse(dto.APIReponse{
-		ErrMsg:  service.ActivateRole(ctx.Param("id"), ctx),
+	var id = ctx.Param("id")
+
+	util.ProcessResponse(dto.APIResponse{
+		ErrMsg:  service.ActivateRole(id, ctx),
 		Context: ctx,
 	})
 }
@@ -30,8 +32,10 @@ func CreateRole(ctx *gin.Context) {
 		return
 	}
 
-	util.ProcessResponse(dto.APIReponse{
-		ErrMsg:  service.CreateRole(ctx.Param("name"), ctx),
+	var name = ctx.Param("name")
+
+	util.ProcessResponse(dto.APIResponse{
+		ErrMsg:  service.CreateRole(name, ctx),
 		Context: ctx,
 	})
 }
@@ -45,7 +49,7 @@ func GetAllRoles(ctx *gin.Context) {
 
 	res, err := service.GetAllRoles(ctx)
 
-	util.ProcessResponse(dto.APIReponse{
+	util.ProcessResponse(dto.APIResponse{
 		Data1:    res,
 		ErrMsg:   err,
 		PostType: action_type.Non_post,
@@ -60,9 +64,10 @@ func GetRoleById(ctx *gin.Context) {
 		return
 	}
 
-	res, err := service.GetRoleById(ctx.Param("id"), ctx)
+	var id = ctx.Param("id")
+	res, err := service.GetRoleById(id, ctx)
 
-	util.ProcessResponse(dto.APIReponse{
+	util.ProcessResponse(dto.APIResponse{
 		Data1:    res,
 		ErrMsg:   err,
 		PostType: action_type.Non_post,
@@ -77,9 +82,10 @@ func GetRolesByName(ctx *gin.Context) {
 		return
 	}
 
-	res, err := service.GetRolesByName(ctx.Param("name"), ctx)
+	var name = ctx.Param("name")
+	res, err := service.GetRolesByName(name, ctx)
 
-	util.ProcessResponse(dto.APIReponse{
+	util.ProcessResponse(dto.APIResponse{
 		Data1:    res,
 		ErrMsg:   err,
 		PostType: action_type.Non_post,
@@ -94,9 +100,10 @@ func GetRolesByStatus(ctx *gin.Context) {
 		return
 	}
 
-	res, err := service.GetRolesByStatus(ctx.Param("status"), ctx)
+	var status = ctx.Param("status")
+	res, err := service.GetRolesByStatus(status, ctx)
 
-	util.ProcessResponse(dto.APIReponse{
+	util.ProcessResponse(dto.APIResponse{
 		Data1:    res,
 		ErrMsg:   err,
 		PostType: action_type.Non_post,
@@ -111,8 +118,10 @@ func RemoveRole(ctx *gin.Context) {
 		return
 	}
 
-	util.ProcessResponse(dto.APIReponse{
-		ErrMsg:  service.RemoveRole(ctx.Param("name"), ctx),
+	var name = ctx.Param("name")
+
+	util.ProcessResponse(dto.APIResponse{
+		ErrMsg:  service.RemoveRole(name, ctx),
 		Context: ctx,
 	})
 }
@@ -130,7 +139,7 @@ func UpdateRole(ctx *gin.Context) {
 		return
 	}
 
-	util.ProcessResponse(dto.APIReponse{
+	util.ProcessResponse(dto.APIResponse{
 		ErrMsg:  service.UpdateRole(role, ctx),
 		Context: ctx,
 	})
