@@ -261,11 +261,13 @@ func Logout(ctx *gin.Context) {
 		return
 	}
 
+	userIdStr := ctx.Query("userId")
+
 	util.ProcessResponse(dto.APIReponse{
-		Data2:    "",
-		ErrMsg:   service.Logout(ctx.GetString("user_id"), ctx),
-		PostType: action_type.Redirect_post,
-		Context:  ctx,
+		Data2:  "",
+		ErrMsg: service.Logout(userIdStr, ctx),
+		//PostType: action_type.Redirect_post,
+		Context: ctx,
 	})
 }
 

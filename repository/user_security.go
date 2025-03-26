@@ -64,8 +64,10 @@ func (u *userSecurityRepo) Login(req dto.LoginSecurityRequest, ctx context.Conte
 
 // Logout implements repo.IUserSecurityRepo.
 func (u *userSecurityRepo) Logout(id string, ctx context.Context) error {
-	var query string = "UPDATE " + business_object.GetUserSecurityTable() + " SET access_token = NULL, refresh_token = NULL WHERE user_id = $1"
-	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetUserSecurityTable()) + "LogOut - "
+	var query string = "UPDATE " + business_object.GetUserSecurityTable() +
+		" SET access_token = NULL, refresh_token = NULL" +
+		" WHERE user_id = $1"
+	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetUserSecurityTable()) + "Logout - "
 	var internalErr error = errors.New(noti.InternalErr)
 	//defer u.db.Close()
 
