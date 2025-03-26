@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"log"
 	business_object "social_network/business_object"
 	action_type "social_network/constant/action_type"
 	"social_network/dto"
@@ -261,7 +262,7 @@ func Logout(ctx *gin.Context) {
 		return
 	}
 
-	userIdStr := ctx.Query("userId")
+	userIdStr := ctx.Param("userId")
 
 	util.ProcessResponse(dto.APIReponse{
 		Data2:  "",
@@ -278,8 +279,11 @@ func GetUsersFromSearchBar(ctx *gin.Context) {
 		return
 	}
 
+	var userId = ctx.Param(" userId")
+	var keyword = ctx.Param("keyword")
+
 	util.ProcessResponse(dto.APIReponse{
-		Data1:    service.GetUsersFromSearchBar(ctx.Param("id"), ctx.Param("keyword"), ctx),
+		Data1:    service.GetUsersFromSearchBar(userId, keyword, ctx),
 		Context:  ctx,
 		PostType: action_type.Non_post,
 	})
@@ -292,8 +296,11 @@ func GetInvolvedAccountsFromTag(ctx *gin.Context) {
 		return
 	}
 
+	var userId = ctx.Param(" userId")
+	var keyword = ctx.Param("keyword")
+
 	util.ProcessResponse(dto.APIReponse{
-		Data1:    service.GetInvolvedAccountsFromTag(ctx.Param("id"), ctx.Param("keyword"), ctx),
+		Data1:    service.GetInvolvedAccountsFromTag(userId, keyword, ctx),
 		Context:  ctx,
 		PostType: action_type.Non_post,
 	})
@@ -342,7 +349,9 @@ func GetUser(ctx *gin.Context) {
 		return
 	}
 
-	res, err := service.GetUser(ctx.Param("id"), ctx)
+	var userId = ctx.Param("userId")
+
+	res, err := service.GetUser(userId, ctx)
 
 	util.ProcessResponse(dto.APIReponse{
 		Data1:    res,
@@ -359,7 +368,9 @@ func GetUsersByStatus(ctx *gin.Context) {
 		return
 	}
 
-	res, err := service.GetUsersByRole(ctx.Param("status"), ctx)
+	var status = ctx.Param("status")
+
+	res, err := service.GetUsersByRole(status, ctx)
 
 	util.ProcessResponse(dto.APIReponse{
 		Data1:    res,
@@ -382,7 +393,11 @@ func UpdateUser(ctx *gin.Context) {
 		return
 	}
 
-	res, err := service.UpdateUser(request, ctx.Param("actorId"), ctx)
+	var actorId = ctx.Param("actorId")
+
+	log.Println("Service update actorId: ", actorId)
+
+	res, err := service.UpdateUser(request, actorId, ctx)
 
 	util.ProcessResponse(dto.APIReponse{
 		Data1:    res,
@@ -399,7 +414,9 @@ func VerifyAction(ctx *gin.Context) {
 		return
 	}
 
-	res, err := service.VerifyAction(ctx.Param("rawToken"), ctx)
+	var rawToken = ctx.Param("rawToken")
+
+	res, err := service.VerifyAction(rawToken, ctx)
 
 	util.ProcessResponse(dto.APIReponse{
 		Data1:    res,
@@ -417,7 +434,11 @@ func ResetPassword(ctx *gin.Context) {
 		return
 	}
 
-	res, err := service.ResetPassword(ctx.Param("password"), ctx.Param("confirmPassword"), ctx.Query("token"), ctx)
+	var password = ctx.Param("password")
+	var confirmPassword = ctx.Param(" confirmPassword")
+	var token = ctx.Param("keyword")
+
+	res, err := service.ResetPassword(password, confirmPassword, token, ctx)
 
 	util.ProcessResponse(dto.APIReponse{
 		Data1:    res,
