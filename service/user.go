@@ -180,8 +180,8 @@ func (u *userService) GetInvolvedAccountsFromTag(id string, keyword string, ctx 
 	return &res
 }
 
-// GetInvoledAccountsFromUser implements service.IUserService.
-func (u *userService) GetInvoledAccountsFromUser(req dto.GetInvoledAccouuntsRequest, ctx context.Context) (*[]business_object.User, error) {
+// GetInvolvedAccountsFromUser implements service.IUserService.
+func (u *userService) GetInvolvedAccountsFromUser(req dto.GetInvoledAccouuntsRequest, ctx context.Context) (*[]business_object.User, error) {
 	var user dto.UserDBResModel
 
 	if err := verifyAccount(req.UserId, id_validate, &user, u.userRepo, ctx); err != nil {
@@ -292,8 +292,6 @@ func (u *userService) Login(req dto.LoginRequest, ctx context.Context) (string, 
 	if err := verifyAccount(req.Email, email_validate, &user, u.userRepo, ctx); err != nil {
 		return "", "", err
 	}
-
-	log.Println(user.Password)
 
 	if !util.IsHashStringMatched(req.Password, user.Password) {
 		return processFailLogin(user.UserId, u.userSecurityRepo, ctx)
@@ -854,7 +852,7 @@ func verifyAccount(field, validateField string, user *dto.UserDBResModel, repo r
 	}
 
 	// Only set user if the pointer is not nil
-	if user != nil {
+	if tmpUser != nil {
 		*user = *tmpUser
 	}
 
@@ -972,6 +970,10 @@ func processSuccessLogin(user *dto.UserDBResModel, securityRepo repo.IUserSecuri
 		return "", "", err
 	}
 
+	if security == nil {
+		return "", "", errors.New("user security not found")
+	}
+
 	//if !user.IsActivated || security.FailAccess > verifyFailLimit {
 	//	return setUpVerifyAccount(security, user.Email, securityRepo, ctx)
 	//}
@@ -1075,7 +1077,7 @@ func verifyEditUserAuthorization(req dto.UpdateUserReq, account, actor *dto.User
 	return nil
 }
 
-func verifyEditedAuth(inputedRole, orgRole, actorRole string, roles map[string]string) error {
+func verifyEditedAuth(inputRole, orgRole, actorRole string, roles map[string]string) error {
 	var res error
 	var authErr error = errors.New(noti.AuthorizationWarnMsg)
 
@@ -1085,7 +1087,7 @@ func verifyEditedAuth(inputedRole, orgRole, actorRole string, roles map[string]s
 			res = authErr
 		}
 	case roles[staff_role]:
-		if inputedRole != "" || inputedRole != orgRole { // Staff edits other
+		if inputRole != "" || inputRole != orgRole { // Staff edits other
 			res = authErr
 		}
 	}

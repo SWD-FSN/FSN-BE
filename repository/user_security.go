@@ -67,7 +67,7 @@ func (u *userSecurityRepo) Logout(id string, ctx context.Context) error {
 	var query string = "UPDATE " + business_object.GetUserSecurityTable() + " SET access_token = NULL, refresh_token = NULL WHERE user_id = $1"
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetUserSecurityTable()) + "LogOut - "
 	var internalErr error = errors.New(noti.InternalErr)
-	defer u.db.Close()
+	//defer u.db.Close()
 
 	res, err := u.db.Exec(query, id)
 	if err != nil {
@@ -115,14 +115,15 @@ func (u *userSecurityRepo) EditUserSecurity(usc business_object.UserSecurity, ct
 
 // GetUserSecurity implements repo.IUserSecurityRepo.
 func (u *userSecurityRepo) GetUserSecurity(id string, ctx context.Context) (*business_object.UserSecurity, error) {
-	var query string = "SELECT * FROM  " + business_object.GetUserSecurityTable() + " WHERE user_id = $1 LIMIT 1"
+	var query string = "SELECT * FROM " + business_object.GetUserSecurityTable() + " WHERE user_id = $1 LIMIT 1"
 
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetUserSecurityTable()) + "GetUserSecurity - "
 
-	var res business_object.UserSecurity
+	var usc business_object.UserSecurity
 	if err := u.db.QueryRow(query, id).Scan(
-		&res.UserId, &res.AccessToken, &res.RefreshToken,
-		&res.ActionToken, &res.FailAccess, &res.LastFail); err != nil {
+		&usc.UserId, &usc.AccessToken, &usc.RefreshToken,
+		&usc.ActionToken, &usc.FailAccess, &usc.LastFail); err != nil {
+
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
@@ -130,6 +131,5 @@ func (u *userSecurityRepo) GetUserSecurity(id string, ctx context.Context) (*bus
 		u.logger.Println(errLogMsg, err.Error())
 		return nil, errors.New(noti.InternalErr)
 	}
-
-	return &res, nil
+	return &usc, nil
 }

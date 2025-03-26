@@ -37,7 +37,7 @@ func InitializeUserAPIRoute(server *gin.Engine, logger *log.Logger, port string)
 
 	var authGroup = server.Group(contextPath, middlewares.Authorize)
 	authGroup.GET("/:id", controller.GetUser)
-	authGroup.PUT("", controller.UpdateUser)
+	authGroup.PUT("/update-info", controller.UpdateUser)
 	//authGroup.PUT("/id/:id/status/:status", controller.ChangeUserStatus)
 	authGroup.PUT("/logout", controller.Logout)
 

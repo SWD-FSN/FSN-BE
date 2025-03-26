@@ -297,7 +297,7 @@ func GetInvolvedAccountsFromTag(ctx *gin.Context) {
 	})
 }
 
-func GetInvoledAccountsFromUser(ctx *gin.Context) {
+func GetInvolvedAccountsFromUser(ctx *gin.Context) {
 	var request dto.GetInvoledAccouuntsRequest
 
 	service, err := service.GenerateUserService()
@@ -306,7 +306,7 @@ func GetInvoledAccountsFromUser(ctx *gin.Context) {
 		return
 	}
 
-	res, err := service.GetInvoledAccountsFromUser(request, ctx)
+	res, err := service.GetInvolvedAccountsFromUser(request, ctx)
 
 	util.ProcessResponse(dto.APIReponse{
 		Data1:    res,
