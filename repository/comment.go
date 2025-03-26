@@ -41,7 +41,7 @@ func (c *commentRepo) CreateComment(cmt business_object.Comment, ctx context.Con
 // EditComment implements repo.ICommentRepo.
 func (c *commentRepo) EditComment(cmt business_object.Comment, ctx context.Context) error {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetCommentTable()) + "EditComment - "
-	var query string = "UPDATE " + business_object.GetPostTable() + " SET content = $1 AND updated_at = $2 WHERE id = $3"
+	var query string = "UPDATE " + business_object.GetCommentTable() + " SET content = $1, updated_at = $2 WHERE id = $3"
 	var internalErr error = errors.New(noti.InternalErr)
 
 	//defer c.db.Close()
@@ -102,7 +102,7 @@ func (c *commentRepo) GetComment(id string, ctx context.Context) (*business_obje
 	////defer c.db.Close()
 
 	var res business_object.Comment
-	if err := c.db.QueryRow(query, id).Scan(&res.CommentId, &res.PostId, &res.AuthorId, &res.CreatedAt, &res.UpdatedAt); err != nil {
+	if err := c.db.QueryRow(query, id).Scan(&res.CommentId, &res.AuthorId, &res.PostId, &res.Content, &res.CreatedAt, &res.UpdatedAt); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}

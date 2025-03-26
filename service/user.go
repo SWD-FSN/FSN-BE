@@ -314,7 +314,7 @@ func (u *userService) CreateUser(req dto.CreateUserReq, actorId string, ctx cont
 	}
 
 	// New email exists?
-	if verifyUser(req.Email, email_validate, u.userRepo, ctx) == nil {
+	if verifyUser(req.Email, email_validate, u.userRepo, ctx) != nil {
 		return "", errors.New(noti.EmailRegisteredWarnMsg)
 	}
 
@@ -598,25 +598,30 @@ func (u *userService) UpdateUser(req dto.UpdateUserReq, actorId string, ctx cont
 		return res, err
 	}
 
+	// Verify edit authorization
 	if err := verifyEditUserAuthorization(req, &account, &actor, roles); err != nil {
 		return res, err
 	}
 
 	// Edit themselves
-	if req.UserId == actorId {
+	if req.Password != "" {
 		if !util.IsPasswordSecure(req.Password) {
 			return res, errors.New(noti.PasswordNotSecureWarnMsg)
 		}
+
+		hashPw, err := util.ToHashString(req.Password)
+		if err != nil {
+			return res, err
+		}
+
+		account.Password = hashPw
 	}
 
-	hashPw, err := util.ToHashString(req.Password)
-	if err != nil {
-		return res, err
+	var email string = account.Email
+	if req.Email != "" {
+		email = util.ToNormalizedString(req.Email)
 	}
 
-	account.Password = hashPw
-
-	var email string = util.ToNormalizedString(req.Email)
 	var isHaveToVerify bool = false
 
 	// Check if need to verify new email
@@ -630,6 +635,10 @@ func (u *userService) UpdateUser(req dto.UpdateUserReq, actorId string, ctx cont
 
 	if req.Username != "" {
 		account.Username = req.Username
+	}
+
+	if req.FullName != "" {
+		account.FullName = req.FullName
 	}
 
 	if req.DateOfBirth != nil {
@@ -1074,8 +1083,8 @@ func verifyEditUserAuthorization(req dto.UpdateUserReq, account, actor *dto.User
 	}
 
 	// Self edit
-	if req.RoleId != account.RoleId {
-		return errors.New("")
+	if req.RoleId != "" && req.RoleId != account.RoleId {
+		return errors.New("User cannot edit role.")
 	}
 
 	return nil

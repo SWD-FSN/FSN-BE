@@ -59,7 +59,8 @@ const (
 
 // EditComment implements service.ICommentService.
 func (c *commentService) EditComment(req dto.EditCommentRequest, ctx context.Context) error {
-	if !isObjectBelongActor(req.CommentId, comment_object, req.ActorId, nil, c.commentRepo, nil, ctx) {
+	var likeRepo repo.ILikeRepo = nil
+	if !isObjectBelongActor(req.CommentId, comment_object, req.ActorId, likeRepo, c.commentRepo, nil, ctx) {
 		return errors.New(noti.GenericsRightAccessWarnMsg)
 	}
 

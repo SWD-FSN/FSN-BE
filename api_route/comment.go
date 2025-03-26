@@ -17,4 +17,6 @@ func InitializeCommentAPIRoute(server *gin.Engine, logger *log.Logger, port stri
 	// var authGroup = server.Group(contextPath, middlewares.Authorize)
 	// authGroup.GET("/post/:id", controller.GetCommentsFromPost)
 	server.GET(contextPath+"/post", controller.GetCommentsFromPost)
+	server.POST(contextPath+"/create", controller.PostComment)
+	server.PUT(contextPath+"/edit", controller.EditComment)
 }

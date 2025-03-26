@@ -184,7 +184,7 @@ func verifyObject(id, kind string, cmtRepo repo.ICommentRepo, postRepo repo.IPos
 	}
 
 	switch kind {
-	case cmt_obj:
+	case comment_object:
 		cmt, err := cmtRepo.GetComment(id, ctx)
 		if err != nil { // Error accessing db
 			errRes = err
@@ -195,7 +195,7 @@ func verifyObject(id, kind string, cmtRepo repo.ICommentRepo, postRepo repo.IPos
 			errRes = nil
 		}
 
-	case post_obj:
+	case post_object:
 		post, err := postRepo.GetPost(id, ctx)
 		if err != nil { // Error accessing db
 			errRes = err
