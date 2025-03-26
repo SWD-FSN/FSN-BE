@@ -82,8 +82,8 @@ func (c *conersationService) CreateMessage(req dto.CreateMessageRequest, ctx con
 
 // GetConversationFromUser implements service.IConversationService.
 func (c *conersationService) GetConversationFromUser(actorId string, conversationId string, ctx context.Context) (*dto.InternalConversationUIResponseV2, error) {
-	var conversation *business_object.Conversation
-	if err := verifyActorToConversationAction(actorId, conversationId, false, conversation, c.conversationRepo, ctx); err != nil {
+	var conversation business_object.Conversation
+	if err := verifyActorToConversationAction(actorId, conversationId, false, &conversation, c.conversationRepo, ctx); err != nil {
 		return nil, err
 	}
 
@@ -103,7 +103,7 @@ func (c *conersationService) GetConversationFromUser(actorId string, conversatio
 		})
 	}
 
-	avatar, name, err := processConversationAvatarAndName(*conversation, actorId, c.userRepo, ctx)
+	avatar, name, err := processConversationAvatarAndName(conversation, actorId, c.userRepo, ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -376,11 +376,16 @@ func verifyActorToConversationAction(actorId, conversationId string, isCheckHost
 
 func isActorBelongToChat(actorId, conversationId string, isCheckHost bool, chat *business_object.Conversation, repo repo.IConversationRepo, ctx context.Context) (bool, error) {
 	var errRes error
+	var tmpChat *business_object.Conversation
 
-	chat, errRes = repo.GetConversation(conversationId, ctx)
+	tmpChat, errRes = repo.GetConversation(conversationId, ctx)
 
 	if errRes != nil {
 		return false, errRes
+	}
+
+	if tmpChat != nil {
+		*chat = *tmpChat
 	}
 
 	if isCheckHost {

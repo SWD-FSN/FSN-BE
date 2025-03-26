@@ -843,12 +843,7 @@ func verifyAccount(field, validateField string, user *dto.UserDBResModel, repo r
 	// User ko tồn tại
 	if tmpUser == nil && res == nil {
 		// Phân chia lỗi trả về
-		switch validateField {
-		case id_validate:
-			res = errors.New("")
-		case email_validate:
-			res = errors.New("")
-		}
+		res = errors.New("Not found")
 	}
 
 	// Only set user if the pointer is not nil
