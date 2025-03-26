@@ -9,8 +9,6 @@ import (
 	businessObject "social_network/business_object"
 	"social_network/constant/noti"
 	"social_network/interfaces/repo"
-	"social_network/util"
-	"strings"
 	"time"
 )
 
@@ -138,19 +136,24 @@ func (c *conversationRepo) GetAllConversations(ctx context.Context) (*[]business
 		return nil, internalErr
 	}
 
-	var res *[]businessObject.Conversation
+	var res []businessObject.Conversation
 	for rows.Next() {
 		var x businessObject.Conversation
+		var isDelete sql.NullBool
 
-		if err := rows.Scan(&x.ConversationId, &x.ConversationName, &x.HostId, &x.Members, &x.IsGroup, &x.IsDelete, &x.CreatedAt, &x.UpdatedAt); err != nil {
+		if err := rows.Scan(&x.ConversationId, &x.ConversationName, &x.HostId, &x.Members, &x.IsGroup, &isDelete, &x.CreatedAt, &x.UpdatedAt); err != nil {
 			c.logger.Println(errLogMsg + err.Error())
 			return nil, internalErr
 		}
 
-		*res = append(*res, x)
+		if isDelete.Valid {
+			*x.IsDelete = isDelete.Bool
+		}
+
+		res = append(res, x)
 	}
 
-	return res, nil
+	return &res, nil
 }
 
 // GetConversation implements repo.IConversationRepo.
@@ -160,8 +163,9 @@ func (c *conversationRepo) GetConversation(id string, ctx context.Context) (*bus
 
 	defer c.db.Close()
 
-	var res *businessObject.Conversation
-	if err := c.db.QueryRow(query, id).Scan(&res.ConversationId, &res.ConversationName, &res.HostId, &res.Members, &res.IsGroup, &res.IsDelete, &res.CreatedAt, &res.UpdatedAt); err != nil {
+	var res businessObject.Conversation
+	var isDelete sql.NullBool
+	if err := c.db.QueryRow(query, id).Scan(&res.ConversationId, &res.ConversationName, &res.HostId, &res.Members, &res.IsGroup, &isDelete, &res.CreatedAt, &res.UpdatedAt); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
@@ -170,7 +174,11 @@ func (c *conversationRepo) GetConversation(id string, ctx context.Context) (*bus
 		return nil, errors.New(noti.InternalErr)
 	}
 
-	return res, nil
+	if isDelete.Valid {
+		*res.IsDelete = isDelete.Bool
+	}
+
+	return &res, nil
 }
 
 // GetConversationsByKeyword implements repo.IConversationRepo.
@@ -187,29 +195,24 @@ func (c *conversationRepo) GetConversationsByKeyword(id string, keyword string, 
 		return nil, internalErr
 	}
 
-	var res *[]businessObject.Conversation
+	var res []businessObject.Conversation
 	for rows.Next() {
 		var x businessObject.Conversation
+		var isDelete sql.NullBool
 
-		if err := rows.Scan(&x.ConversationId, &x.ConversationName, &x.HostId, &x.Members, &x.IsGroup, &x.IsDelete, &x.CreatedAt, &x.UpdatedAt); err != nil {
+		if err := rows.Scan(&x.ConversationId, &x.ConversationName, &x.HostId, &x.Members, &x.IsGroup, &isDelete, &x.CreatedAt, &x.UpdatedAt); err != nil {
 			c.logger.Println(errLogMsg + err.Error())
 			return nil, internalErr
 		}
 
-		var count int = 0
-		for _, name := range util.ToSliceString(x.ConversationName, "|") {
-			if strings.Contains(strings.ToLower(name), strings.ToLower(keyword)) {
-				count += 1
-
-				if count == 2 {
-					*res = append(*res, x)
-					break
-				}
-			}
+		if isDelete.Valid {
+			*x.IsDelete = isDelete.Bool
 		}
+
+		res = append(res, x)
 	}
 
-	return res, nil
+	return &res, nil
 }
 
 // GetConversationsFromUser implements repo.IConversationRepo.
@@ -226,17 +229,22 @@ func (c *conversationRepo) GetConversationsFromUser(id string, ctx context.Conte
 		return nil, internalErr
 	}
 
-	var res *[]businessObject.Conversation
+	var res []businessObject.Conversation
 	for rows.Next() {
 		var x businessObject.Conversation
+		var isDelete sql.NullBool
 
-		if err := rows.Scan(&x.ConversationId, &x.ConversationName, &x.HostId, &x.Members, &x.IsGroup, &x.IsDelete, &x.CreatedAt); err != nil {
+		if err := rows.Scan(&x.ConversationId, &x.ConversationName, &x.HostId, &x.Members, &x.IsGroup, &isDelete, &x.CreatedAt, &x.UpdatedAt); err != nil {
 			c.logger.Println(errLogMsg + err.Error())
 			return nil, internalErr
 		}
 
-		*res = append(*res, x)
+		if isDelete.Valid {
+			*x.IsDelete = isDelete.Bool
+		}
+
+		res = append(res, x)
 	}
 
-	return res, nil
+	return &res, nil
 }

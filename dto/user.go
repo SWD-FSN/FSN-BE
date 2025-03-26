@@ -10,16 +10,9 @@ type CreateUserReq struct {
 	RoleId        string    `json:"role_id"`
 	FullName      string    `json:"full_name" validate:"required"`
 	Email         string    `json:"email" validate:"required"`
-	Password      string    `json:"password" validate:"required,min=10""`
+	Password      string    `json:"password" validate:"required,min=8"`
 	DateOfBirth   time.Time `json:"date_of_birth" validate:"required"`
 	ProfileAvatar string    `json:"profile_avatar"`
-	Bio           string    `json:"bio"`
-	Friends       *[]string `json:"friends"`
-	Followers     *[]string `json:"followers"`
-	Followings    *[]string `json:"followings"`
-	BlockUsers    *[]string `json:"block_users"`
-	IsPrivate     *bool     `json:"is_private"`
-	IsActive      *bool     `json:"is_active"`
 }
 
 type UpdateUserReq struct {

@@ -119,15 +119,15 @@ func GetAllPosts(ctx *gin.Context) {
 }
 
 func GetPostsDisplayUI(ctx *gin.Context) {
-	// service, err := service.GeneratePostService()
+	service, err := service.GeneratePostService()
 
-	// if err != nil {
-	// 	util.ProcessResponse(util.GenerateInvalidRequestAndSystemProblemModel(ctx, err))
-	// 	return
-	// }
+	if err != nil {
+		util.ProcessResponse(util.GenerateInvalidRequestAndSystemProblemModel(ctx, err))
+		return
+	}
 
 	util.ProcessResponse(dto.APIReponse{
-		Data1:    posts,
+		Data1:    service.GetPosts(ctx),
 		Context:  ctx,
 		PostType: action_type.Non_post,
 	})

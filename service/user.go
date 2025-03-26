@@ -304,6 +304,8 @@ func (u *userService) Login(req dto.LoginRequest, ctx context.Context) (string, 
 func (u *userService) CreateUser(req dto.CreateUserReq, actorId string, ctx context.Context) (string, error) {
 	var actor dto.UserDBResModel
 
+	u.logger.Println(req)
+
 	// If this request executed by an account
 	if actorId != "" {
 		if err := verifyAccount(actorId, id_validate, &actor, u.userRepo, ctx); err != nil {
@@ -312,7 +314,7 @@ func (u *userService) CreateUser(req dto.CreateUserReq, actorId string, ctx cont
 	}
 
 	// New email exists?
-	if verifyAccount(req.Email, email_validate, nil, u.userRepo, ctx) == nil {
+	if verifyUser(req.Email, email_validate, u.userRepo, ctx) == nil {
 		return "", errors.New(noti.EmailRegisteredWarnMsg)
 	}
 
@@ -357,21 +359,6 @@ func (u *userService) CreateUser(req dto.CreateUserReq, actorId string, ctx cont
 		isHaveToResetPw = &flag
 	}
 
-	// Set status
-	var isPrivate bool = true
-	if req.IsPrivate == nil {
-		isPrivate = false
-	} else {
-		isPrivate = *req.IsPrivate
-	}
-
-	var isActive bool = false
-	if req.IsActive == nil {
-		isActive = true
-	} else {
-		isPrivate = *req.IsActive
-	}
-
 	var fullName string = req.FullName
 	if fullName == "" {
 		fullName = req.Username
@@ -390,8 +377,8 @@ func (u *userService) CreateUser(req dto.CreateUserReq, actorId string, ctx cont
 		Password:        hashPw,
 		DateOfBirth:     req.DateOfBirth,
 		ProfileAvatar:   req.ProfileAvatar,
-		IsPrivate:       isPrivate,
-		IsActive:        isActive,
+		IsPrivate:       false,
+		IsActive:        true,
 		IsActivated:     false,
 		IsHaveToResetPw: isHaveToResetPw,
 		CreatedAt:       curTime,
@@ -718,7 +705,6 @@ func (u *userService) UpdateUser(req dto.UpdateUserReq, actorId string, ctx cont
 // VerifyAction implements service.IUserService.
 func (u *userService) VerifyAction(rawToken string, ctx context.Context) (string, error) {
 	var errRes error = errors.New(noti.GenericsErrorWarnMsg)
-
 	var cmps []string = util.ToSliceString(rawToken, mailSepChar)
 	if len(cmps) < minLengthVerifyCombine { // Min length of combination of information in a call back url
 		return "", errRes
@@ -823,6 +809,29 @@ func toUserModel(src dto.UserDBResModel) business_object.User {
 		CreatedAt:     src.CreatedAt,
 		UpdatedAt:     src.UpdatedAt,
 	}
+}
+
+func verifyUser(field, validateField string, repo repo.IUserRepo, ctx context.Context) error {
+	var errRes error = errors.New(noti.GenericsErrorWarnMsg)
+
+	if field == "" {
+		return errRes
+	}
+
+	var tmpUser *dto.UserDBResModel
+
+	switch validateField {
+	case id_validate:
+		tmpUser, errRes = repo.GetUser(field, ctx)
+	case email_validate:
+		tmpUser, errRes = repo.GetUserByEmail(field, ctx)
+	}
+
+	if tmpUser == nil || errRes != nil {
+		return errRes
+	}
+
+	return nil
 }
 
 func verifyAccount(field, validateField string, user *dto.UserDBResModel, repo repo.IUserRepo, ctx context.Context) error {

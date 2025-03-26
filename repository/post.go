@@ -100,7 +100,7 @@ func (p *postRepo) GetPostsByKeyword(keyword string, ctx context.Context) (*[]bu
 // GetPosts implements repo.IPostRepo.
 func (p *postRepo) GetPosts(ctx context.Context) (*[]business_object.Post, error) {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetPostTable()) + "GetPosts - "
-	var query string = "SELECT * FROM " + business_object.GetPostTable() + " WHERE is_private = false, is_hidden = false AND status = true"
+	var query string = "SELECT * FROM " + business_object.GetPostTable() + " WHERE is_private = false AND is_hidden = false AND status = true"
 	var internalErr error = errors.New(noti.InternalErr)
 
 	//defer p.db.Close()
@@ -114,10 +114,17 @@ func (p *postRepo) GetPosts(ctx context.Context) (*[]business_object.Post, error
 	var res []business_object.Post
 	for rows.Next() {
 		var x business_object.Post
+		var attachment sql.NullString
 
-		if err := rows.Scan(&x.PostId, &x.AuthorId, &x.Content, &x.IsPrivate, &x.IsHidden, &x.CreatedAt, &x.UpdatedAt, &x.Status); err != nil {
+		if err := rows.Scan(&x.PostId, &x.AuthorId, &x.Content, &attachment, &x.IsPrivate, &x.IsHidden, &x.Status, &x.CreatedAt, &x.UpdatedAt); err != nil {
 			p.logger.Println(errLogMsg + err.Error())
 			return nil, internalErr
+		}
+
+		if attachment.Valid {
+			x.Attachment = attachment.String
+		} else {
+			x.Attachment = "" // Assign an empty string if NULL
 		}
 
 		res = append(res, x)
@@ -134,13 +141,18 @@ func (p *postRepo) GetPost(id string, ctx context.Context) (*business_object.Pos
 	//defer p.db.Close()
 
 	var res business_object.Post
-	if err := p.db.QueryRow(query, id).Scan(&res.PostId, &res.AuthorId, &res.Content, &res.IsPrivate, &res.IsHidden, &res.CreatedAt, &res, res.UpdatedAt, &res.Status); err != nil {
+	var attachment sql.NullString
+	if err := p.db.QueryRow(query, id).Scan(&res.PostId, &res.AuthorId, &res.Content, &attachment, &res.IsPrivate, &res.IsHidden, &res.Status, &res.CreatedAt, &res.UpdatedAt); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
 
 		p.logger.Println(errLogMsg + err.Error())
 		return nil, errors.New(noti.InternalErr)
+	}
+
+	if attachment.Valid {
+		res.Attachment = attachment.String
 	}
 
 	return &res, nil
@@ -163,10 +175,17 @@ func (p *postRepo) GetPostsByUser(id string, ctx context.Context) (*[]business_o
 	var res []business_object.Post
 	for rows.Next() {
 		var x business_object.Post
+		var attachment sql.NullString
 
-		if err := rows.Scan(&x.PostId, &x.AuthorId, &x.Content, &x.IsPrivate, &x.IsHidden, &x.CreatedAt, &x.UpdatedAt, &x.Status); err != nil {
+		if err := rows.Scan(&x.PostId, &x.AuthorId, &x.Content, &attachment, &x.IsPrivate, &x.IsHidden, &x.Status, &x.CreatedAt, &x.UpdatedAt); err != nil {
 			p.logger.Println(errLogMsg + err.Error())
 			return nil, internalErr
+		}
+
+		if attachment.Valid {
+			x.Attachment = attachment.String
+		} else {
+			x.Attachment = "" // Assign an empty string if NULL
 		}
 
 		res = append(res, x)

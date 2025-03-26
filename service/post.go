@@ -57,7 +57,7 @@ func (p *postService) GetPost(id string, ctx context.Context) (*business_object.
 
 // GetPostsByUser implements service.IPostService.
 func (p *postService) GetPostsByUser(id string, ctx context.Context) (*[]business_object.Post, error) {
-	if err := verifyUser(id, p.userRepo, ctx); err != nil {
+	if err := verifyUser(id, id_validate, p.userRepo, ctx); err != nil {
 		return nil, err
 	}
 
@@ -76,7 +76,7 @@ func (p *postService) RemovePost(id string, actorId string, ctx context.Context)
 
 // UpPost implements service.IPostService.
 func (p *postService) UpPost(req dto.UpPostReq, ctx context.Context) error {
-	if err := verifyUser(req.AuthorId, p.userRepo, ctx); err != nil {
+	if err := verifyUser(req.AuthorId, id_validate, p.userRepo, ctx); err != nil {
 		return err
 	}
 

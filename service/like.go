@@ -175,26 +175,6 @@ func (l *likeService) UndoLike(id string, ctx context.Context) error {
 	return l.likeRepo.CancelLike(id, ctx)
 }
 
-func verifyUser(id string, repo repo.IUserRepo, ctx context.Context) error {
-	var errRes error = errors.New(noti.GenericsErrorWarnMsg)
-
-	// Empty ID
-	if id == "" {
-		return errRes
-	}
-
-	user, err := repo.GetUser(id, ctx)
-	if err != nil { // Error accessing db
-		return err
-	}
-
-	if user == nil { // Not exists
-		return errRes
-	}
-
-	return nil
-}
-
 func verifyObject(id, kind string, cmtRepo repo.ICommentRepo, postRepo repo.IPostRepo, ctx context.Context) error {
 	var errRes error = errors.New(noti.GenericsErrorWarnMsg)
 
