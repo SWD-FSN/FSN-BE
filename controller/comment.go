@@ -1,7 +1,6 @@
 package controller
 
 import (
-	action_type "social_network/constant/action_type"
 	"social_network/dto"
 	"social_network/service"
 	"social_network/util"
@@ -113,20 +112,14 @@ func EditComment(ctx *gin.Context) {
 }
 
 func GetCommentsFromPost(ctx *gin.Context) {
-	// service, err := service.GenerateCommentService()
-	// if err != nil {
-	// 	util.GenerateInvalidRequestAndSystemProblemModel(ctx, err)
-	// 	return
-	// }
-
-	// util.ProcessResponse(dto.APIResponse{
-	// 	Data1:   service.GetCommentsFromPost(ctx.Param("id"), ctx),
-	// 	Context: ctx,
-	// })
+	service, err := service.GenerateCommentService()
+	if err != nil {
+		util.GenerateInvalidRequestAndSystemProblemModel(ctx, err)
+		return
+	}
 
 	util.ProcessResponse(dto.APIResponse{
-		Data1:    comments,
-		Context:  ctx,
-		PostType: action_type.Non_post,
+		Data1:   service.GetCommentsFromPost(ctx.Param("id"), ctx),
+		Context: ctx,
 	})
 }

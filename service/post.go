@@ -91,14 +91,15 @@ func (p *postService) UpPost(req dto.UpPostReq, ctx context.Context) error {
 
 	var curTime time.Time = time.Now()
 	return p.postRepo.CreatePost(business_object.Post{
-		PostId:    util.GenerateId(),
-		AuthorId:  req.AuthorId,
-		Content:   req.Content,
-		IsPrivate: *req.IsPrivate,
-		IsHidden:  *req.IsHidden,
-		CreatedAt: curTime,
-		UpdatedAt: curTime,
-		Status:    true,
+		PostId:     util.GenerateId(),
+		AuthorId:   req.AuthorId,
+		Content:    req.Content,
+		Attachment: req.Attachment,
+		IsPrivate:  *req.IsPrivate,
+		IsHidden:   *req.IsHidden,
+		CreatedAt:  curTime,
+		UpdatedAt:  curTime,
+		Status:     true,
 	}, ctx)
 }
 
@@ -119,6 +120,7 @@ func (p *postService) GetPosts(ctx context.Context) *[]dto.PostResponse {
 			res = append(res, dto.PostResponse{
 				PostId:        post.PostId,
 				Content:       post.Content,
+				Attachment:    post.Attachment,
 				IsPrivate:     post.IsPrivate,
 				IsHidden:      post.IsHidden,
 				LikeAmount:    likeAmounts,
@@ -172,6 +174,10 @@ func (p *postService) UpdatePost(req dto.UpdatePostReq, ctx context.Context) err
 
 	// Wait for 3 goroutines to be done
 	wg.Wait()
+
+	if req.Attachment != "" {
+		post.Attachment = req.Attachment
+	}
 
 	post.UpdatedAt = time.Now()
 

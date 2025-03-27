@@ -115,6 +115,7 @@ func (s *searchObjectService) GetObjectsByKeyword(id string, keyword string, ctx
 				postsRes = append(postsRes, dto.PostResponse{
 					PostId:        post.PostId,
 					Content:       post.Content,
+					Attachment:    post.Attachment,
 					IsPrivate:     post.IsPrivate,
 					IsHidden:      post.IsHidden,
 					LikeAmount:    likesAmount,
