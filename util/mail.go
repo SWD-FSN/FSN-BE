@@ -40,7 +40,7 @@ func SendMail(req dto.SendMailRequest) error {
 	}
 
 	m := mail.NewMessage()
-	m.SetHeader("From", serviceEmail)
+	m.SetHeader("From", "fsn@service.vn")
 	m.SetHeader("To", req.Body.Email)
 	m.SetHeader("Subject", req.Body.Subject)
 	m.SetBody("text/html", body.String())
