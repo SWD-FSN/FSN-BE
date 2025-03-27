@@ -15,5 +15,5 @@ func InitializeSearchObjectAPIRoute(server *gin.Engine, logger *log.Logger, port
 	var contextPath string = "search-object"
 
 	var norGroup = server.Group(contextPath)
-	norGroup.GET("/keyword/:keyword", controller.GetObjectsByKeyword)
+	norGroup.GET("user/:userId/keyword/:keyword", controller.GetObjectsByKeyword)
 }

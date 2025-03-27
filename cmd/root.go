@@ -52,4 +52,6 @@ func setUpApiRoutes(server *gin.Engine, logger *log.Logger, port string) {
 	api_route.InitializeSocialRequestAPIRoute(server, logger, port)
 	// Notification
 	api_route.InitializeNotificationRoute(server, logger, port)
+	// Search object
+	api_route.InitializeSearchObjectAPIRoute(server, logger, port)
 }

@@ -71,7 +71,8 @@ func (p *postRepo) GetAllPosts(ctx context.Context) (*[]business_object.Post, er
 // GetPostsByKeyword implements repo.IPostRepo.
 func (p *postRepo) GetPostsByKeyword(keyword string, ctx context.Context) (*[]business_object.Post, error) {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetPostTable()) + "GetPostsByKeyword - "
-	var query string = "SELECT * FROM " + business_object.GetPostTable() + " WHERE is_private = false, is_hidden = false, status = true, LOWER(content) LIKE LOWER('%$1%') \n ORDER BY created_at DESC"
+	var query string = "SELECT * FROM " + business_object.GetPostTable() +
+		" WHERE is_private = false AND is_hidden = false AND status = true AND LOWER(content) LIKE LOWER('%' || $1 || '%') ORDER BY created_at DESC"
 	var internalErr error = errors.New(noti.InternalErr)
 
 	//defer p.db.Close()

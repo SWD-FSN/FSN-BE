@@ -456,7 +456,7 @@ func (u *userRepo) GetInvolvedAccountsFromTag(id string, ctx context.Context) ([
 // GetUsersByKeyword implements repo.IUserRepo.
 func (u *userRepo) GetUsersByKeyword(keyword string, ctx context.Context) (*[]dto.UserDBResModel, error) {
 	var query string = "SELECT * FROM " + business_object.GetUserTable() +
-		" WHERE LOWER(username) LIKE LOWER('%$1%') OR LOWER(full_name) LIKE ('%$2%') OR LOWER(email) LIKE ('%$3%')"
+		" WHERE LOWER(username) LIKE LOWER('%' || $1 || '%') OR LOWER(full_name) LIKE LOWER('%' || $2 || '%') OR LOWER(email) LIKE LOWER('%' || $3 || '%')"
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetUserTable()) + "GetUsersByKeyword - "
 	var internalErr error = errors.New(noti.InternalErr)
 
