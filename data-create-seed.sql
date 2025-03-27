@@ -146,6 +146,7 @@ CREATE TABLE public.social_requests (
                                         author_id character varying(100) NOT NULL,
                                         account_id character varying(100) NOT NULL,
                                         created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+                                        request_type character varying(50) NOT NULL,
                                         CONSTRAINT social_requests_pkey PRIMARY KEY (id),
                                         CONSTRAINT fk_socialrequest_receiver FOREIGN KEY (account_id)
                                             REFERENCES public.users (id) MATCH SIMPLE
@@ -477,8 +478,8 @@ VALUES
     ('notif-8', 'a00c6143-67e2-42db-8351-d8f05c819e9a', '4e8ce455-e59e-4bf6-88ba-defbe325f21c', 'post-3', NULL, 'comment', false);
 
 -- Seed social requests
-INSERT INTO public.social_requests (id, author_id, account_id)
+INSERT INTO public.social_requests (id, author_id, account_id, request_type)
 VALUES
-    ('req-1', '7a105aeb-9fe9-4812-827d-40d496c58d3e', '40eebcec-dc43-4668-bc94-ec480f49481d'),
-    ('req-2', 'a00c6143-67e2-42db-8351-d8f05c819e9a', '04cabad4-5f5f-4245-9b80-cf49b26dfc49'),
-    ('req-3', '4e8ce455-e59e-4bf6-88ba-defbe325f21c', 'a00c6143-67e2-42db-8351-d8f05c819e9a');
+    ('req-1', '7a105aeb-9fe9-4812-827d-40d496c58d3e', '40eebcec-dc43-4668-bc94-ec480f49481d', 'add_friend'),
+    ('req-2', 'a00c6143-67e2-42db-8351-d8f05c819e9a', '04cabad4-5f5f-4245-9b80-cf49b26dfc49', 'add_friend'),
+    ('req-3', '4e8ce455-e59e-4bf6-88ba-defbe325f21c', 'a00c6143-67e2-42db-8351-d8f05c819e9a', 'add_friend');
