@@ -54,11 +54,19 @@ func (l *likeRepo) CancelLike(id string, ctx context.Context) error {
 // CreateLike implements repo.ILikeRepo.
 func (l *likeRepo) CreateLike(like business_object.Like, ctx context.Context) error {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetLikeTable()) + "CreateLike - "
-	var query string = "INSERT INTO " + business_object.GetLikeTable() + "(id, author_id, object_id, object_type, created_at) values ($1, $2, $3, $4, $5)"
+	var query string = "INSERT INTO " + business_object.GetLikeTable() + " (id, author_id, post_id, comment_id, created_at) values ($1, $2, $3, $4, $5)"
 
+	var objectId string
+	if like.CommentId != "" {
+		query = "INSERT INTO " + business_object.GetLikeTable() + " (id, author_id, comment_id, created_at) values ($1, $2, $3, $4)"
+		objectId = like.CommentId
+	} else if like.PostId != "" {
+		query = "INSERT INTO " + business_object.GetLikeTable() + " (id, author_id, post_id, created_at) values ($1, $2, $3, $4)"
+		objectId = like.PostId
+	}
 	//defer l.db.Close()
 
-	if _, err := l.db.Exec(query, like.LikeId, like.AuthorId, like.PostId, like.CommentId, like.CreatedAt); err != nil {
+	if _, err := l.db.Exec(query, like.LikeId, like.AuthorId, objectId, like.CreatedAt); err != nil {
 		l.logger.Println(errLogMsg + err.Error())
 		return errors.New(noti.InternalErr)
 	}

@@ -27,11 +27,11 @@ func InitializePostRepo(db *sql.DB, logger *log.Logger) repo.IPostRepo {
 // CreatePost implements repo.IPostRepo.
 func (p *postRepo) CreatePost(post business_object.Post, ctx context.Context) error {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetPostTable()) + "CreatePost - "
-	var query string = "INSERT INTO " + business_object.GetPostTable() + "(id, author_id, content, is_private, is_hidden, created_at, updated_at, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+	var query string = "INSERT INTO " + business_object.GetPostTable() + "(id, author_id, content, attachment, is_private, is_hidden, status, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)"
 
 	//defer p.db.Close()
 
-	if _, err := p.db.Exec(query, post.PostId, post.AuthorId, post.Content, post.IsPrivate, post.IsHidden, post.CreatedAt, post.UpdatedAt, post.Status); err != nil {
+	if _, err := p.db.Exec(query, post.PostId, post.AuthorId, post.Content, post.Attachment, post.IsPrivate, post.IsHidden, post.Status, post.CreatedAt, post.UpdatedAt); err != nil {
 		p.logger.Println(errLogMsg + err.Error())
 		return errors.New(noti.InternalErr)
 	}

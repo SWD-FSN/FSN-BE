@@ -81,12 +81,13 @@ func (p *postService) UpPost(req dto.UpPostReq, ctx context.Context) error {
 	}
 
 	// Set status
+	var boolStatus bool = false
 	if req.IsPrivate == nil {
-		*req.IsPrivate = false
+		req.IsPrivate = &boolStatus
 	}
 
 	if req.IsHidden == nil {
-		*req.IsHidden = false
+		req.IsHidden = &boolStatus
 	}
 
 	var curTime time.Time = time.Now()
@@ -109,7 +110,7 @@ func (p *postService) GetPosts(ctx context.Context) *[]dto.PostResponse {
 	posts, _ := p.postRepo.GetPosts(ctx)
 
 	for _, post := range *posts {
-		likes, _ := p.likeRepo.GetLikesFromObject(post.PostId, business_object.GetPostTable(), ctx)
+		likes, _ := p.likeRepo.GetLikesFromObject(post.PostId, post_object, ctx)
 		author, _ := p.userRepo.GetUser(post.AuthorId, ctx)
 
 		if author != nil {
