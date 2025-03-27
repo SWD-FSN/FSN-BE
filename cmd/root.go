@@ -50,4 +50,6 @@ func setUpApiRoutes(server *gin.Engine, logger *log.Logger, port string) {
 	api_route.InitializeLikeAPIRoute(server, logger, port)
 	// Social Request
 	api_route.InitializeSocialRequestAPIRoute(server, logger, port)
+	// Notification
+	api_route.InitializeNotificationRoute(server, logger, port)
 }
