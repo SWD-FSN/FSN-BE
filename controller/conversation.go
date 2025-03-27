@@ -92,3 +92,22 @@ func CreateConversation(ctx *gin.Context) {
 		PostType: action_type.Non_post,
 	})
 }
+
+func CreateMessage(ctx *gin.Context) {
+	var request dto.CreateMessageRequest
+	if ctx.ShouldBindJSON(&request) != nil {
+		util.GenerateInvalidRequestAndSystemProblemModel(ctx, nil)
+		return
+	}
+
+	service, err := service.GenerateConversationService()
+	if err != nil {
+		util.GenerateInvalidRequestAndSystemProblemModel(ctx, err)
+		return
+	}
+
+	util.ProcessResponse(dto.APIResponse{
+		ErrMsg:  service.CreateMessage(request, ctx),
+		Context: ctx,
+	})
+}
