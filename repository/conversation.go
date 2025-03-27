@@ -27,7 +27,7 @@ func InitializeConversationRepo(db *sql.DB, logger *log.Logger) repo.IConversati
 // GetConversationOfTwoUsers implements repo.IConversationRepo.
 func (c *conversationRepo) GetConversationOfTwoUsers(userId1, userId2 string, ctx context.Context) (*businessObject.Conversation, error) {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, businessObject.GetConversationTable()) + "GetConversationOfTwoUsers - "
-	var query string = "SELECT * FROM " + businessObject.GetConversationTable() + " WHERE members LIKE '%?%' AND members LIKE '%?%"
+	var query string = "SELECT * FROM " + businessObject.GetConversationTable() + " WHERE members LIKE '%' || $1 || '%' AND members LIKE '%' || $2 || '%'"
 	var internalErr error = errors.New(noti.InternalErr)
 
 	rows, err := c.db.Query(query, userId1, userId2)

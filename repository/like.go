@@ -136,17 +136,19 @@ func (l *likeRepo) GetLike(id string, ctx context.Context) (*business_object.Lik
 // GetLikesFromObject implements repo.ILikeRepo.
 func (l *likeRepo) GetLikesFromObject(id string, kind string, ctx context.Context) (*[]business_object.Like, error) {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetLikeTable()) + "GetLikesFromObject - "
-	var query string = "SELECT * FROM " + business_object.GetLikeTable() + " WHERE "
+	var query string
 	if kind == "post" {
-		query += "post_id = $1"
+		query = "SELECT * FROM " + business_object.GetLikeTable() + " WHERE post_id = $1"
 	} else if kind == "comment" {
-		query += "comment_id = $1"
+		query = "SELECT * FROM " + business_object.GetLikeTable() + " WHERE comment_id = $1"
 	}
+
+	l.logger.Println(query)
 	var internalErr error = errors.New(noti.InternalErr)
 
 	//defer l.db.Close()
 
-	rows, err := l.db.Query(query, id, kind)
+	rows, err := l.db.Query(query, id)
 	if err != nil {
 		l.logger.Println(errLogMsg, err.Error())
 		return nil, internalErr

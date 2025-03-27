@@ -104,7 +104,9 @@ func (p *personalProfileService) GetPersonalProfile(actorId string, userId strin
 	go func() {
 		defer wg.Done()
 		conversation, _ := p.conversationRepo.GetConversationOfTwoUsers(actorId, userId, ctx)
-		conversationId = conversation.ConversationId
+		if conversation != nil {
+			conversationId = conversation.ConversationId
+		}
 	}()
 
 	// Fetch post(s)
