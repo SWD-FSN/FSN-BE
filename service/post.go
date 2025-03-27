@@ -112,12 +112,16 @@ func (p *postService) GetPosts(ctx context.Context) *[]dto.PostResponse {
 		author, _ := p.userRepo.GetUser(post.AuthorId, ctx)
 
 		if author != nil {
+			var likeAmounts int = 0
+			if likes != nil {
+				likeAmounts = len(*likes)
+			}
 			res = append(res, dto.PostResponse{
 				PostId:        post.PostId,
 				Content:       post.Content,
 				IsPrivate:     post.IsPrivate,
 				IsHidden:      post.IsHidden,
-				LikeAmount:    len(*likes),
+				LikeAmount:    likeAmounts,
 				CreatedAt:     post.CreatedAt,
 				AuthorId:      author.UserId,
 				Username:      author.Username,
