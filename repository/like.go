@@ -58,7 +58,7 @@ func (l *likeRepo) CreateLike(like business_object.Like, ctx context.Context) er
 
 	//defer l.db.Close()
 
-	if _, err := l.db.Exec(query, like.LikeId, like.AuthorId, like.ObjectId, like.ObjectType, like.CreatedAt); err != nil {
+	if _, err := l.db.Exec(query, like.LikeId, like.AuthorId, like.PostId, like.CommentId, like.CreatedAt); err != nil {
 		l.logger.Println(errLogMsg + err.Error())
 		return errors.New(noti.InternalErr)
 	}
@@ -83,10 +83,19 @@ func (l *likeRepo) GetAllLikes(ctx context.Context) (*[]business_object.Like, er
 	var res []business_object.Like
 	for rows.Next() {
 		var x business_object.Like
+		var postId, commentId sql.NullString
 
-		if err := rows.Scan(&x.LikeId, &x.AuthorId, &x.ObjectId, &x.ObjectId, &x.ObjectType, &x.CreatedAt); err != nil {
+		if err := rows.Scan(&x.LikeId, &x.AuthorId, &postId, &commentId, &x.CreatedAt); err != nil {
 			l.logger.Println(errLogMsg + err.Error())
 			return nil, internalErr
+		}
+
+		if postId.Valid {
+			x.PostId = postId.String
+		}
+
+		if commentId.Valid {
+			x.CommentId = commentId.String
 		}
 
 		res = append(res, x)
@@ -103,7 +112,8 @@ func (l *likeRepo) GetLike(id string, ctx context.Context) (*business_object.Lik
 	//defer l.db.Close()
 
 	var res business_object.Like
-	if err := l.db.QueryRow(query, id).Scan(&res.LikeId, &res.AuthorId, &res.ObjectId, &res.ObjectType, &res.CreatedAt); err != nil {
+	var postId, commentId sql.NullString
+	if err := l.db.QueryRow(query, id).Scan(&res.LikeId, &res.AuthorId, &postId, &commentId, &res.CreatedAt); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
@@ -112,13 +122,26 @@ func (l *likeRepo) GetLike(id string, ctx context.Context) (*business_object.Lik
 		return nil, errors.New(noti.InternalErr)
 	}
 
+	if postId.Valid {
+		res.PostId = postId.String
+	}
+
+	if commentId.Valid {
+		res.CommentId = commentId.String
+	}
+
 	return &res, nil
 }
 
 // GetLikesFromObject implements repo.ILikeRepo.
 func (l *likeRepo) GetLikesFromObject(id string, kind string, ctx context.Context) (*[]business_object.Like, error) {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetLikeTable()) + "GetLikesFromObject - "
-	var query string = "SELECT * FROM " + business_object.GetLikeTable() + " WHERE object_id = $1 AND object_type = $2"
+	var query string = "SELECT * FROM " + business_object.GetLikeTable() + " WHERE "
+	if kind == "post" {
+		query += "post_id = $1"
+	} else if kind == "comment" {
+		query += "comment_id = $1"
+	}
 	var internalErr error = errors.New(noti.InternalErr)
 
 	//defer l.db.Close()
@@ -132,10 +155,19 @@ func (l *likeRepo) GetLikesFromObject(id string, kind string, ctx context.Contex
 	var res []business_object.Like
 	for rows.Next() {
 		var x business_object.Like
+		var postId, commentId sql.NullString
 
-		if err := rows.Scan(&x.LikeId, &x.AuthorId, &x.ObjectId, &x.ObjectId, &x.ObjectType, &x.CreatedAt); err != nil {
+		if err := rows.Scan(&x.LikeId, &x.AuthorId, &postId, &commentId, &x.CreatedAt); err != nil {
 			l.logger.Println(errLogMsg + err.Error())
 			return nil, internalErr
+		}
+
+		if postId.Valid {
+			x.PostId = postId.String
+		}
+
+		if commentId.Valid {
+			x.CommentId = commentId.String
 		}
 
 		res = append(res, x)

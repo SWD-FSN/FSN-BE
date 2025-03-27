@@ -75,7 +75,7 @@ func generateContentAndContentTypeOfMsg(actorUsername, actionType, objectType, o
 		case add_friend_request:
 			content = actorUsername + " sends an " + actionType + " request to you."
 		default:
-			content = actorUsername + actionType + "s " + "on your " + objectType + "."
+			content = actorUsername + " " + actionType + "s " + "on your " + objectType + "."
 			// VD: Nam Nguyen + like + s + on your + post
 		}
 	}

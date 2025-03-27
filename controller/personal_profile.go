@@ -1,6 +1,7 @@
 package controller
 
 import (
+	action_type "social_network/constant/action_type"
 	"social_network/dto"
 	"social_network/service"
 	"social_network/util"
@@ -19,7 +20,8 @@ func GetPersonalProfile(ctx *gin.Context) {
 	var userId = ctx.Param("userId")
 
 	util.ProcessResponse(dto.APIResponse{
-		Data1:   service.GetPersonalProfile(actorId, userId, ctx),
-		Context: ctx,
+		Data1:    service.GetPersonalProfile(actorId, userId, ctx),
+		PostType: action_type.Non_post,
+		Context:  ctx,
 	})
 }

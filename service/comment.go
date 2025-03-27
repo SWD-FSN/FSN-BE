@@ -79,7 +79,7 @@ func (c *commentService) EditComment(req dto.EditCommentRequest, ctx context.Con
 func (c *commentService) GetCommentsFromPost(id string, ctx context.Context) *[]dto.CommentDataResponse {
 	tmpStorage, _ := c.commentRepo.GetCommentsFromPost(id, ctx)
 
-	var res *[]dto.CommentDataResponse
+	var res []dto.CommentDataResponse
 
 	for _, cmt := range *tmpStorage {
 		var user *dto.UserDBResModel
@@ -102,18 +102,23 @@ func (c *commentService) GetCommentsFromPost(id string, ctx context.Context) *[]
 		wg.Wait()
 
 		// Add data
-		*res = append(*res, dto.CommentDataResponse{
+
+		var likeAmount int = 0
+		if likes != nil {
+			likeAmount = len(*likes)
+		}
+		res = append(res, dto.CommentDataResponse{
 			AuthorId:      cmt.AuthorId,
 			Author_avatar: user.ProfileAvatar,
 			Username:      user.Username,
 			CommentId:     cmt.CommentId,
 			Content:       cmt.Content,
 			CreatedAt:     cmt.CreatedAt,
-			LikeAmount:    len(*likes),
+			LikeAmount:    likeAmount,
 		})
 	}
 
-	return res
+	return &res
 }
 
 // PostComment implements service.ICommentService.

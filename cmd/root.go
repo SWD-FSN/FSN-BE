@@ -54,4 +54,6 @@ func setUpApiRoutes(server *gin.Engine, logger *log.Logger, port string) {
 	api_route.InitializeNotificationRoute(server, logger, port)
 	// Search object
 	api_route.InitializeSearchObjectAPIRoute(server, logger, port)
+	// Personal profile
+	api_route.InitializePersonalProfileAPIRoute(server, logger, port)
 }

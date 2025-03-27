@@ -102,14 +102,20 @@ func (l *likeService) DoLike(req dto.DoLikeReq, ctx context.Context) error {
 	}
 
 	var curTime time.Time = time.Now()
+	var like = business_object.Like{
+		LikeId:    util.GenerateId(),
+		AuthorId:  req.ActorId,
+		CreatedAt: curTime,
+	}
 
-	if err := l.likeRepo.CreateLike(business_object.Like{
-		LikeId:     util.GenerateId(),
-		AuthorId:   req.ActorId,
-		ObjectId:   req.ObjectId,
-		ObjectType: req.ObjectType,
-		CreatedAt:  curTime,
-	}, ctx); err != nil {
+	switch req.ObjectType {
+	case comment_object:
+		like.CommentId = req.ObjectId
+	case post_object:
+		like.PostId = req.ObjectId
+	}
+
+	if err := l.likeRepo.CreateLike(like, ctx); err != nil {
 		return err
 	}
 
@@ -156,29 +162,29 @@ func (l *likeService) GetLikesFromObject(id string, kind string, ctx context.Con
 
 // UndoLike implements service.ILikeService.
 func (l *likeService) UndoLike(id string, ctx context.Context) error {
-	like, err := l.likeRepo.GetLike(id, ctx)
+	_, err := l.likeRepo.GetLike(id, ctx)
 	if err != nil {
 		return err
 	}
 
-	notification, err := l.notiRepo.GetNotificationOnAction(dto.GetNotiOnActionRequest{
-		ActorId:    like.AuthorId,
-		ObjectId:   like.ObjectId,
-		ObjectType: like.ObjectType,
-		Action:     "like",
-		CreatedAt:  like.CreatedAt,
-	}, ctx)
-	if err != nil {
-		return err
-	}
+	// notification, err := l.notiRepo.GetNotificationOnAction(dto.GetNotiOnActionRequest{
+	// 	ActorId:    like.AuthorId,
+	// 	ObjectId:   like.ObjectId,
+	// 	ObjectType: like.ObjectType,
+	// 	Action:     "like",
+	// 	CreatedAt:  like.CreatedAt,
+	// }, ctx)
+	// if err != nil {
+	// 	return err
+	// }
 
-	if notification == nil {
-		return errors.New(noti.GenericsErrorWarnMsg)
-	}
+	// if notification == nil {
+	// 	return errors.New(noti.GenericsErrorWarnMsg)
+	// }
 
-	if err := l.notiRepo.RemoveNotification(notification.NotificationId, ctx); err != nil {
-		return err
-	}
+	// if err := l.notiRepo.RemoveNotification(notification.NotificationId, ctx); err != nil {
+	// 	return err
+	// }
 
 	return l.likeRepo.CancelLike(id, ctx)
 }

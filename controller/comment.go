@@ -1,6 +1,7 @@
 package controller
 
 import (
+	actiontype "social_network/constant/action_type"
 	"social_network/dto"
 	"social_network/service"
 	"social_network/util"
@@ -119,7 +120,8 @@ func GetCommentsFromPost(ctx *gin.Context) {
 	}
 
 	util.ProcessResponse(dto.APIResponse{
-		Data1:   service.GetCommentsFromPost(ctx.Param("id"), ctx),
-		Context: ctx,
+		Data1:    service.GetCommentsFromPost(ctx.Param("id"), ctx),
+		PostType: actiontype.Non_post,
+		Context:  ctx,
 	})
 }

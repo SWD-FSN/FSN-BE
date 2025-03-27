@@ -65,12 +65,18 @@ func (p *personalProfileService) GetPersonalProfile(actorId string, userId strin
 		for _, post := range *tmpStorage {
 			likes, _ := p.likeRepo.GetLikesFromObject(post.PostId, post_obj, ctx)
 
+			var likeAmount int = 0
+			if likes != nil {
+				likeAmount = len(*likes)
+			}
+
 			posts = append(posts, dto.PostResponse{
 				PostId:        post.PostId,
 				Content:       post.Content,
+				Attachment:    post.Attachment,
 				IsPrivate:     post.IsPrivate,
 				IsHidden:      post.IsHidden,
-				LikeAmount:    len(*likes),
+				LikeAmount:    likeAmount,
 				AuthorId:      userId,
 				CreatedAt:     post.CreatedAt,
 				Username:      user.Username,
@@ -110,14 +116,19 @@ func (p *personalProfileService) GetPersonalProfile(actorId string, userId strin
 			if !post.IsHidden {
 				// Lấy lượt like của bài
 				likes, _ := p.likeRepo.GetLikesFromObject(post.PostId, post_obj, ctx)
+				var likeAmount int = 0
+				if likes != nil {
+					likeAmount = len(*likes)
+				}
 
 				// Tạo post theo model
 				var postResponse = dto.PostResponse{
 					PostId:        post.PostId,
 					Content:       post.Content,
+					Attachment:    post.Attachment,
 					IsPrivate:     post.IsPrivate,
 					IsHidden:      post.IsHidden,
-					LikeAmount:    len(*likes),
+					LikeAmount:    likeAmount,
 					AuthorId:      userId,
 					CreatedAt:     post.CreatedAt,
 					Username:      user.Username,
