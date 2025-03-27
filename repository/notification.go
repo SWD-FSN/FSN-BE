@@ -28,11 +28,23 @@ func InitializeNotiRepo(db *sql.DB, logger *log.Logger) repo.INotificationRepo {
 // CreateNotification implements repo.INotificationRepo.
 func (n *notificationRepo) CreateNotification(notification businessobject.Notification, ctx context.Context) error {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetNotificationTable()) + "CreateNotification - "
-	var query string = "INSERT INTO " + business_object.GetNotificationTable() + "(id, actor_id, target_user_id, post_id, comment_id, action, is_read, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)"
+	var query string
+
+	var objectId string
+	if notification.TargetUserId != "" {
+		query = "INSERT INTO " + business_object.GetNotificationTable() + "(id, actor_id, target_user_id, action, is_read, created_at) VALUES ($1, $2, $3, $4, $5, $6)"
+		objectId = notification.TargetUserId
+	} else if notification.CommentId != "" {
+		query = "INSERT INTO " + business_object.GetNotificationTable() + "(id, actor_id, comment_id, action, is_read, created_at) VALUES ($1, $2, $3, $4, $5, $6)"
+		objectId = notification.CommentId
+	} else if notification.PostId != "" {
+		query = "INSERT INTO " + business_object.GetNotificationTable() + "(id, actor_id, post_id, action, is_read, created_at) VALUES ($1, $2, $3, $4, $5, $6)"
+		objectId = notification.PostId
+	}
 
 	//defer n.db.Close()
 
-	if _, err := n.db.Exec(query, notification.NotificationId, notification.ActorId, notification.TargetUserId, notification.PostId, notification.CommentId, notification.Action, notification.IsRead, notification.CreatedAt); err != nil {
+	if _, err := n.db.Exec(query, notification.NotificationId, notification.ActorId, objectId, notification.Action, notification.IsRead, notification.CreatedAt); err != nil {
 		n.logger.Println(errLogMsg + err.Error())
 		return errors.New(noti.InternalErr)
 	}
