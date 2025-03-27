@@ -108,12 +108,16 @@ func (s *searchObjectService) GetObjectsByKeyword(id string, keyword string, ctx
 			author, _ := s.userRepo.GetUser(post.AuthorId, ctx)
 
 			if author != nil {
+				var likesAmount int = 0
+				if likes != nil {
+					likesAmount = len(*likes)
+				}
 				postsRes = append(postsRes, dto.PostResponse{
 					PostId:        post.PostId,
 					Content:       post.Content,
 					IsPrivate:     post.IsPrivate,
 					IsHidden:      post.IsHidden,
-					LikeAmount:    len(*likes),
+					LikeAmount:    likesAmount,
 					CreatedAt:     post.CreatedAt,
 					AuthorId:      author.UserId,
 					Username:      author.Username,

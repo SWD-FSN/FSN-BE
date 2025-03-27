@@ -56,10 +56,15 @@ func (p *postRepo) GetAllPosts(ctx context.Context) (*[]business_object.Post, er
 	var res []business_object.Post
 	for rows.Next() {
 		var x business_object.Post
+		var attachment sql.NullString
 
-		if err := rows.Scan(&x.PostId, &x.AuthorId, &x.Content, &x.IsPrivate, &x.IsHidden, &x.CreatedAt, &x.UpdatedAt, &x.Status); err != nil {
+		if err := rows.Scan(&x.PostId, &x.AuthorId, &x.Content, &attachment, &x.IsPrivate, &x.IsHidden, &x.Status, &x.CreatedAt, &x.UpdatedAt); err != nil {
 			p.logger.Println(errLogMsg + err.Error())
 			return nil, internalErr
+		}
+
+		if attachment.Valid {
+			x.Attachment = attachment.String
 		}
 
 		res = append(res, x)
@@ -86,10 +91,15 @@ func (p *postRepo) GetPostsByKeyword(keyword string, ctx context.Context) (*[]bu
 	var res []business_object.Post
 	for rows.Next() {
 		var x business_object.Post
+		var attachment sql.NullString
 
-		if err := rows.Scan(&x.PostId, &x.AuthorId, &x.Content, &x.IsPrivate, &x.IsHidden, &x.CreatedAt, &x.UpdatedAt, &x.Status); err != nil {
+		if err := rows.Scan(&x.PostId, &x.AuthorId, &x.Content, &attachment, &x.IsPrivate, &x.IsHidden, &x.Status, &x.CreatedAt, &x.UpdatedAt); err != nil {
 			p.logger.Println(errLogMsg + err.Error())
 			return nil, internalErr
+		}
+
+		if attachment.Valid {
+			x.Attachment = attachment.String
 		}
 
 		res = append(res, x)
