@@ -4,6 +4,7 @@ import (
 	"fmt"
 	action_type "social_network/constant/action_type"
 	"social_network/dto"
+	"social_network/service"
 	"social_network/util"
 	"time"
 
@@ -64,6 +65,29 @@ func GetInternalConversationUIResponse(ctx *gin.Context) {
 			RequestUserid:      "user_1",
 			Messages:           &messages,
 		},
+		Context:  ctx,
+		PostType: action_type.Non_post,
+	})
+}
+
+func CreateConversation(ctx *gin.Context) {
+	var request dto.CreateConversationRequest
+	if ctx.ShouldBindJSON(&request) != nil {
+		util.GenerateInvalidRequestAndSystemProblemModel(ctx, nil)
+		return
+	}
+
+	service, err := service.GenerateConversationService()
+	if err != nil {
+		util.GenerateInvalidRequestAndSystemProblemModel(ctx, err)
+		return
+	}
+
+	res, err := service.CreateConversation(request, ctx)
+
+	util.ProcessResponse(dto.APIResponse{
+		Data1:    res,
+		ErrMsg:   err,
 		Context:  ctx,
 		PostType: action_type.Non_post,
 	})

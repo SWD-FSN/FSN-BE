@@ -34,7 +34,7 @@ func InitializeConversationService(db *sql.DB, logger *log.Logger) service.IConv
 	}
 }
 
-func GenerateMessageService() (service.IConversationService, error) {
+func GenerateConversationService() (service.IConversationService, error) {
 	var logger = util.GetLogConfig()
 
 	cnn, err := db.ConnectDB(logger)
@@ -243,7 +243,7 @@ func (c *conersationService) CreateConversation(req dto.CreateConversationReques
 
 	var hostId *string
 	if isGroup {
-		*hostId = req.ActorId
+		hostId = &req.ActorId
 	}
 
 	var conversationName string
