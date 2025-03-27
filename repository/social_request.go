@@ -46,7 +46,7 @@ func (a *socialRequestRepo) GetRequest(id string, ctx context.Context) (*busines
 	//defer a.db.Close()
 
 	var res business_object.SocialRequest
-	if err := a.db.QueryRow(query, id).Scan(&res.RequestId, &res.AuthorId, &res.AccountId, &res.CreatedAt); err != nil {
+	if err := a.db.QueryRow(query, id).Scan(&res.RequestId, &res.AuthorId, &res.AccountId, &res.CreatedAt, &res.RequestType); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
@@ -76,7 +76,7 @@ func (a *socialRequestRepo) GetRequestsToUser(id string, requestType string, ctx
 	for rows.Next() {
 		var x business_object.SocialRequest
 
-		if err := rows.Scan(&x.RequestId, &x.AuthorId, &x.AccountId, &x.RequestType, &x.CreatedAt); err != nil {
+		if err := rows.Scan(&x.RequestId, &x.AuthorId, &x.AccountId, &x.CreatedAt, &x.RequestType); err != nil {
 			a.logger.Println(errLogMsg + err.Error())
 			return nil, internalErr
 		}
@@ -105,7 +105,7 @@ func (a *socialRequestRepo) GetAllRequests(ctx context.Context) (*[]business_obj
 	for rows.Next() {
 		var x business_object.SocialRequest
 
-		if err := rows.Scan(&x.RequestId, &x.AuthorId, &x.AccountId, &x.RequestType, &x.CreatedAt); err != nil {
+		if err := rows.Scan(&x.RequestId, &x.AuthorId, &x.AccountId, &x.CreatedAt, &x.RequestType); err != nil {
 			a.logger.Println(errLogMsg + err.Error())
 			return nil, internalErr
 		}
@@ -134,7 +134,7 @@ func (a *socialRequestRepo) GetUserRequests(id string, requestType string, ctx c
 	for rows.Next() {
 		var x business_object.SocialRequest
 
-		if err := rows.Scan(&x.RequestId, &x.AuthorId, &x.AccountId, &x.RequestType, &x.CreatedAt); err != nil {
+		if err := rows.Scan(&x.RequestId, &x.AuthorId, &x.AccountId, &x.CreatedAt, &x.RequestType); err != nil {
 			a.logger.Println(errLogMsg + err.Error())
 			return nil, internalErr
 		}

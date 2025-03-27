@@ -47,14 +47,14 @@ func (u *userRepo) ChangeUserStatus(id string, status bool, ctx context.Context)
 	var securityQuery string = "UPDATE " + business_object.GetUserSecurityTable() + " SET access_token = NULL, access_expiration = NULL," +
 		" refresh_token = NULL, refresh_expiration = NULL, action_token = NULL, action_expiration = NULL, fail_access = 0, last_fail = " +
 		lastFailValueQuery + " WHERE id = $1"
-	defer u.db.Close()
+	//defer u.db.Close()
 
 	var errChan chan error = make(chan error, 2)
 	var wg sync.WaitGroup
 	wg.Add(2)
 
 	go func() {
-		defer wg.Done()
+		//defer wg.Done()
 		if _, err := u.db.Exec(userQuery, fmt.Sprint(status), time.Now().GoString(), id); err != nil {
 			u.logger.Println(errLogMsg + err.Error())
 			errChan <- err
@@ -62,7 +62,7 @@ func (u *userRepo) ChangeUserStatus(id string, status bool, ctx context.Context)
 	}()
 
 	go func() {
-		defer wg.Done()
+		//defer wg.Done()
 		if _, err := u.db.Exec(securityQuery, id); err != nil {
 			u.logger.Println(errLogMsg + err.Error())
 			errChan <- err
@@ -84,7 +84,7 @@ func (u *userRepo) ChangeUserStatus(id string, status bool, ctx context.Context)
 func (u *userRepo) GetAllUsers(ctx context.Context) (*[]dto.UserDBResModel, error) {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetUserTable()) + "GetAllUsers - "
 	var query string = "SELECT * FROM " + business_object.GetUserTable()
-	defer u.db.Close()
+	//defer u.db.Close()
 
 	rows, err := u.db.Query(query)
 	if err != nil {
@@ -97,11 +97,12 @@ func (u *userRepo) GetAllUsers(ctx context.Context) (*[]dto.UserDBResModel, erro
 		var x dto.UserDBResModel
 		var isActivated sql.NullBool
 		var isHaveToResetPw sql.NullBool
+		var friends, followers, followings, blockUsers sql.NullString
 
 		if err := rows.Scan(
 			&x.UserId, &x.RoleId, &x.FullName, &x.Username, &x.Email, &x.Password,
-			&x.DateOfBirth, &x.ProfileAvatar, &x.Bio, &x.Friends, &x.Followers,
-			&x.Followings, &x.BlockUsers, &x.Conversations, &x.IsPrivate,
+			&x.DateOfBirth, &x.ProfileAvatar, &x.Bio, &friends, &followers,
+			&followings, &blockUsers, &x.Conversations, &x.IsPrivate,
 			&x.IsActive, &isActivated, &isHaveToResetPw, &x.CreatedAt, &x.UpdatedAt); err != nil {
 
 			u.logger.Println(errLogMsg + err.Error())
@@ -112,6 +113,22 @@ func (u *userRepo) GetAllUsers(ctx context.Context) (*[]dto.UserDBResModel, erro
 		if isHaveToResetPw.Valid {
 			boolVal := isHaveToResetPw.Bool
 			x.IsHaveToResetPw = &boolVal
+		}
+
+		if friends.Valid {
+			x.Friends = friends.String
+		}
+
+		if followers.Valid {
+			x.Followers = followers.String
+		}
+
+		if followings.Valid {
+			x.Followings = followings.String
+		}
+
+		if blockUsers.Valid {
+			x.BlockUsers = blockUsers.String
 		}
 
 		res = append(res, x)
@@ -124,7 +141,7 @@ func (u *userRepo) GetAllUsers(ctx context.Context) (*[]dto.UserDBResModel, erro
 func (u *userRepo) GetUsersByStatus(status bool, ctx context.Context) (*[]dto.UserDBResModel, error) {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetUserTable()) + "GetUsersByStatus - "
 	var query string = "SELECT * FROM " + business_object.GetUserTable() + " WHERE is_active = $1"
-	defer u.db.Close()
+	//defer u.db.Close()
 
 	rows, err := u.db.Query(query, status)
 	if err != nil {
@@ -137,11 +154,12 @@ func (u *userRepo) GetUsersByStatus(status bool, ctx context.Context) (*[]dto.Us
 		var x dto.UserDBResModel
 		var isActivated sql.NullBool
 		var isHaveToResetPw sql.NullBool
+		var friends, followers, followings, blockUsers sql.NullString
 
 		if err := rows.Scan(
 			&x.UserId, &x.RoleId, &x.FullName, &x.Username, &x.Email, &x.Password,
-			&x.DateOfBirth, &x.ProfileAvatar, &x.Bio, &x.Friends, &x.Followers,
-			&x.Followings, &x.BlockUsers, &x.Conversations, &x.IsPrivate,
+			&x.DateOfBirth, &x.ProfileAvatar, &x.Bio, &friends, &followers,
+			&followings, &blockUsers, &x.Conversations, &x.IsPrivate,
 			&x.IsActive, &isActivated, &isHaveToResetPw, &x.CreatedAt, &x.UpdatedAt); err != nil {
 
 			u.logger.Println(errLogMsg + err.Error())
@@ -154,6 +172,22 @@ func (u *userRepo) GetUsersByStatus(status bool, ctx context.Context) (*[]dto.Us
 			x.IsHaveToResetPw = &boolVal
 		}
 
+		if friends.Valid {
+			x.Friends = friends.String
+		}
+
+		if followers.Valid {
+			x.Followers = followers.String
+		}
+
+		if followings.Valid {
+			x.Followings = followings.String
+		}
+
+		if blockUsers.Valid {
+			x.BlockUsers = blockUsers.String
+		}
+
 		res = append(res, x)
 	}
 
@@ -164,16 +198,17 @@ func (u *userRepo) GetUsersByStatus(status bool, ctx context.Context) (*[]dto.Us
 func (u *userRepo) GetUserByEmail(email string, ctx context.Context) (*dto.UserDBResModel, error) {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetUserTable()) + "GetUserByEmail - "
 	var query string = "SELECT * from " + business_object.GetUserTable() + " WHERE LOWER(email) = LOWER($1)"
-	//defer u.db.Close()
+	////defer u.db.Close()
 
 	var res dto.UserDBResModel
 	var isActivated sql.NullBool
 	var isHaveToResetPw sql.NullBool
+	var friends, followers, followings, blockUsers sql.NullString
 
 	if err := u.db.QueryRow(query, email).Scan(
 		&res.UserId, &res.RoleId, &res.FullName, &res.Username, &res.Email, &res.Password,
-		&res.DateOfBirth, &res.ProfileAvatar, &res.Bio, &res.Friends, &res.Followers,
-		&res.Followings, &res.BlockUsers, &res.Conversations, &res.IsPrivate,
+		&res.DateOfBirth, &res.ProfileAvatar, &res.Bio, &friends, &followers,
+		&followings, &blockUsers, &res.Conversations, &res.IsPrivate,
 		&res.IsActive, &isActivated, &isHaveToResetPw, &res.CreatedAt, &res.UpdatedAt); err != nil {
 
 		if err == sql.ErrNoRows {
@@ -191,6 +226,22 @@ func (u *userRepo) GetUserByEmail(email string, ctx context.Context) (*dto.UserD
 		res.IsHaveToResetPw = &boolVal
 	}
 
+	if friends.Valid {
+		res.Friends = friends.String
+	}
+
+	if followers.Valid {
+		res.Followers = followers.String
+	}
+
+	if followings.Valid {
+		res.Followings = followings.String
+	}
+
+	if blockUsers.Valid {
+		res.BlockUsers = blockUsers.String
+	}
+
 	return &res, nil
 }
 
@@ -198,7 +249,7 @@ func (u *userRepo) GetUserByEmail(email string, ctx context.Context) (*dto.UserD
 func (u *userRepo) GetUsersByRole(id string, ctx context.Context) (*[]dto.UserDBResModel, error) {
 	var query string = "SELECT * from " + business_object.GetUserTable() + " WHERE role_id = $1"
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetUserTable()) + "GetUsersByRole - "
-	defer u.db.Close()
+	//defer u.db.Close()
 
 	rows, err := u.db.Query(query, id)
 	if err != nil {
@@ -211,11 +262,12 @@ func (u *userRepo) GetUsersByRole(id string, ctx context.Context) (*[]dto.UserDB
 		var x dto.UserDBResModel
 		var isActivated sql.NullBool
 		var isHaveToResetPw sql.NullBool
+		var friends, followers, followings, blockUsers sql.NullString
 
 		if err := rows.Scan(
 			&x.UserId, &x.RoleId, &x.FullName, &x.Username, &x.Email, &x.Password,
-			&x.DateOfBirth, &x.ProfileAvatar, &x.Bio, &x.Friends, &x.Followers,
-			&x.Followings, &x.BlockUsers, &x.Conversations, &x.IsPrivate,
+			&x.DateOfBirth, &x.ProfileAvatar, &x.Bio, &friends, &followers,
+			&followings, &blockUsers, &x.Conversations, &x.IsPrivate,
 			&x.IsActive, &isActivated, &isHaveToResetPw, &x.CreatedAt, &x.UpdatedAt); err != nil {
 
 			u.logger.Println(errLogMsg + err.Error())
@@ -226,6 +278,22 @@ func (u *userRepo) GetUsersByRole(id string, ctx context.Context) (*[]dto.UserDB
 		if isHaveToResetPw.Valid {
 			boolVal := isHaveToResetPw.Bool
 			x.IsHaveToResetPw = &boolVal
+		}
+
+		if friends.Valid {
+			x.Friends = friends.String
+		}
+
+		if followers.Valid {
+			x.Followers = followers.String
+		}
+
+		if followings.Valid {
+			x.Followings = followings.String
+		}
+
+		if blockUsers.Valid {
+			x.BlockUsers = blockUsers.String
 		}
 
 		res = append(res, x)
@@ -239,12 +307,14 @@ func (u *userRepo) UpdateUser(user dto.UserDBResModel, ctx context.Context) erro
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetUserTable()) + "UpdateUser - "
 	var query string = "UPDATE " + business_object.GetUserTable() + " SET email = $1, password = $2, role_id = $3, " +
 		"full_name = $4, username = $5, date_of_birth = $6, profile_avatar = $7, bio = $8, followers = $9, " +
-		"followings = $10, block_users = $11, conversations = $12, is_private = $13, is_active = $14, is_activated = $15, " +
-		"updated_at = $16 WHERE id = $17"
-	defer u.db.Close()
+		"followings = $10, friends = $11, block_users = $12, conversations = $13, is_private = $14, is_active = $15, is_activated = $16, " +
+		"updated_at = $17 WHERE id = $18"
+	//defer u.db.Close()
+
+	u.logger.Println("Update user: ", user)
 
 	res, err := u.db.Exec(query, user.Email, user.Password, user.RoleId, user.FullName, user.Username, user.DateOfBirth,
-		user.ProfileAvatar, user.Bio, user.Followers, user.Followings, user.BlockUsers,
+		user.ProfileAvatar, user.Bio, user.Followers, user.Followings, user.Friends, user.BlockUsers,
 		user.Conversations, user.IsPrivate, user.IsActive, user.IsActivated,
 		time.Now(), user.UserId)
 
@@ -277,7 +347,7 @@ func (u *userRepo) CreateUser(user dto.UserDBResModel, ctx context.Context) erro
 		"values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)"
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetUserTable()) + "CreateUser - "
 
-	//defer u.db.Close()
+	////defer u.db.Close()
 
 	if _, err := u.db.Exec(query, user.UserId, user.RoleId, user.FullName, user.Username, user.Email, user.Password, user.DateOfBirth, user.ProfileAvatar, user.Bio, user.Friends, user.Followers, user.Followings, user.BlockUsers, user.Conversations, user.IsPrivate, user.IsActive, user.CreatedAt, user.UpdatedAt); err != nil {
 		u.logger.Println(errLogMsg + err.Error())
@@ -291,16 +361,17 @@ func (u *userRepo) CreateUser(user dto.UserDBResModel, ctx context.Context) erro
 func (u *userRepo) GetUser(id string, ctx context.Context) (*dto.UserDBResModel, error) {
 	var query string = "SELECT * FROM " + business_object.GetUserTable() + " WHERE id = $1"
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetUserTable()) + "GetUser - "
-	//defer u.db.Close()
+	////defer u.db.Close()
 
 	var res dto.UserDBResModel
 	var isActivated sql.NullBool
 	var isHaveToResetPw sql.NullBool
+	var friends, followers, followings, blockUsers sql.NullString
 
 	var err error = u.db.QueryRow(query, id).Scan(
 		&res.UserId, &res.RoleId, &res.FullName, &res.Username, &res.Email, &res.Password,
-		&res.DateOfBirth, &res.ProfileAvatar, &res.Bio, &res.Friends, &res.Followers,
-		&res.Followings, &res.BlockUsers, &res.Conversations, &res.IsPrivate,
+		&res.DateOfBirth, &res.ProfileAvatar, &res.Bio, &friends, &followers,
+		&followings, &blockUsers, &res.Conversations, &res.IsPrivate,
 		&res.IsActive, &isActivated, &isHaveToResetPw, &res.CreatedAt, &res.UpdatedAt)
 
 	if err != nil {
@@ -318,6 +389,22 @@ func (u *userRepo) GetUser(id string, ctx context.Context) (*dto.UserDBResModel,
 		res.IsHaveToResetPw = &boolVal
 	}
 
+	if friends.Valid {
+		res.Friends = friends.String
+	}
+
+	if followers.Valid {
+		res.Followers = followers.String
+	}
+
+	if followings.Valid {
+		res.Followings = followings.String
+	}
+
+	if blockUsers.Valid {
+		res.BlockUsers = blockUsers.String
+	}
+
 	return &res, nil
 }
 
@@ -330,9 +417,9 @@ func (u *userRepo) GetInvolvedAccountsAmountFromUser(req dto.GetInvoledAccouunts
 
 	var query string = "SELECT " + field + " FROM " + business_object.GetUserTable() + " WHERE id = $1"
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetUserTable()) + "GetInvolvedAccountsAmountFromUser - "
-	defer u.db.Close()
+	//defer u.db.Close()
 
-	var combinedString string
+	var combinedString sql.NullString
 	if err := u.db.QueryRow(query, req.UserId).Scan(&combinedString); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
@@ -342,7 +429,7 @@ func (u *userRepo) GetInvolvedAccountsAmountFromUser(req dto.GetInvoledAccouunts
 		return nil, errors.New(noti.InternalErr)
 	}
 
-	return util.ToSliceString(combinedString, "|"), nil
+	return util.ToSliceString(combinedString.String, "|"), nil
 }
 
 // GetInvolvedAccountsFromTag implements repo.IUserRepo.
@@ -350,9 +437,9 @@ func (u *userRepo) GetInvolvedAccountsFromTag(id string, ctx context.Context) ([
 	var query string = "SELECT friends, followers, followings FROM " + business_object.GetUserTable() + " WHERE id = $1"
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetUserTable()) + "GetInvolvedAccountsFromTag - "
 
-	defer u.db.Close()
+	//defer u.db.Close()
 
-	var friends, followers, followings string
+	var friends, followers, followings sql.NullString
 
 	if err := u.db.QueryRow(query, id).Scan(&friends, &followers, &followings); err != nil {
 		if err == sql.ErrNoRows {
@@ -363,7 +450,7 @@ func (u *userRepo) GetInvolvedAccountsFromTag(id string, ctx context.Context) ([
 		return nil, errors.New(noti.InternalErr)
 	}
 
-	return util.ToSliceString(friends+"|"+followers+"|"+followings, "|"), nil
+	return util.ToSliceString(friends.String+"|"+followers.String+"|"+followings.String, "|"), nil
 }
 
 // GetUsersByKeyword implements repo.IUserRepo.
@@ -373,7 +460,7 @@ func (u *userRepo) GetUsersByKeyword(keyword string, ctx context.Context) (*[]dt
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetUserTable()) + "GetUsersByKeyword - "
 	var internalErr error = errors.New(noti.InternalErr)
 
-	defer u.db.Close()
+	//defer u.db.Close()
 
 	rows, err := u.db.Query(query, keyword, keyword, keyword)
 	if err != nil {
@@ -386,11 +473,12 @@ func (u *userRepo) GetUsersByKeyword(keyword string, ctx context.Context) (*[]dt
 		var x dto.UserDBResModel
 		var isActivated sql.NullBool
 		var isHaveToResetPw sql.NullBool
+		var friends, followers, followings, blockUsers sql.NullString
 
 		if err := rows.Scan(
 			&x.UserId, &x.RoleId, &x.FullName, &x.Username, &x.Email, &x.Password,
-			&x.DateOfBirth, &x.ProfileAvatar, &x.Bio, &x.Friends, &x.Followers,
-			&x.Followings, &x.BlockUsers, &x.Conversations, &x.IsPrivate,
+			&x.DateOfBirth, &x.ProfileAvatar, &x.Bio, &friends, &followers,
+			&followings, &blockUsers, &x.Conversations, &x.IsPrivate,
 			&x.IsActive, &isActivated, &isHaveToResetPw, &x.CreatedAt, &x.UpdatedAt); err != nil {
 
 			u.logger.Println(errLogMsg + err.Error())
@@ -401,6 +489,22 @@ func (u *userRepo) GetUsersByKeyword(keyword string, ctx context.Context) (*[]dt
 		if isHaveToResetPw.Valid {
 			boolVal := isHaveToResetPw.Bool
 			x.IsHaveToResetPw = &boolVal
+		}
+
+		if friends.Valid {
+			x.Friends = friends.String
+		}
+
+		if followers.Valid {
+			x.Followers = followers.String
+		}
+
+		if followings.Valid {
+			x.Followings = followings.String
+		}
+
+		if blockUsers.Valid {
+			x.BlockUsers = blockUsers.String
 		}
 
 		res = append(res, x)

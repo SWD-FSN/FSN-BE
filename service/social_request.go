@@ -121,8 +121,17 @@ func (s *socialRequestService) AcceptRequest(requestId, actorId string, ctx cont
 	wg2.Add(2)
 
 	// Set friends
-	account.Friends += sepChar + req.AuthorId
-	author.Friends += sepChar + req.AccountId
+	if account.Friends == "" {
+		account.Friends += req.AuthorId
+	} else {
+		account.Friends += sepChar + req.AuthorId
+	}
+
+	if author.Friends == "" {
+		author.Friends += req.AccountId
+	} else {
+		author.Friends += sepChar + req.AccountId
+	}
 
 	// Save changes to db
 	go func() {
@@ -228,13 +237,13 @@ func (s *socialRequestService) ProcessRequest(req dto.SocialRequest, ctx context
 
 	wg.Add(2)
 
-	var account, actor *dto.UserDBResModel
+	var account, actor dto.UserDBResModel
 
 	// Validate requested account
 	go func() {
 		defer wg.Done()
 
-		if err := verifyAccount(req.AccountId, id_validate, account, s.userRepo, ctx); err != nil {
+		if err := verifyAccount(req.AccountId, id_validate, &account, s.userRepo, ctx); err != nil {
 			mu.Lock()
 
 			if capturedErr != nil {
@@ -250,7 +259,7 @@ func (s *socialRequestService) ProcessRequest(req dto.SocialRequest, ctx context
 	go func() {
 		defer wg.Done()
 
-		if err := verifyAccount(req.AuthorId, id_validate, actor, s.userRepo, ctx); err != nil {
+		if err := verifyAccount(req.AuthorId, id_validate, &actor, s.userRepo, ctx); err != nil {
 			mu.Lock()
 
 			if capturedErr != nil {
@@ -271,6 +280,70 @@ func (s *socialRequestService) ProcessRequest(req dto.SocialRequest, ctx context
 	// Account status as private -> can't request
 	if account.IsPrivate {
 		return errors.New("")
+	}
+
+	// Categorize request type
+	if req.ActionType == follow_request { // Follow người khác -> Add luôn ko cần chờ duyệt
+		var author dto.UserDBResModel
+		if err := verifyAccount(req.AuthorId, id_validate, &author, s.userRepo, ctx); err != nil {
+			return err
+		}
+
+		// Set account's followers
+		if account.Followers == "" {
+			account.Followers += req.AuthorId
+		} else {
+			account.Followers += sepChar + req.AuthorId
+		}
+
+		// Set author's followings
+		if author.Followings == "" {
+			author.Followings += req.AccountId
+		} else {
+			author.Followings += sepChar + req.AccountId
+		}
+
+		_, cancel := context.WithCancel(ctx)
+		var wg sync.WaitGroup
+		var mu sync.Mutex
+
+		wg.Add(2)
+
+		// Update account
+		go func() {
+			defer wg.Done()
+
+			if err := s.userRepo.UpdateUser(account, ctx); err != nil {
+				mu.Lock()
+
+				if capturedErr != nil {
+					capturedErr = err
+					cancel()
+				}
+
+				mu.Unlock()
+			}
+		}()
+
+		// Update author
+		go func() {
+			defer wg.Done()
+
+			if err := s.userRepo.UpdateUser(author, ctx); err != nil {
+				mu.Lock()
+
+				if capturedErr != nil {
+					capturedErr = err
+					cancel()
+				}
+
+				mu.Unlock()
+			}
+		}()
+
+		// Wait for them to finish
+		wg.Wait()
+		return capturedErr
 	}
 
 	var curTime time.Time = time.Now()
@@ -304,14 +377,17 @@ func (s *socialRequestService) ProcessRequest(req dto.SocialRequest, ctx context
 func verifyRequest(id string, repo repo.ISocialRequestRepo, req *business_object.SocialRequest, ctx context.Context) error {
 	var res error
 
-	req, res = repo.GetRequest(id, ctx)
+	var tmpReq *business_object.SocialRequest
+	tmpReq, res = repo.GetRequest(id, ctx)
 	if res != nil {
 		return res
 	}
 
-	if req == nil {
+	if tmpReq == nil {
 		return errors.New(noti.GenericsErrorWarnMsg)
 	}
+
+	*req = *tmpReq
 
 	return nil
 }
