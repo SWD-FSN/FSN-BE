@@ -28,11 +28,11 @@ func InitializeNotiRepo(db *sql.DB, logger *log.Logger) repo.INotificationRepo {
 // CreateNotification implements repo.INotificationRepo.
 func (n *notificationRepo) CreateNotification(notification businessobject.Notification, ctx context.Context) error {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetNotificationTable()) + "CreateNotification - "
-	var query string = "INSERT INTO " + business_object.GetNotificationTable() + "(id, actor_id, object_id, object_type, action, is_read, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7)"
+	var query string = "INSERT INTO " + business_object.GetNotificationTable() + "(id, actor_id, target_user_id, post_id, comment_id, action, is_read, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)"
 
 	//defer n.db.Close()
 
-	if _, err := n.db.Exec(query, notification.NotificationId, notification.ActorId, notification.ObjectId, notification.ObjectType, notification.Action, notification.IsRead, notification.CreatedAt); err != nil {
+	if _, err := n.db.Exec(query, notification.NotificationId, notification.ActorId, notification.TargetUserId, notification.PostId, notification.CommentId, notification.Action, notification.IsRead, notification.CreatedAt); err != nil {
 		n.logger.Println(errLogMsg + err.Error())
 		return errors.New(noti.InternalErr)
 	}
@@ -58,7 +58,7 @@ func (n *notificationRepo) GetAllNotifications(ctx context.Context) (*[]business
 	for rows.Next() {
 		var x business_object.Notification
 
-		if err := rows.Scan(&x.NotificationId, &x.ActorId, &x.ObjectId, &x.ObjectType, &x.Action, &x.IsRead, &x.CreatedAt); err != nil {
+		if err := rows.Scan(&x.NotificationId, &x.ActorId, &x.TargetUserId, &x.PostId, &x.CommentId, &x.Action, &x.IsRead, &x.CreatedAt); err != nil {
 			n.logger.Println(errLogMsg + err.Error())
 			return nil, internalErr
 		}
@@ -76,8 +76,8 @@ func (n *notificationRepo) GetNotificationOnAction(req dto.GetNotiOnActionReques
 
 	//defer n.db.Close()
 
-	var res *business_object.Notification
-	if err := n.db.QueryRow(query, req.ActorId, req.ObjectId, req.ObjectType, req.Action, req.CreatedAt).Scan(&res.NotificationId, &res.ActorId, &res.ObjectId, &res.ObjectType, &res.Action, &res.CreatedAt); err != nil {
+	var res business_object.Notification
+	if err := n.db.QueryRow(query, req.ActorId, req.ObjectId, req.ObjectType, req.Action, req.CreatedAt).Scan(&res.NotificationId, &res.ActorId, &res.TargetUserId, &res.PostId, &res.CommentId, &res.Action, &res.CreatedAt); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
@@ -86,7 +86,7 @@ func (n *notificationRepo) GetNotificationOnAction(req dto.GetNotiOnActionReques
 		return nil, errors.New(noti.InternalErr)
 	}
 
-	return res, nil
+	return &res, nil
 }
 
 // GetNotification implements repo.INotificationRepo.
@@ -97,7 +97,7 @@ func (n *notificationRepo) GetNotification(id string, ctx context.Context) (*bus
 	//defer n.db.Close()
 
 	var res business_object.Notification
-	if err := n.db.QueryRow(query, id).Scan(&res.NotificationId, &res.ActorId, &res.ObjectId, &res.ObjectType, &res.Action, &res.CreatedAt); err != nil {
+	if err := n.db.QueryRow(query, id).Scan(&res.NotificationId, &res.ActorId, &res.TargetUserId, &res.PostId, &res.CommentId, &res.Action, &res.CreatedAt); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
@@ -141,7 +141,7 @@ func (n *notificationRepo) GetUserNotifications(id string, ctx context.Context) 
 	for rows.Next() {
 		var x business_object.Notification
 
-		if err := rows.Scan(&x.NotificationId, &x.ActorId, &x.ObjectId, &x.ObjectType, &x.Action, &x.IsRead, &x.CreatedAt); err != nil {
+		if err := rows.Scan(&x.NotificationId, &x.ActorId, &x.TargetUserId, &x.PostId, &x.CommentId, &x.Action, &x.IsRead, &x.CreatedAt); err != nil {
 			n.logger.Println(errLogMsg + err.Error())
 			return nil, internalErr
 		}
@@ -158,15 +158,21 @@ func (n *notificationRepo) GetUserUnreadNotifications(id string, ctx context.Con
 	var query string = `
 		SELECT n.*
 		FROM notifications n
-		JOIN posts p ON n.object_id = p.id
+		JOIN posts p ON n.post_id = p.id
 		WHERE n.is_read = false AND p.author_id = $1
 
 		UNION 
 		
 		SELECT n.*
 		FROM notifications n
-		JOIN comments c ON n.object_id = c.id
+		JOIN comments c ON n.comment_id = c.id
 		WHERE n.is_read = false AND c.author_id = $2
+
+		UNION
+		SELECT n.*
+		FROM notifications n
+		JOIN users u on n.target_user_id = u.id
+		WHERE n.is_read = false AND u.id = $3
 
 		ORDER BY n.created_at DESC
 	`
@@ -174,7 +180,7 @@ func (n *notificationRepo) GetUserUnreadNotifications(id string, ctx context.Con
 
 	//defer n.db.Close()
 
-	rows, err := n.db.Query(query, id, id)
+	rows, err := n.db.Query(query, id, id, id)
 	if err != nil {
 		n.logger.Println(errLogMsg + err.Error())
 		return nil, internalErr
@@ -184,7 +190,7 @@ func (n *notificationRepo) GetUserUnreadNotifications(id string, ctx context.Con
 	for rows.Next() {
 		var x business_object.Notification
 
-		if err := rows.Scan(&x.NotificationId, &x.ActorId, &x.ObjectId, &x.ObjectType, &x.Action, &x.IsRead, &x.CreatedAt); err != nil {
+		if err := rows.Scan(&x.NotificationId, &x.ActorId, &x.TargetUserId, &x.PostId, &x.CommentId, &x.Action, &x.IsRead, &x.CreatedAt); err != nil {
 			n.logger.Println(errLogMsg + err.Error())
 			return nil, internalErr
 		}

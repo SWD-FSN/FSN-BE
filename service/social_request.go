@@ -362,8 +362,7 @@ func (s *socialRequestService) ProcessRequest(req dto.SocialRequest, ctx context
 	s.notiRepo.CreateNotification(business_object.Notification{
 		NotificationId: util.GenerateId(),
 		ActorId:        req.AuthorId,
-		ObjectId:       req.AccountId,
-		ObjectType:     objectType,
+		TargetUserId:   req.AccountId,
 		Action:         req.ActionType,
 		IsRead:         false,
 		CreatedAt:      curTime,

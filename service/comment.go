@@ -160,8 +160,9 @@ func (c *commentService) PostComment(req dto.CreateCommentRequest, ctx context.C
 
 	// Create comment
 	var curTime time.Time = time.Now()
+	var commentId string = util.GenerateId()
 	if err := c.commentRepo.CreateComment(business_object.Comment{
-		CommentId: util.GenerateId(),
+		CommentId: commentId,
 		AuthorId:  req.ActorId,
 		PostId:    req.PostId,
 		Content:   req.Content,
@@ -173,11 +174,11 @@ func (c *commentService) PostComment(req dto.CreateCommentRequest, ctx context.C
 
 	var objectType string = "post"
 	var actionType string = "comment"
+
 	c.notiRepo.CreateNotification(business_object.Notification{
 		NotificationId: util.GenerateId(),
 		ActorId:        req.ActorId,
-		ObjectId:       req.PostId,
-		ObjectType:     objectType,
+		PostId:         req.PostId,
 		Action:         actionType,
 		IsRead:         false,
 		CreatedAt:      curTime,

@@ -115,15 +115,22 @@ func (l *likeService) DoLike(req dto.DoLikeReq, ctx context.Context) error {
 
 	// Create noti
 	var actionType string = "like"
-	l.notiRepo.CreateNotification(business_object.Notification{
+	var noti = business_object.Notification{
 		NotificationId: util.GenerateId(),
 		ActorId:        req.ActorId,
-		ObjectId:       req.ObjectId,
-		ObjectType:     req.ObjectType,
 		Action:         actionType,
 		IsRead:         false,
 		CreatedAt:      curTime,
-	}, ctx)
+	}
+
+	switch req.ObjectType {
+	case comment_object:
+		noti.CommentId = req.ObjectId
+	case post_object:
+		noti.PostId = req.ObjectId
+	}
+
+	l.notiRepo.CreateNotification(noti, ctx)
 
 	// Call socket hub to noti online user
 	sendMsgSocket(req.ObjectId, req.ObjectType, actor.Username, actor.ProfileAvatar, actionType, "", curTime, nil, l.commentRepo, l.postRepo, nil, ctx)
@@ -142,8 +149,9 @@ func (l *likeService) GetLike(id string, ctx context.Context) (*business_object.
 }
 
 // GetLikesFromObject implements service.ILikeService.
+// Function này tạm ko cần xài đến
 func (l *likeService) GetLikesFromObject(id string, kind string, ctx context.Context) (*[]business_object.Like, error) {
-	return l.GetLikesFromObject(id, getObjectType(kind), ctx)
+	return l.GetLikesFromObject(id, "", ctx)
 }
 
 // UndoLike implements service.ILikeService.
@@ -210,18 +218,18 @@ func verifyObject(id, kind string, cmtRepo repo.ICommentRepo, postRepo repo.IPos
 	return errRes
 }
 
-func getObjectType(kind string) string {
-	var res string
+// func getObjectType(kind string) string {
+// 	var res string
 
-	switch kind {
-	case cmt_obj:
-		res = "comment"
-	case post_obj:
-		res = "post"
-	}
+// 	switch kind {
+// 	case cmt_obj:
+// 		res = "comment"
+// 	case post_obj:
+// 		res = "post"
+// 	}
 
-	return res
-}
+// 	return res
+// }
 
 func getAuthorOfObject(objectId, objectType string, cmtRepo repo.ICommentRepo, postRepo repo.IPostRepo, conversationRepo repo.IConversationRepo, ctx context.Context) string {
 	var res string

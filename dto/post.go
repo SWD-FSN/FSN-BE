@@ -3,8 +3,8 @@ package dto
 import "time"
 
 type UpPostReq struct {
-	AuthorId  string `json:"author_id"`
-	Content   string `json:"content"`
+	AuthorId  string `json:"author_id" validate:"required"`
+	Content   string `json:"content" validate:"required"`
 	IsPrivate *bool  `json:"is_private"`
 	IsHidden  *bool  `json:"is_hidden"`
 }

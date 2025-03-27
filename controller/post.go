@@ -132,3 +132,57 @@ func GetPostsDisplayUI(ctx *gin.Context) {
 		PostType: action_type.Non_post,
 	})
 }
+
+func CreatePost(ctx *gin.Context) {
+	var request dto.UpPostReq
+	if ctx.ShouldBindJSON(&request) != nil {
+		util.GenerateInvalidRequestAndSystemProblemModel(ctx, nil)
+		return
+	}
+
+	service, err := service.GeneratePostService()
+	if err != nil {
+		util.GenerateInvalidRequestAndSystemProblemModel(ctx, nil)
+		return
+	}
+
+	util.ProcessResponse(dto.APIResponse{
+		ErrMsg:  service.UpPost(request, ctx),
+		Context: ctx,
+	})
+}
+
+func RemovePost(ctx *gin.Context) {
+	service, err := service.GeneratePostService()
+	if err != nil {
+		util.GenerateInvalidRequestAndSystemProblemModel(ctx, nil)
+		return
+	}
+
+	var postId string = ctx.Param("postId")
+	var actorId string = ctx.Param("actorId")
+
+	util.ProcessResponse(dto.APIResponse{
+		ErrMsg:  service.RemovePost(postId, actorId, ctx),
+		Context: ctx,
+	})
+}
+
+func EditPost(ctx *gin.Context) {
+	var request dto.UpdatePostReq
+	if ctx.ShouldBindJSON(&request) != nil {
+		util.GenerateInvalidRequestAndSystemProblemModel(ctx, nil)
+		return
+	}
+
+	service, err := service.GeneratePostService()
+	if err != nil {
+		util.GenerateInvalidRequestAndSystemProblemModel(ctx, nil)
+		return
+	}
+
+	util.ProcessResponse(dto.APIResponse{
+		ErrMsg:  service.UpdatePost(request, ctx),
+		Context: ctx,
+	})
+}

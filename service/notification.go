@@ -45,11 +45,11 @@ func (n *notiService) CreateNotification(req dto.CreateNotiRequest, ctx context.
 	return n.notiRepo.CreateNotification(business_object.Notification{
 		NotificationId: util.GenerateId(),
 		ActorId:        req.ActorId,
-		ObjectId:       req.ObjectId,
-		ObjectType:     req.ObjectType,
-		Action:         req.Action,
-		IsRead:         false,
-		CreatedAt:      time.Now(),
+		// ObjectId:       req.ObjectId,
+		// ObjectType:     req.ObjectType,
+		Action:    req.Action,
+		IsRead:    false,
+		CreatedAt: time.Now(),
 	}, ctx)
 }
 
@@ -71,7 +71,9 @@ func (n *notiService) GetUserNotifications(id string, ctx context.Context) *dto.
 
 		// Check actor
 		if actor != nil {
-			content, _ := generateContentAndContentTypeOfMsg(actor.Username, noti.Action, noti.ObjectType, "")
+			var objectType string = getObjectType(noti.PostId, noti.TargetUserId, noti.CommentId)
+
+			content, _ := generateContentAndContentTypeOfMsg(actor.Username, noti.Action, objectType, "")
 			notis = append(notis, dto.NotificationResponseV2{
 				NotificationId: noti.NotificationId,
 				Content:        content,
@@ -99,4 +101,18 @@ func (n *notiService) GetUserUnreadNotifications(id string, ctx context.Context)
 	}
 
 	return res, nil
+}
+
+func getObjectType(postId, userId, commentId string) string {
+	var res string
+
+	if postId != "" {
+		res = post_object
+	} else if userId != "" {
+		res = user_object
+	} else if commentId != "" {
+		res = comment_object
+	}
+
+	return res
 }
