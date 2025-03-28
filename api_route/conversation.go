@@ -18,5 +18,6 @@ func InitializeConversationAPIRoute(server *gin.Engine, logger *log.Logger, port
 	norGroup.GET("/keyword", controller.GetConversationsByKeyword)
 	norGroup.GET("", controller.GetInternalConversationUIResponse)
 	norGroup.POST("/create", controller.CreateConversation)
+	norGroup.GET("/user/:id", controller.GetConversationsFromUser)
 	norGroup.POST("/message/create", controller.CreateMessage)
 }

@@ -216,9 +216,9 @@ func (c *conversationRepo) GetConversationsByKeyword(id string, keyword string, 
 }
 
 // GetConversationsFROMUser implements repo.IConversationRepo.
-func (c *conversationRepo) GetConversationsFROMUser(id string, ctx context.Context) (*[]businessObject.Conversation, error) {
+func (c *conversationRepo) GetConversationsFromUser(id string, ctx context.Context) (*[]businessObject.Conversation, error) {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, businessObject.GetConversationTable()) + "GetConversationsFROMUser - "
-	var query string = "SELECT * FROM " + businessObject.GetConversationTable() + " WHERE members LIKE '%?%'"
+	var query string = "SELECT * FROM " + businessObject.GetConversationTable() + " WHERE members LIKE '%$1%'"
 	var internalErr error = errors.New(noti.InternalErr)
 
 	defer c.db.Close()
@@ -233,8 +233,9 @@ func (c *conversationRepo) GetConversationsFROMUser(id string, ctx context.Conte
 	for rows.Next() {
 		var x businessObject.Conversation
 		var isDelete sql.NullBool
+		var hostId sql.NullString
 
-		if err := rows.Scan(&x.ConversationId, &x.ConversationName, &x.HostId, &x.Members, &x.IsGroup, &isDelete, &x.CreatedAt, &x.UpdatedAt); err != nil {
+		if err := rows.Scan(&x.ConversationId, &x.ConversationName, &hostId, &x.Members, &x.IsGroup, &isDelete, &x.CreatedAt, &x.UpdatedAt); err != nil {
 			c.logger.Println(errLogMsg + err.Error())
 			return nil, internalErr
 		}
@@ -243,13 +244,12 @@ func (c *conversationRepo) GetConversationsFROMUser(id string, ctx context.Conte
 			*x.IsDelete = isDelete.Bool
 		}
 
+		if hostId.Valid {
+			x.HostId = &hostId.String
+		}
+
 		res = append(res, x)
 	}
 
 	return &res, nil
-}
-
-// GetConversationsFromUser implements repo.IConversationRepo.
-func (c *conversationRepo) GetConversationsFromUser(id string, ctx context.Context) (*[]businessObject.Conversation, error) {
-	panic("unimplemented")
 }

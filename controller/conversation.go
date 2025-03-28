@@ -111,3 +111,17 @@ func CreateMessage(ctx *gin.Context) {
 		Context: ctx,
 	})
 }
+
+func GetConversationsFromUser(ctx *gin.Context) {
+	service, err := service.GenerateConversationService()
+	if err != nil {
+		util.GenerateInvalidRequestAndSystemProblemModel(ctx, err)
+		return
+	}
+
+	util.ProcessResponse(dto.APIResponse{
+		Data1:    service.GetConversationsFromUser(ctx.Param("id"), ctx),
+		Context:  ctx,
+		PostType: action_type.Non_post,
+	})
+}

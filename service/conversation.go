@@ -326,7 +326,35 @@ func (c *conersationService) GetConversationsByKeywordFromUser(id string, keywor
 
 // GetConversationsFromUser implements service.IConversationService.
 func (c *conersationService) GetConversationsFromUser(id string, ctx context.Context) *[]dto.ConversationUIResponse {
-	panic("unimplemented")
+	tmpStorage, _ := c.conversationRepo.GetConversationsFromUser(id, ctx)
+	var res []dto.ConversationUIResponse
+
+	if tmpStorage != nil {
+		for _, conv := range *tmpStorage {
+			if conv.ConversationId != "" {
+				var members []string = util.ToSliceString(conv.Members, sepChar)
+				var member string
+				for _, memberId := range members {
+					if memberId != id {
+						member = memberId
+					}
+				}
+
+				acc, _ := c.userRepo.GetUser(member, ctx)
+				if acc != nil {
+					var convName = acc.Username
+					res = append(res, dto.ConversationUIResponse{
+						ConversationId:     conv.ConversationId,
+						ConversationName:   convName,
+						ConversationAvatar: acc.ProfileAvatar,
+					})
+				}
+
+			}
+		}
+	}
+
+	return &res
 }
 
 // LeaveGroupConversation implements service.IConversationService.
