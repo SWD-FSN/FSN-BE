@@ -162,29 +162,23 @@ func (l *likeService) GetLikesFromObject(id string, kind string, ctx context.Con
 
 // UndoLike implements service.ILikeService.
 func (l *likeService) UndoLike(id string, ctx context.Context) error {
-	_, err := l.likeRepo.GetLike(id, ctx)
+	like, err := l.likeRepo.GetLike(id, ctx)
 	if err != nil {
 		return err
 	}
 
-	// notification, err := l.notiRepo.GetNotificationOnAction(dto.GetNotiOnActionRequest{
-	// 	ActorId:    like.AuthorId,
-	// 	ObjectId:   like.ObjectId,
-	// 	ObjectType: like.ObjectType,
-	// 	Action:     "like",
-	// 	CreatedAt:  like.CreatedAt,
-	// }, ctx)
-	// if err != nil {
-	// 	return err
-	// }
+	if like == nil {
+		return errors.New(noti.GenericsErrorWarnMsg)
+	}
 
-	// if notification == nil {
-	// 	return errors.New(noti.GenericsErrorWarnMsg)
-	// }
+	notification, _ := l.notiRepo.GetNotificationOnAction(dto.GetNotiOnActionRequest{
+		ActorId:   like.AuthorId,
+		CreatedAt: like.CreatedAt,
+	}, ctx)
 
-	// if err := l.notiRepo.RemoveNotification(notification.NotificationId, ctx); err != nil {
-	// 	return err
-	// }
+	if notification != nil {
+		l.notiRepo.RemoveNotification(notification.NotificationId, ctx)
+	}
 
 	return l.likeRepo.CancelLike(id, ctx)
 }

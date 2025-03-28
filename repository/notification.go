@@ -84,18 +84,32 @@ func (n *notificationRepo) GetAllNotifications(ctx context.Context) (*[]business
 // GetNotificationOnAction implements repo.INotificationRepo.
 func (n *notificationRepo) GetNotificationOnAction(req dto.GetNotiOnActionRequest, ctx context.Context) (*businessobject.Notification, error) {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetNotificationTable()) + "GetNotificationOnAction - "
-	var query string = "SELECT * FROM " + business_object.GetNotificationTable() + " WHERE actor_id = $1, object_id = $2, object_type = $3, action = $4 and created_at = $5"
+	var query string = "SELECT * FROM " + business_object.GetNotificationTable() + " WHERE actor_id = $1 AND created_at = $2 LIMIT 1"
 
 	//defer n.db.Close()
 
 	var res business_object.Notification
-	if err := n.db.QueryRow(query, req.ActorId, req.ObjectId, req.ObjectType, req.Action, req.CreatedAt).Scan(&res.NotificationId, &res.ActorId, &res.TargetUserId, &res.PostId, &res.CommentId, &res.Action, &res.CreatedAt); err != nil {
+	var targetUserId, postId, commentId sql.NullString
+
+	if err := n.db.QueryRow(query, req.ActorId, req.CreatedAt).Scan(&res.NotificationId, &res.ActorId, &targetUserId, &postId, &commentId, &res.Action, &res.CreatedAt); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
 
 		n.logger.Println(errLogMsg + err.Error())
 		return nil, errors.New(noti.InternalErr)
+	}
+
+	if targetUserId.Valid {
+		res.TargetUserId = targetUserId.String
+	}
+
+	if postId.Valid {
+		res.PostId = postId.String
+	}
+
+	if commentId.Valid {
+		res.CommentId = commentId.String
 	}
 
 	return &res, nil

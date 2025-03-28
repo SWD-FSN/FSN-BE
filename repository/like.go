@@ -26,7 +26,7 @@ func InitializeLikeRepo(db *sql.DB, logger *log.Logger) repo.ILikeRepo {
 // CancelLike implements repo.ILikeRepo.
 func (l *likeRepo) CancelLike(id string, ctx context.Context) error {
 	var errLogMsg string = fmt.Sprintf(noti.RepoErrMsg, business_object.GetLikeTable()) + "CancelLike - "
-	var query string = "DELETE FROM " + business_object.GetLikeTable() + " WHERE id = ?"
+	var query string = "DELETE FROM " + business_object.GetLikeTable() + " WHERE id = $1"
 
 	//defer l.db.Close()
 

@@ -16,5 +16,5 @@ func InitializeLikeAPIRoute(server *gin.Engine, logger *log.Logger, port string)
 
 	var norGroup = server.Group(contextPath)
 	norGroup.POST("/do-like", controller.DoLike)
-	norGroup.POST("/undo-like", controller.UndoLike)
+	norGroup.POST("/undo-like/:id", controller.UndoLike)
 }
